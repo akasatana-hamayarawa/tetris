@@ -1,0 +1,2141 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tetris Ultimate</title>
+    <style>
+        :root {
+            --accent: #00f0f0;
+            --bg: #050505;
+            --panel: rgba(20, 20, 20, 0.9);
+            --text: #ffffff;
+            --border: #333333;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        #settings-trigger {
+            position: fixed;
+            top: 25px;
+            right: 25px;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 100;
+            transition: 0.3s;
+        }
+
+        #settings-trigger:hover {
+            transform: rotate(90deg);
+            text-shadow: 0 0 15px var(--accent);
+        }
+
+        #menu {
+            position: absolute;
+            z-index: 10;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 50px;
+            border: 1px solid var(--accent);
+            border-radius: 20px;
+            box-shadow: 0 0 40px rgba(0, 240, 240, 0.2);
+        }
+
+        /* --accent変数を個別に上書きして色を変えられるように設定 */
+        .btn {
+            background: transparent;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            padding: 12px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px;
+            width: 260px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .btn:hover:not(:disabled) {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        .btn:disabled {
+            border-color: #555;
+            color: #555;
+            cursor: not-allowed;
+        }
+
+        #game-view {
+            display: none;
+            gap: 50px;
+            z-index: 1;
+            align-items: flex-start;
+            margin-top: 30px;
+        }
+
+        .field-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .board-area {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        canvas.main-canvas {
+            border: 4px solid var(--border);
+            background: var(--canvas-bg, #000);
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        .meter-container {
+            width: 12px;
+            height: 480px;
+            background: #222;
+            position: relative;
+            border-radius: 4px;
+            border: 1px solid #444;
+            overflow: hidden;
+            display: none;
+        }
+
+        .meter-fill {
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            background: linear-gradient(to top, #ff0000, #ff8800);
+            box-shadow: 0 0 10px #ff0000;
+            transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .side-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        @keyframes rainbowText {
+            0% {
+                filter: hue-rotate(0deg);
+            }
+
+            100% {
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        .rainbow-text {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+            margin-bottom: 5px;
+            animation: rainbowText 3s linear infinite;
+        }
+
+        .stat-box {
+            background: var(--panel);
+            border-left: 3px solid var(--accent);
+            padding: 10px;
+            width: 80px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .stat-val {
+            font-size: 18px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .hold-next-box {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 10px;
+            text-align: center;
+            width: 80px;
+        }
+
+        canvas.mini-canvas {
+            background: var(--canvas-bg, #000);
+            border: 1px solid var(--border);
+            margin-top: 5px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 101;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-card {
+            background: #111;
+            width: 450px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        .modal-header {
+            background: #1a1a1a;
+            padding: 15px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .settings-tabs {
+            display: flex;
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+            background: rgba(0, 240, 240, 0.05);
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .setting-row label {
+            font-size: 13px;
+            color: #ccc;
+        }
+
+        .setting-row input[type="range"] {
+            width: 150px;
+            accent-color: var(--accent);
+        }
+
+        .key-box {
+            background: #222;
+            border: 1px solid #444;
+            color: var(--accent);
+            padding: 5px 10px;
+            min-width: 100px;
+            text-align: center;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .key-box:hover {
+            border-color: var(--accent);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 20px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333;
+            transition: .4s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+        }
+
+        .lang-switch {
+            display: flex;
+            gap: 5px;
+        }
+
+        .lang-btn {
+            background: #00f0f0;
+            border: 1px solid;
+            color: #252525;
+            padding: 5px 10px;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .action-layer {
+            position: absolute;
+            top: 50%;
+            left: -120px;
+            transform: translateY(-50%);
+            pointer-events: none;
+            width: 150px;
+            text-align: right;
+        }
+
+        .action-text {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 20px;
+            animation: popup 1s forwards;
+            text-shadow: 0 0 10px var(--accent);
+            line-height: 1.2;
+        }
+
+        @keyframes popup {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            20% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
+        /* トースト通知 */
+        #toast-container {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 9999;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--accent);
+            color: #000;
+            padding: 10px 20px;
+            font-weight: bold;
+            font-size: 14px;
+            border-radius: 4px;
+            box-shadow: 0 0 15px var(--accent);
+            animation: slideInRight 0.3s forwards, fadeOut 0.5s 2.5s forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* --- 画面幅に合わせてモーダルやボタンを柔軟にする設定 --- */
+        .modal-card {
+            background: #111;
+            width: 90%;
+            max-width: 450px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        @media (max-width: 600px) {
+            #menu {
+                padding: 30px 15px;
+                width: 85%;
+            }
+
+            #menu h1 {
+                font-size: 32px !important;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 260px;
+                font-size: 15px;
+                padding: 10px 20px;
+            }
+
+            #settings-trigger {
+                top: 15px;
+                right: 15px;
+                font-size: 24px;
+            }
+        }
+
+        /* Save/Load UI */
+        .modal-input {
+            background: #222;
+            border: 1px solid var(--accent);
+            color: #fff;
+            padding: 10px;
+            font-size: 16px;
+            width: calc(100% - 22px);
+            outline: none;
+            border-radius: 4px;
+        }
+
+        .modal-select {
+            background: #222;
+            border: 1px solid var(--accent);
+            color: #fff;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            outline: none;
+            border-radius: 4px;
+        }
+
+        .slot-item {
+            background: #1a1a1a;
+            border: 1px solid #444;
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            text-align: left;
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .slot-item:hover,
+        .slot-item.selected {
+            border-color: var(--accent);
+            background: rgba(0, 240, 240, 0.1);
+            box-shadow: 0 0 10px rgba(0, 240, 240, 0.2);
+        }
+
+        .slot-empty {
+            color: #666;
+            font-style: italic;
+        }
+
+        .slot-title {
+            font-weight: bold;
+            color: var(--accent);
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .slot-date {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: 1px solid #ff4444;
+            color: #ff4444;
+            padding: 5px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: 0.2s;
+            z-index: 2;
+            position: relative;
+        }
+
+        .delete-btn:hover {
+            background: #ff4444;
+            color: #000;
+            box-shadow: 0 0 10px #ff4444;
+        }
+
+        /* 削除確認用パネルのスタイル */
+        #delete-confirm-panel {
+            position: absolute;
+            top: -200px;
+            left: 0;
+            width: 100%;
+            background: rgba(30, 0, 0, 0.95);
+            backdrop-filter: blur(5px);
+            padding: 20px;
+            box-sizing: border-box;
+            transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid #ff4444;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        #delete-confirm-panel.show {
+            top: 0;
+        }
+
+        #delete-confirm-input {
+            background: #111;
+            border: 1px solid #ff4444;
+            color: #fff;
+            padding: 10px;
+            font-size: 16px;
+            text-align: center;
+            border-radius: 4px;
+            outline: none;
+            width: 80%;
+        }
+
+        #delete-confirm-input:focus {
+            box-shadow: 0 0 10px #ff4444;
+        }
+    </style>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div id="settings-trigger" onclick="toggleSettings()">⚙️</div>
+    <div id="toast-container"></div>
+
+    <div id="settings-overlay" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span data-tr="settings">SETTINGS</span>
+                <span style="cursor:pointer; color:#888;" onclick="toggleSettings()">✕</span>
+            </div>
+            <div class="settings-tabs">
+                <button class="tab-btn active" onclick="openTab(event, 'tab-general')"
+                    data-tr="tab-general">GENERAL</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-handling')"
+                    data-tr="tab-handling">HANDLING</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-keys')" data-tr="tab-keys">KEYS</button>
+            </div>
+
+            <div id="tab-general" class="modal-body tab-content">
+                <div class="setting-row">
+                    <label data-tr="label-name">PLAYER NAME</label>
+                    <input type="text" id="player-name-input" class="modal-input" style="width:150px;" maxlength="15"
+                        onchange="cfg.playerName = this.value; saveCfg();">
+                </div>
+                <div class="setting-row">
+                    <label data-tr="label-theme">THEME COLOR</label>
+                    <select id="theme-select" class="modal-input"
+                        style="width:150px; cursor:pointer; background:#222; color:#fff;"
+                        onchange="cfg.theme = this.value; updateUIFromCfg(); saveCfg();">
+                        <option value="default" data-tr="theme-default">Default</option>
+                        <option value="retro" data-tr="theme-retro">Retro</option>
+                        <option value="light" data-tr="theme-light">Light</option>
+                        <option value="dark" data-tr="theme-dark">Dark</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label data-tr="label-lang">LANGUAGE</label>
+                    <div class="lang-switch">
+                        <button class="lang-btn" id="lang-ja" onclick="setLang('ja')">日本語</button>
+                        <button class="lang-btn" id="lang-en" onclick="setLang('en')">English</button>
+                    </div>
+                </div>
+                <div class="setting-row"><label data-tr="label-level">CPU LEVEL</label>
+                    <div><span id="lv-val">5</span><input type="range" id="lv-range" min="1" max="50"></div>
+                </div>
+                <div class="setting-row"><label data-tr="label-ghost">GHOST OPACITY</label>
+                    <div><span id="ghost-val">0.15</span><input type="range" id="ghost-range" min="0" max="100"
+                            step="5"></div>
+                </div>
+                <div class="setting-row">
+                    <label data-tr="ospin-label">O-SPIN ENABLED</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="ospin-toggle" onchange="cfg.ospin = this.checked; saveCfg();">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="tab-handling" class="modal-body tab-content" style="display:none;">
+                <div class="setting-row"><label data-tr="label-das">DAS (Delayed Auto Shift)</label>
+                    <div><span id="das-val">150</span>ms<input type="range" id="das-range" min="50" max="300" step="10">
+                    </div>
+                </div>
+                <div class="setting-row"><label data-tr="label-arr">ARR (Auto Repeat Rate)</label>
+                    <div><span id="arr-val">30</span>ms<input type="range" id="arr-range" min="0" max="100" step="5">
+                    </div>
+                </div>
+                <div class="setting-row"><label data-tr="label-sdf">SDF (Soft Drop Factor)</label>
+                    <div>x<span id="sdf-val">20</span><input type="range" id="sdf-range" min="5" max="50" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-keys" class="modal-body tab-content" style="display:none;">
+                <div class="setting-row"><label data-tr="key-left">MOVE LEFT</label>
+                    <div class="key-box" id="key-left" onclick="captureKey('left')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-right">MOVE RIGHT</label>
+                    <div class="key-box" id="key-right" onclick="captureKey('right')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-soft">SOFT DROP</label>
+                    <div class="key-box" id="key-soft" onclick="captureKey('soft')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-hard">HARD DROP</label>
+                    <div class="key-box" id="key-hard" onclick="captureKey('hard')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-rotR">ROTATE RIGHT</label>
+                    <div class="key-box" id="key-rotR" onclick="captureKey('rotR')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-rotL">ROTATE LEFT</label>
+                    <div class="key-box" id="key-rotL" onclick="captureKey('rotL')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-hold">HOLD (PRIMARY)</label>
+                    <div class="key-box" id="key-hold" onclick="captureKey('hold')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-hold2">HOLD (SECONDARY)</label>
+                    <div class="key-box" id="key-hold2" onclick="captureKey('hold2')"></div>
+                </div>
+            </div>
+            <div style="padding:15px; text-align:center; border-top:1px solid #222;">
+                <button class="btn" style="width:100%; font-size:14px; padding:10px; margin:0;"
+                    onclick="toggleSettings()" data-tr="save-close">SAVE & CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="save-overlay" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span data-tr="save-game">SAVE GAME</span>
+                <span style="cursor:pointer; color:#888;" onclick="closeSaveModal()">✕</span>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <label style="color: #ccc; font-size: 12px; margin-bottom: 5px; display: block;"
+                        data-tr="select-slot">Select Slot</label>
+                    <select id="save-slot" class="modal-select">
+                        <option value="1">Slot 1</option>
+                        <option value="2">Slot 2</option>
+                        <option value="3">Slot 3</option>
+                        <option value="4">Slot 4</option>
+                        <option value="5">Slot 5</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="color: #ccc; font-size: 12px; margin-bottom: 5px; display: block;"
+                        data-tr="save-name">Save Name</label>
+                    <input type="text" id="save-name" class="modal-input" placeholder="Enter save name...">
+                </div>
+                <button class="btn" style="width:100%; margin: 10px 0 0 0;" onclick="executeSave()"
+                    data-tr="save-and-menu">SAVE & EXIT TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="load-overlay" class="modal-overlay">
+        <div class="modal-card" style="width: 450px; position: relative;">
+            <div id="delete-confirm-panel">
+                <span id="delete-confirm-msg" style="color:#ff4444; font-weight:bold;"></span>
+                <input type="text" id="delete-confirm-input" placeholder="delete" autocomplete="off"
+                    onkeydown="if(event.key==='Enter') confirmDelete()">
+                <div style="display:flex; gap:10px; width: 80%;">
+                    <button class="btn" style="flex:1; margin:0; --accent:#ff4444;"
+                        onclick="confirmDelete()">OK</button>
+                    <button class="btn" style="flex:1; margin:0; border-color:#888; color:#888;"
+                        onclick="cancelDelete()">CANCEL</button>
+                </div>
+            </div>
+
+            <div class="modal-header">
+                <span data-tr="load-game">LOAD GAME</span>
+                <span style="cursor:pointer; color:#888;" onclick="closeLoadModal()">✕</span>
+            </div>
+            <div class="modal-body" id="load-slot-container" style="max-height: 400px; padding: 15px;">
+            </div>
+            <div style="padding: 15px; border-top: 1px solid #222; text-align: center;">
+                <button class="btn" id="do-load-btn" style="width:100%; margin:0;" onclick="executeLoad()" disabled
+                    data-tr="load-btn">LOAD</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu">
+        <h1 style="color:var(--accent); text-shadow:0 0 20px rgba(0,240,240,0.5); font-size:45px; margin-bottom:40px;">
+            TETRIS<br><span style="font-size:20px; letter-spacing:8px; color:#fff;">ULTIMATE</span></h1>
+
+        <div id="main-menu-btns">
+            <button class="btn" style="--accent: #00f0f0;" onclick="startGame(false, null)" data-tr="menu-solo">Solo
+                Play</button><br>
+
+            <button class="btn" id="btn-load" onclick="openLoadModal()" style="--accent: #55ff55;"
+                data-tr="menu-continue">CONTINUE</button><br>
+
+            <button class="btn" style="--accent: #ffaa00;" onclick="showOnlineMenu()" data-tr="menu-online">ONLINE
+                PLAY</button><br>
+
+            <button class="btn" style="--accent: #ff5555;" onclick="startGame(true, null)" data-tr="menu-cpu">VS
+                CPU</button><br>
+
+            <button class="btn" style="--accent: #aa55ff;" onclick="showTemplateMenu()" data-tr="menu-template">TEMPLATE
+                MODE</button>
+        </div>
+
+        <div id="online-menu" style="display:none;">
+            <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 20px;"
+                data-tr="menu-online">ONLINE PLAY</h2>
+            <div style="margin-bottom: 20px;">
+                <button class="btn" id="btn-create-room" style="--accent: #ffaa00; width: 100%;" onclick="hostRoom()"
+                    data-tr="online-create">CREATE ROOM</button>
+            </div>
+            <div style="margin-bottom: 20px; border-top: 1px solid #333; padding-top: 20px;">
+                <label style="color: #ccc; font-size: 12px; margin-bottom: 5px; display: block;"
+                    data-tr="online-enter-code">Enter Room Code</label>
+                <input type="text" id="join-code-input" class="modal-input"
+                    style="width: calc(100% - 22px); text-align: center; font-size: 20px; letter-spacing: 2px; text-transform: uppercase;"
+                    onkeydown="if(event.key === 'Enter') joinRoom()">
+                <button class="btn" id="btn-join-room" style="--accent: #00f0f0; width: 100%; margin-top: 10px;"
+                    onclick="joinRoom()" data-tr="online-join">JOIN ROOM</button>
+            </div>
+            <button class="btn" style="border-color:#888; color:#888; margin-top:10px;" onclick="hideOnlineMenu()"
+                data-tr="tmpl-back">BACK</button>
+        </div>
+
+        <div id="online-lobby" style="display:none; text-align: center;">
+            <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 15px;"
+                data-tr="online-lobby-title">ROOM LOBBY</h2>
+            <div
+                style="background: #111; border: 1px solid var(--accent); padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <div style="font-size: 12px; color: #888;" data-tr="online-your-code">YOUR ROOM CODE</div>
+                <div id="lobby-room-code"
+                    style="font-size: 28px; font-weight: bold; letter-spacing: 3px; color: #fff; margin: 5px 0;">---
+                </div>
+                <div style="font-size: 10px; color: #ffaa00;" id="lobby-status" data-tr="online-waiting">Waiting for
+                    connection...</div>
+            </div>
+
+            <div
+                style="display: flex; justify-content: space-around; margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 5px;">
+                <div>
+                    <div style="font-size: 12px; color: #888;">PLAYER 1</div>
+                    <div id="lobby-p1-name" style="font-size: 18px; color: #00f0f0; font-weight: bold;">---</div>
+                </div>
+                <div style="font-size: 20px; color: #555; align-self: center;">VS</div>
+                <div>
+                    <div style="font-size: 12px; color: #888;">PLAYER 2</div>
+                    <div id="lobby-p2-name" style="font-size: 18px; color: #ff5555; font-weight: bold;">---</div>
+                </div>
+            </div>
+
+            <button class="btn" id="btn-start-online" style="--accent: #00ff00; width: 100%; display: none;"
+                onclick="startOnlineGame()" data-tr="online-start">START GAME</button>
+            <button class="btn" style="border-color:#888; color:#888; margin-top:10px; width: 100%;"
+                onclick="disconnectOnline()" data-tr="online-leave">LEAVE ROOM</button>
+        </div>
+        <div id="template-menu" style="display:none;">
+            <div id="tmpl-main-list">
+                <button class="btn" onclick="selectTemplate('dt')" data-tr="tmpl-dt">DT Cannon</button><br>
+                <button class="btn" onclick="selectTemplate('pc')" data-tr="tmpl-pc">Perfect Clear Setup</button><br>
+                <button class="btn" onclick="selectTemplate('tst')" data-tr="tmpl-tst">TST Tower</button><br>
+
+                <button class="btn" style="border-color: #00ff00; color: #00ff00;" onclick="toggleRenMenu(true)"
+                    data-tr="tmpl-RS">REN series</button><br>
+                <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="toggleElevatorMenu(true)"
+                    data-tr="tmpl-ES">Elevator series</button><br>
+                <button class="btn" style="border-color: #ffff00; color: #ffff00;" onclick="toggleTdMenu(true)"
+                    data-tr="tmpl-TS">TD series</button><br>
+
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;" onclick="hideTemplateMenu()"
+                    data-tr="tmpl-back">BACK</button>
+            </div>
+
+            <div id="tmpl-ren-list" style="display:none;">
+                <button class="btn" onclick="selectTemplate('nren')" data-tr="tmpl-nren">Center REN</button><br>
+                <button class="btn" onclick="selectTemplate('hren')" data-tr="tmpl-hren">Edge Opening</button><br>
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
+                    onclick="toggleRenMenu(false)">◀ 戻る</button>
+            </div>
+
+            <div id="tmpl-elevator-list" style="display:none;">
+                <button class="btn" onclick="selectTemplate('iev')" data-tr="tmpl-iev">I mino elevator</button><br>
+                <button class="btn" onclick="selectTemplate('jev')" data-tr="tmpl-jev">J mino elevator</button><br>
+                <button class="btn" onclick="selectTemplate('lev')" data-tr="tmpl-lev">L mino elevator</button><br>
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
+                    onclick="toggleElevatorMenu(false)">◀ 戻る</button>
+            </div>
+
+            <div id="tmpl-td-list" style="display:none;">
+                <button class="btn" onclick="selectTemplate('hachi')" data-tr="tmpl-hachi">Hachimitsu
+                    Cannon</button><br>
+                <button class="btn" onclick="selectTemplate('meisou')" data-tr="tmpl-meisou">stray Cannon</button><br>
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
+                    onclick="toggleTdMenu(false)">◀ 戻る</button>
+            </div>
+        </div>
+
+        <div id="mode-select-menu" style="display:none;">
+            <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 30px;">MODE SELECT</h2>
+            <button class="btn" style="--accent: #00f0f0;" onclick="startSelectedTemplate(false)"
+                data-tr="menu-solo">SOLO PLAY</button><br>
+            <button class="btn" style="--accent: #ff5555;" onclick="startSelectedTemplate(true)" data-tr="menu-cpu">VS
+                CPU</button><br>
+            <button class="btn" style="border-color:#888; color:#888; margin-top:20px;" onclick="cancelTemplateSelect()"
+                data-tr="tmpl-back">BACK</button>
+        </div>
+    </div>
+
+    <div id="game-view">
+        <div class="field-wrap">
+            <div id="online-self-indicator" class="rainbow-text" style="display:none; margin-top: -30px;">自分⇩</div>
+            <div style="font-size:12px; color:var(--accent); font-weight:bold; letter-spacing:2px;"
+                data-tr="player-label">PLAYER</div>
+            <div class="board-area">
+                <div id="p-meter-container" class="meter-container">
+                    <div id="p-meter" class="meter-fill" style="height:0%;"></div>
+                </div>
+
+                <div class="side-column">
+                    <div class="hold-next-box">
+                        <div class="stat-label" data-tr="label-hold">HOLD</div>
+                        <canvas id="p-hold" class="mini-canvas" width="60" height="60"></canvas>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label" data-tr="label-score">SCORE</div>
+                        <div id="p-score" class="stat-val">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">REN</div>
+                        <div id="p-ren" class="stat-val">0</div>
+                    </div>
+                </div>
+                <div style="position:relative;">
+                    <div id="p-action-layer" class="action-layer"></div>
+                    <canvas id="p-canvas" class="main-canvas" width="240" height="480"></canvas>
+                </div>
+                <div class="side-column">
+                    <div class="hold-next-box" style="padding-bottom: 5px;">
+                        <div class="stat-label" data-tr="label-next">NEXT</div>
+                        <canvas id="p-next-0" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="p-next-1" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="p-next-2" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="p-next-3" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="p-next-4" class="mini-canvas" width="60" height="60"></canvas>
+                    </div>
+                </div>
+            </div>
+            <button id="btn-save-menu" class="btn"
+                style="width: 100%; margin: 15px 0 0 0; font-size: 14px; padding: 10px;" onclick="openSaveModal()"
+                data-tr="save-and-menu">SAVE & MENU</button>
+        </div>
+
+        <div id="cpu-field" class="field-wrap" style="display:none;">
+            <div style="font-size:12px; color:#f44; font-weight:bold; letter-spacing:2px;">CPU LV.<span
+                    id="current-lv">5</span></div>
+            <div class="board-area">
+                <div id="c-meter-container" class="meter-container">
+                    <div id="c-meter" class="meter-fill" style="height:0%;"></div>
+                </div>
+
+                <div class="side-column">
+                    <div class="hold-next-box">
+                        <div class="stat-label" data-tr="label-hold">HOLD</div><canvas id="c-hold" class="mini-canvas"
+                            width="60" height="60"></canvas>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label" data-tr="label-score">SCORE</div>
+                        <div id="c-score" class="stat-val">0</div>
+                    </div>
+                </div>
+                <div style="position:relative;">
+                    <div id="c-action-layer" class="action-layer"></div>
+                    <canvas id="c-canvas" class="main-canvas" width="240" height="480"></canvas>
+                </div>
+                <div class="side-column">
+                    <div class="hold-next-box" style="padding-bottom: 5px;">
+                        <div class="stat-label" data-tr="label-next">NEXT</div>
+                        <canvas id="c-next-0" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="c-next-1" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="c-next-2" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="c-next-3" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="c-next-4" class="mini-canvas" width="60" height="60"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Constants ---
+        const PIECES = {
+            'I': [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
+            'J': [[2, 0, 0], [2, 2, 2], [0, 0, 0]],
+            'L': [[0, 0, 3], [3, 3, 3], [0, 0, 0]],
+            'O': [[4, 4], [4, 4]],
+            'S': [[0, 5, 5], [5, 5, 0], [0, 0, 0]],
+            'T': [[0, 6, 0], [6, 6, 6], [0, 0, 0]],
+            'Z': [[7, 7, 0], [0, 7, 7], [0, 0, 0]]
+        };
+        const COLORS = [null, '#00f0f0', '#0000f0', '#f0a000', '#f0f000', '#00f000', '#a000f0', '#f00000', '#444'];
+
+        const KICKS = {
+            "0-1": [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
+            "1-0": [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],
+            "1-2": [[0, 0], [1, 0], [1, -1], [0, 2], [1, 2]],
+            "2-1": [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
+            "2-3": [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],
+            "3-2": [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]],
+            "3-0": [[0, 0], [-1, 0], [-1, -1], [0, 2], [-1, 2]],
+            "0-3": [[0, 0], [1, 0], [1, 1], [0, -2], [1, -2]],
+        };
+
+        const KICKS_I = {
+            "0-1": [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]],
+            "1-0": [[0, 0], [2, 0], [-1, 0], [2, 1], [-1, -2]],
+            "1-2": [[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]],
+            "2-1": [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]],
+            "2-3": [[0, 0], [2, 0], [-1, 0], [2, 1], [-1, -2]],
+            "3-2": [[0, 0], [-2, 0], [1, 0], [-2, -1], [1, 2]],
+            "3-0": [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]],
+            "0-3": [[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]],
+        };
+
+        const TEMPLATES = {
+            dt: { board: [".....5....", "..33.55.55", "...3775551", "22.3677441", "2..6661441", "2...551771", "44.5531277", "44.3331222"], hold: null, queue: ["T", "T"] },
+            pc: { board: ["1111....55", "2443...556", "2443..7766", "2233...776"], hold: null, queue: ["Z", "L", "I"] },
+            nren: { board: [".72....222", "772....152", "722....155", "333....155", "372....155", "772....165", "722....166", "333....167", "443....177", "442....177", "222....177", "222....177", "352....166", "355....156", "335....155", "333....155", "344....155", "244...6775", "222..66677"], hold: null, queue: ["S", "L", "S", "O", "L", "Z", "J", "S", "I", "S", "O", "T", "L", "I", "S", "T", "I", "O", "L"] },
+            sren: { board: ["222222....", "333333....", "111111....", "444444....", "555555....", "666666....", "777777....", "222222....", "333333....", "111111...."], hold: null, queue: ["I", "L", "J", "O", "S", "T", "Z"] },
+            tst: { board: [".7.......3", "77..5..333", "7...551111", "1.33653333", "1..3663333", "1.53633222", "1.55443233", "3..5443443", "3.77666443", "33.7761111"], hold: "T", queue: ["T", "T"] },
+            hachi: { board: ["1333......", "1355..22..", "155...2442", "155.772442", "553..77622", "333.776644", "1111.77644"], hold: "T", queue: ["T"] },
+            meisou: { board: ["......4421", "5..7..4421", "5577...221", "157333.771", "13536..277", "135566.244", "13356.2244"], hold: "T", queue: ["T"] },
+            iev: { board: ["7.777777.7", "6.666666.6", "2.2......2", "1.1.111111", "5.5.555555", "4.4......4", "3.333333.3", "7.777777.7", "6.6......6", "2.2.222222", "1.1.1111111", "5.5......5", "4.444444.4", "3.333333.3", "7........7"], hold: null, queue: ["I"] },
+            hren: {
+                "board": [
+                    ".........3",
+                    "....666333",
+                    "....163333",
+                    "....144313",
+                    "....144313",
+                    "....122212",
+                    "....226212",
+                    "....266122",
+                    "....276122",
+                    "....773121",
+                    "....763121",
+                    "....663331",
+                    "....365531",
+                    "....3556333",
+                    "....336644",
+                    "....2276444",
+                    "....277222",
+                    "....275562",
+                    ".111155666"
+                ],
+                "hold": "I",
+                "queue": ["Z", "O", "I", "T", "J", "O", "I", "I", "T", "L", "Z", "I", "T", "L", "O", "Z", "O", "L"]
+            },
+            jev: {
+                "board": [
+                    "4..44444.4",
+                    "3.3333...3",
+                    "7...777..7",
+                    "666.666.66",
+                    "2.2.222...",
+                    "1...1111.1",
+                    "5..555...5",
+                    "4.4.4.4..4",
+                    "3.......333",
+                    "77........"
+                ],
+                "hold": null,
+                "queue": [
+                    "J"
+                ]
+            },
+            lev: {
+                "board": [
+                    "4.44444..4",
+                    "3...3333.3",
+                    "7..777...7",
+                    "66.666.666",
+                    "...222.2.2",
+                    "1.1111...1",
+                    "5...555..5",
+                    "4..4.4.4.4",
+                    "33.......3",
+                    "........77"
+                ],
+                "hold": null,
+                "queue": [
+                    "L"
+                ]
+            }
+        };
+
+        const TRANSLATIONS = {
+            en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "label-ghost": "GHOST OPACITY", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark" },
+            ja: { settings: "設定", "tab-general": "一般", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-lev": "Lミノエレベーター", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク" }
+        };
+
+        const THEMES = {
+            'default': { accent: '#00f0f0', bg: '#050505', panel: 'rgba(20, 20, 20, 0.95)', text: '#ffffff', border: '#333333', star: '0, 240, 240', canvasBg: '#000000' },
+            'retro': { accent: '#ff00ff', bg: '#1a001a', panel: 'rgba(51, 0, 51, 0.95)', text: '#ffffff', border: '#ff00ff', star: '255, 0, 255', canvasBg: '#2a002a' },
+            'light': { accent: '#0088ff', bg: '#e0e0e0', panel: 'rgba(255, 255, 255, 0.95)', text: '#000000', border: '#cccccc', star: '0, 136, 255', canvasBg: '#f0f0f0' },
+            'dark': { accent: '#ff4444', bg: '#000000', panel: 'rgba(5, 5, 5, 0.95)', text: '#dddddd', border: '#444444', star: '255, 68, 68', canvasBg: '#0a0a0a' }
+        };
+
+        let cfg = { lang: 'ja', playerName: 'Player1', theme: 'default', lv: 5, ghost: 0.15, das: 150, arr: 30, sdf: 20, ospin: false, keys: { left: 'ArrowLeft', right: 'ArrowRight', soft: 'ArrowDown', hard: ' ', rotR: 'ArrowUp', rotL: 'z', hold: 'c', hold2: 'Shift' } };
+
+        // --- Global Functions ---
+        function getPrettyKey(key) {
+            if (cfg.lang === 'ja') {
+                const map = { 'ArrowLeft': '左矢印キー', 'ArrowRight': '右矢印キー', 'ArrowUp': '上矢印キー', 'ArrowDown': '下矢印キー', ' ': 'スペースキー', 'Shift': 'シフトキー', 'Enter': 'エンターキー', 'Control': 'コントロールキー', 'Escape': 'エスケープキー', 'Alt': 'オルトキー', 'Backspace': 'バックスペースキー' };
+                return map[key] || key.toUpperCase();
+            }
+            return key === " " ? "SPACE" : key.toUpperCase();
+        }
+
+        function setLang(l) {
+            cfg.lang = l;
+            document.querySelectorAll('[data-tr]').forEach(el => {
+                const key = el.getAttribute('data-tr');
+                if (TRANSLATIONS[l][key]) el.innerText = TRANSLATIONS[l][key];
+            });
+            updateUIFromCfg(); saveCfg();
+        }
+
+        function openTab(evt, tabName) {
+            let contents = document.getElementsByClassName("tab-content");
+            for (let c of contents) c.style.display = "none";
+            let tabs = document.getElementsByClassName("tab-btn");
+            for (let t of tabs) t.className = t.className.replace(" active", "");
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        function loadCfg() {
+            const saved = localStorage.getItem('tetrisProUltCfg_v13');
+            if (saved) { const parsed = JSON.parse(saved); cfg = { ...cfg, ...parsed, keys: { ...cfg.keys, ...parsed.keys } }; }
+            updateUIFromCfg(); setLang(cfg.lang);
+        }
+        function saveCfg() { localStorage.setItem('tetrisProUltCfg_v13', JSON.stringify(cfg)); }
+
+        function updateUIFromCfg() {
+            if (!cfg.theme || cfg.theme.startsWith('#')) cfg.theme = 'default';
+            const t = THEMES[cfg.theme] || THEMES['default'];
+
+            document.documentElement.style.setProperty('--accent', t.accent);
+            document.documentElement.style.setProperty('--bg', t.bg);
+            document.documentElement.style.setProperty('--panel', t.panel);
+            document.documentElement.style.setProperty('--text', t.text);
+            document.documentElement.style.setProperty('--border', t.border);
+            document.documentElement.style.setProperty('--canvas-bg', t.canvasBg);
+
+            document.getElementById('theme-select').value = cfg.theme;
+
+            document.getElementById('player-name-input').value = cfg.playerName;
+            document.getElementById('lv-range').value = cfg.lv; document.getElementById('lv-val').innerText = cfg.lv;
+            document.getElementById('ghost-range').value = cfg.ghost * 100; document.getElementById('ghost-val').innerText = cfg.ghost;
+            document.getElementById('das-range').value = cfg.das; document.getElementById('das-val').innerText = cfg.das;
+            document.getElementById('arr-range').value = cfg.arr; document.getElementById('arr-val').innerText = cfg.arr;
+            document.getElementById('sdf-range').value = cfg.sdf; document.getElementById('sdf-val').innerText = cfg.sdf;
+            document.getElementById('ospin-toggle').checked = cfg.ospin;
+            for (let k in cfg.keys) {
+                const el = document.getElementById('key-' + k);
+                if (el) el.innerText = getPrettyKey(cfg.keys[k]);
+            }
+        }
+
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            input.oninput = (e) => {
+                const id = e.target.id.split('-')[0];
+                if (id === 'ghost') cfg.ghost = e.target.value / 100;
+                else cfg[id] = parseInt(e.target.value);
+                updateUIFromCfg(); saveCfg();
+            };
+        });
+
+        let capturingKey = null;
+        function captureKey(target) { capturingKey = target; document.getElementById('key-' + target).innerText = cfg.lang === 'ja' ? 'キー入力待機中...' : '...'; }
+
+        // --- Save & Load System ---
+        let saves = JSON.parse(localStorage.getItem('tetrisProUltSaves_v1')) || { 1: null, 2: null, 3: null, 4: null, 5: null };
+        let selectedLoadSlot = null;
+        let slotToDelete = null;
+
+        function updateMenuLoadButton() {
+            document.getElementById('btn-load').style.display = 'inline-block';
+        }
+
+        function openSaveModal() {
+            isPaused = true;
+            document.getElementById('save-overlay').style.display = 'flex';
+
+            const now = new Date();
+            const dateStr = `${now.getMonth() + 1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            document.getElementById('save-name').value = `Save ${dateStr}`;
+        }
+
+        function closeSaveModal() {
+            document.getElementById('save-overlay').style.display = 'none';
+            isPaused = false;
+        }
+
+        function executeSave() {
+            const slot = document.getElementById('save-slot').value;
+            const name = document.getElementById('save-name').value || `Slot ${slot}`;
+
+            const saveData = {
+                name: name,
+                date: new Date().toLocaleString(),
+                isCPU: !!cpu,
+                p1: p1.getState(),
+                cpu: cpu ? cpu.getState() : null
+            };
+
+            saves[slot] = saveData;
+            localStorage.setItem('tetrisProUltSaves_v1', JSON.stringify(saves));
+
+            closeSaveModal();
+            returnToMenu();
+        }
+
+        function deleteSave(slot, event) {
+            event.stopPropagation(); // スロットのクリック判定を防ぐ
+            slotToDelete = slot;
+            const panel = document.getElementById('delete-confirm-panel');
+            const input = document.getElementById('delete-confirm-input');
+
+            document.getElementById('delete-confirm-msg').innerText = cfg.lang === 'ja' ? `スロット${slot}を削除するには「delete」と入力してください` : `Type "delete" to remove Slot ${slot}`;
+            input.value = '';
+            panel.classList.add('show');
+
+            setTimeout(() => input.focus(), 300);
+        }
+
+        function confirmDelete() {
+            const input = document.getElementById('delete-confirm-input');
+            if (input.value === 'delete' && slotToDelete !== null) {
+                saves[slotToDelete] = null;
+                localStorage.setItem('tetrisProUltSaves_v1', JSON.stringify(saves));
+                cancelDelete();
+
+                const hasSaves = Object.values(saves).some(s => s !== null);
+                if (!hasSaves) {
+                    closeLoadModal();
+                    showToast(cfg.lang === 'ja' ? "すべてのデータが削除されました" : "All save data deleted");
+                } else {
+                    openLoadModal(); // リストを再描画
+                }
+            } else {
+                showToast(cfg.lang === 'ja' ? "「delete」と正確に入力してください" : "Please type 'delete' exactly");
+                input.focus();
+            }
+        }
+
+        function cancelDelete() {
+            slotToDelete = null;
+            document.getElementById('delete-confirm-panel').classList.remove('show');
+        }
+
+        function openLoadModal() {
+            const hasSaves = Object.values(saves).some(s => s !== null);
+            if (!hasSaves) {
+                showToast(cfg.lang === 'ja' ? "データがありません" : "No save data");
+                return;
+            }
+
+            const container = document.getElementById('load-slot-container');
+            container.innerHTML = '';
+
+            selectedLoadSlot = null;
+            document.getElementById('do-load-btn').disabled = true;
+            cancelDelete(); // パネルが開いていたら閉じておく
+
+            for (let i = 1; i <= 5; i++) {
+                const data = saves[i];
+                if (data) {
+                    const el = document.createElement('div');
+                    el.className = 'slot-item';
+                    el.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div class="slot-title">Slot ${i}: ${data.name}</div>
+                        <div class="slot-date">${data.date}</div>
+                        <div style="font-size: 11px; color: #888;">Mode: ${data.isCPU ? "VS CPU" : "SOLO"}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteSave(${i}, event)">${cfg.lang === 'ja' ? '削除' : 'DELETE'}</button>
+                </div>
+            `;
+                    el.onclick = () => {
+                        document.querySelectorAll('.slot-item').forEach(e => e.classList.remove('selected'));
+                        el.classList.add('selected');
+                        selectedLoadSlot = i;
+                        document.getElementById('do-load-btn').disabled = false;
+                    };
+                    container.appendChild(el);
+                }
+            }
+
+            document.getElementById('load-overlay').style.display = 'flex';
+        }
+
+        function closeLoadModal() {
+            document.getElementById('load-overlay').style.display = 'none';
+            cancelDelete();
+        }
+
+        function executeLoad() {
+            if (!selectedLoadSlot || !saves[selectedLoadSlot]) return;
+            const data = saves[selectedLoadSlot];
+            closeLoadModal();
+
+            startGame(data.isCPU, null, true);
+
+            p1.setState(data.p1);
+            if (data.isCPU && cpu && data.cpu) {
+                cpu.setState(data.cpu);
+            }
+        }
+
+        function returnToMenu() {
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('menu').style.display = 'block';
+
+            const resetDisp = (id, disp) => { const el = document.getElementById(id); if (el) el.style.display = disp; };
+            resetDisp('main-menu-btns', 'block');
+            resetDisp('online-menu', 'none');
+            resetDisp('online-lobby', 'none');
+            resetDisp('template-menu', 'none');
+            resetDisp('mode-select-menu', 'none');
+
+            p1 = null; cpu = null;
+            isPaused = false;
+            updateMenuLoadButton();
+            document.getElementById('btn-save-menu').style.display = 'block';
+            document.getElementById('online-self-indicator').style.display = 'none';
+        }
+
+        // --- Online Multiplayer (PeerJS) ---
+        let peer = null;
+        let conn = null;
+        let isHost = false;
+        let isOnline = false;
+        let opponentName = "PLAYER 2";
+
+        function showOnlineMenu() {
+            document.getElementById('main-menu-btns').style.display = 'none';
+            document.getElementById('online-menu').style.display = 'block';
+        }
+
+        function hideOnlineMenu() {
+            document.getElementById('online-menu').style.display = 'none';
+            document.getElementById('main-menu-btns').style.display = 'block';
+        }
+
+        function generateRoomCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
+            return result;
+        }
+
+        function initPeer(id, onSuccess) {
+            if (peer) peer.destroy();
+
+            // PeerJS Cloudサーバーに確実に接続するためのオプション（任意）
+            const peerOptions = {
+                debug: 2
+            };
+
+            if (id) {
+                peer = new Peer(id, peerOptions);
+            } else {
+                peer = new Peer(peerOptions);
+            }
+
+            peer.on('open', (assignedId) => {
+                onSuccess(assignedId);
+            });
+
+            peer.on('error', (err) => {
+                console.error("PeerJS Error:", err);
+                let errorMsg = "通信エラーが発生しました";
+                if (err.type === 'peer-unavailable') {
+                    errorMsg = TRANSLATIONS[cfg.lang]["online-err-notfound"] || (cfg.lang === 'ja' ? "コードが間違っているか、無効です。" : "Invalid or missing room code.");
+                } else if (err.type === 'unavailable-id') {
+                    errorMsg = TRANSLATIONS[cfg.lang]["online-err-idinuse"] || (cfg.lang === 'ja' ? "その部屋番号はすでに使われています。" : "Room code is already in use.");
+                }
+                showToast(errorMsg);
+                resetOnlineLobby();
+                disconnectOnline();
+            });
+        }
+        function setupConnectionEvents(connection) {
+            conn = connection;
+            conn.on('open', () => {
+                document.getElementById('lobby-status').innerText = TRANSLATIONS[cfg.lang]["online-connected"];
+                document.getElementById('lobby-status').style.color = '#00ff00';
+
+                // 交換: 自分の名前を送る
+                conn.send({ type: 'hello', name: cfg.playerName });
+            });
+
+            conn.on('data', (data) => {
+                if (data.type === 'hello') {
+                    opponentName = data.name;
+                    document.getElementById('lobby-p2-name').innerText = opponentName;
+                    if (isHost) {
+                        document.getElementById('btn-start-online').style.display = 'inline-block';
+                    }
+                }
+                else if (data.type === 'start') {
+                    startOnlineGameExecution();
+                }
+                else if (data.type === 'state') {
+                    if (cpu && (cpu.isNetworkPlayer || !cpu.isAI)) {
+                        cpu.setState(data.state);
+                    }
+                }
+                else if (data.type === 'attack') {
+                    if (p1 && !p1.isGameOver) {
+                        p1.receiveGarbage(data.amount);
+                    }
+                }
+                else if (data.type === 'gameover') {
+                    if (cpu && !cpu.isGameOver) {
+                        cpu.isGameOver = true;
+                        if (p1 && !p1.isGameOver) {
+                            p1.isGameOver = true;
+                            showToast(TRANSLATIONS[cfg.lang].victory);
+                            setTimeout(() => returnToMenu(), 3000);
+                        }
+                    }
+                }
+            });
+
+            conn.on('close', () => {
+                if (p1 && p1.isGameOver) return; // ゲーム終了後の切断は通知しない
+                showToast(cfg.lang === 'ja' ? "対戦相手との通信が切断されました" : "Opponent disconnected.");
+                disconnectOnline();
+                if (isOnline) {
+                    returnToMenu();
+                }
+            });
+        }
+
+        function hostRoom() {
+            document.getElementById('btn-create-room').innerText = "...";
+            const roomCode = "TETRIS-" + generateRoomCode();
+            initPeer(roomCode, (id) => {
+                isHost = true;
+                document.getElementById('online-menu').style.display = 'none';
+                document.getElementById('online-lobby').style.display = 'block';
+                document.getElementById('lobby-room-code').innerText = id.replace("TETRIS-", "");
+                document.getElementById('lobby-p1-name').innerText = cfg.playerName;
+                document.getElementById('lobby-p2-name').innerText = "---";
+                document.getElementById('btn-start-online').style.display = 'none';
+                document.getElementById('lobby-status').innerText = TRANSLATIONS[cfg.lang]["online-waiting"];
+                document.getElementById('lobby-status').style.color = '#ffaa00';
+
+                peer.on('connection', (connection) => {
+                    setupConnectionEvents(connection);
+                });
+            });
+        }
+
+        function joinRoom() {
+            let code = document.getElementById('join-code-input').value.trim().toUpperCase();
+            if (!code) {
+                showToast(TRANSLATIONS[cfg.lang]["online-err-empty"] || (cfg.lang === 'ja' ? "コードを入力してください" : "Please enter a code."));
+                return;
+            }
+            document.getElementById('btn-join-room').innerText = "...";
+
+            initPeer(null, (id) => {
+                isHost = false;
+                const targetId = "TETRIS-" + code;
+
+                document.getElementById('online-menu').style.display = 'none';
+                document.getElementById('online-lobby').style.display = 'block';
+                document.getElementById('lobby-room-code').innerText = code;
+                document.getElementById('lobby-p1-name').innerText = "---";
+                document.getElementById('lobby-p2-name').innerText = cfg.playerName;
+                document.getElementById('lobby-status').innerText = TRANSLATIONS[cfg.lang]["online-waiting"] || "Connecting...";
+                document.getElementById('btn-start-online').style.display = 'none';
+
+                try {
+                    const connection = peer.connect(targetId, { reliable: true });
+
+                    // Connection validation timeout
+                    const connTimeout = setTimeout(() => {
+                        if (conn && conn.open) return;
+                        showToast(TRANSLATIONS[cfg.lang]["online-err-notfound"] || (cfg.lang === 'ja' ? "コードが間違っているか、無効です。" : "Invalid or missing room code."));
+                        disconnectOnline();
+                    }, 5000);
+
+                    connection.on('open', () => {
+                        clearTimeout(connTimeout);
+                    });
+
+                    setupConnectionEvents(connection);
+                } catch (e) {
+                    showToast(TRANSLATIONS[cfg.lang]["online-err-notfound"] || (cfg.lang === 'ja' ? "コードが間違っているか、無効です。" : "Invalid or missing room code."));
+                    disconnectOnline();
+                }
+            });
+        }
+
+        function resetOnlineLobby() {
+            document.getElementById('btn-create-room').innerText = TRANSLATIONS[cfg.lang]["online-create"];
+            document.getElementById('btn-join-room').innerText = TRANSLATIONS[cfg.lang]["online-join"];
+        }
+
+        function disconnectOnline() {
+            if (conn) conn.close();
+            if (peer) peer.destroy();
+            conn = null; peer = null; isOnline = false; isHost = false;
+            document.getElementById('online-lobby').style.display = 'none';
+            document.getElementById('online-menu').style.display = 'block';
+            resetOnlineLobby();
+        }
+
+        function startOnlineGame() {
+            if (!isHost || !conn) return;
+            conn.send({ type: 'start' });
+            startOnlineGameExecution();
+        }
+
+        function startOnlineGameExecution() {
+            isOnline = true;
+            document.getElementById('online-lobby').style.display = 'none';
+            document.getElementById('btn-save-menu').style.display = 'none';
+            document.getElementById('online-self-indicator').style.display = 'block';
+
+            // Start game in VS Mode
+            startGame(true, null);
+
+            // Override CPU name visually
+            document.getElementById('current-lv').innerText = opponentName;
+            document.getElementById('current-lv').parentElement.innerHTML = `<span style="color:#00f0f0;">${opponentName}</span>`; // Customize
+
+            // Make CPU a passive network player
+            if (cpu) {
+                cpu.isAI = true; // Still considered AI for visual logic but we override update
+                cpu.isNetworkPlayer = true;
+            }
+        }
+
+        // --- Menu Functions ---
+        let selectedTemplate = null;
+
+        function showTemplateMenu() {
+            document.getElementById('main-menu-btns').style.display = 'none';
+            document.getElementById('template-menu').style.display = 'block';
+        }
+
+        function hideTemplateMenu() {
+            document.getElementById('template-menu').style.display = 'none';
+            document.getElementById('mode-select-menu').style.display = 'none';
+            document.getElementById('main-menu-btns').style.display = 'block';
+            toggleElevatorMenu(false);
+            toggleRenMenu(false);
+            toggleTdMenu(false);
+            selectedTemplate = null;
+        }
+
+        function selectTemplate(tmpl) {
+            selectedTemplate = tmpl;
+            document.getElementById('template-menu').style.display = 'none';
+            document.getElementById('mode-select-menu').style.display = 'block';
+        }
+
+        function cancelTemplateSelect() {
+            selectedTemplate = null;
+            document.getElementById('mode-select-menu').style.display = 'none';
+            document.getElementById('template-menu').style.display = 'block';
+        }
+
+        function startSelectedTemplate(isCPU) {
+            startGame(isCPU, selectedTemplate);
+        }
+
+        function toggleElevatorMenu(showSub) {
+            const mainList = document.getElementById('tmpl-main-list');
+            const subList = document.getElementById('tmpl-elevator-list');
+            if (showSub) {
+                mainList.style.display = 'none';
+                subList.style.display = 'block';
+            } else {
+                mainList.style.display = 'block';
+                subList.style.display = 'none';
+            }
+        }
+
+        function toggleRenMenu(showSub) {
+            const mainList = document.getElementById('tmpl-main-list');
+            const subList = document.getElementById('tmpl-ren-list');
+            if (showSub) {
+                mainList.style.display = 'none';
+                subList.style.display = 'block';
+            } else {
+                mainList.style.display = 'block';
+                subList.style.display = 'none';
+            }
+        }
+
+        function toggleTdMenu(showSub) {
+            const mainList = document.getElementById('tmpl-main-list');
+            const subList = document.getElementById('tmpl-td-list');
+            if (showSub) {
+                mainList.style.display = 'none';
+                subList.style.display = 'block';
+            } else {
+                mainList.style.display = 'block';
+                subList.style.display = 'none';
+            }
+        }
+
+        // --- Tetris Game Class ---
+        class Tetris {
+            constructor(canvasId, holdId, nextBaseId, scoreId, isAI = false, actionId = null, meterId = null, templateKey = null, isLoad = false) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.holdCanvas = document.getElementById(holdId);
+                this.isAI = isAI;
+                this.nextCount = 5;
+                this.nextCanvases = Array.from({ length: this.nextCount }, (_, i) => document.getElementById(`${nextBaseId}-${i}`));
+                this.scoreElem = document.getElementById(scoreId);
+                this.actionLayer = actionId ? document.getElementById(actionId) : null;
+                this.meterFill = meterId ? document.getElementById(meterId) : null;
+
+                this.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
+                this.player = { pos: { x: 0, y: 0 }, matrix: null, type: null, color: null, score: 0, holdType: null, holdColor: null, canHold: true, ren: -1, btb: false, rotation: 0 };
+                this.bag = []; this.nextQueue = []; this.isGameOver = false; this.dropCounter = 0; this.pendingGarbage = 0;
+                this.lockDelayThreshold = 500; this.lockDelayCounter = 0; this.dasL = 0; this.arrL = 0; this.dasR = 0; this.arrR = 0;
+                this.oSpinRotCount = 0; this.oSpinTimer = 0; this.isOtransformed = false;
+
+                this.templateKey = templateKey;
+                this.targetBoard = null;
+
+                if (!isLoad) {
+                    if (this.templateKey) this.loadTemplate(this.templateKey);
+                    while (this.nextQueue.length < 10) this.nextQueue.push(this.pullFromBag());
+                    this.reset();
+                }
+            }
+
+            getState() {
+                return {
+                    arena: this.arena.map(row => row.map(v => v === 0 ? '.' : v).join('')),
+                    player: JSON.parse(JSON.stringify(this.player)),
+                    bag: JSON.parse(JSON.stringify(this.bag)),
+                    nextQueue: JSON.parse(JSON.stringify(this.nextQueue)),
+                    pendingGarbage: this.pendingGarbage,
+                    isGameOver: this.isGameOver,
+                    targetBoard: this.targetBoard ? this.targetBoard.map(row => row.map(v => v === -1 ? '.' : v).join('')) : null,
+                    lockDelayCounter: this.lockDelayCounter,
+                    dropCounter: this.dropCounter
+                };
+            }
+
+            setState(state) {
+                if (state.arena && typeof state.arena[0] === 'string') {
+                    this.arena = state.arena.map(row => row.split('').map(c => c === '.' ? 0 : parseInt(c)));
+                } else {
+                    this.arena = state.arena;
+                }
+
+                this.player = state.player;
+                this.bag = state.bag;
+                this.nextQueue = state.nextQueue;
+                this.pendingGarbage = state.pendingGarbage;
+                this.isGameOver = state.isGameOver;
+
+                if (state.targetBoard && typeof state.targetBoard[0] === 'string') {
+                    this.targetBoard = state.targetBoard.map(row => row.split('').map(c => c === '.' ? -1 : parseInt(c)));
+                } else {
+                    this.targetBoard = state.targetBoard;
+                }
+
+                this.lockDelayCounter = state.lockDelayCounter || 0;
+                this.dropCounter = state.dropCounter || 0;
+                this.updateUI();
+                this.updateMeter();
+            }
+
+            loadTemplate(tmplKey) {
+                const t = TEMPLATES[tmplKey]; if (!t) return;
+
+                if (this.isAI) {
+                    this.targetBoard = Array.from({ length: 22 }, () => new Array(10).fill(-1));
+                    let startY = 22 - t.board.length;
+                    for (let i = 0; i < t.board.length; i++) {
+                        for (let j = 0; j < 10; j++) {
+                            this.targetBoard[startY + i][j] = t.board[i][j] === '.' ? 0 : 1;
+                        }
+                    }
+                } else {
+                    let startY = 22 - t.board.length;
+                    for (let i = 0; i < t.board.length; i++) {
+                        for (let j = 0; j < 10; j++) { this.arena[startY + i][j] = t.board[i][j] === '.' ? 0 : parseInt(t.board[i][j]); }
+                    }
+                    this.nextQueue = [...t.queue];
+                    if (t.hold) { this.player.holdType = t.hold; this.player.holdColor = Object.keys(PIECES).indexOf(t.hold) + 1; }
+                }
+            }
+
+            pullFromBag() {
+                if (this.bag.length === 0) {
+                    this.bag = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+                    for (let i = this.bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[this.bag[i], this.bag[j]] = [this.bag[j], this.bag[i]]; }
+                }
+                return this.bag.shift();
+            }
+
+            reset() {
+                if (this.isGameOver) return;
+                if (this.pendingGarbage > 0) { this.pushGarbageToArena(this.pendingGarbage); this.pendingGarbage = 0; this.updateMeter(); }
+                this.player.type = this.nextQueue.shift();
+                this.nextQueue.push(this.pullFromBag());
+                this.player.matrix = JSON.parse(JSON.stringify(PIECES[this.player.type]));
+                this.player.color = Object.keys(PIECES).indexOf(this.player.type) + 1;
+                this.player.pos = { x: 3, y: 2 };
+                this.player.rotation = 0; this.player.canHold = true; this.lockDelayCounter = 0;
+                this.isOtransformed = false; this.oSpinRotCount = 0; this.oSpinTimer = 0; this.lastMoveRotate = false;
+                if (this.collide()) { this.player.pos.y--; if (this.collide()) this.gameOver(); }
+                if (this.isAI) this.aiPlan();
+                this.updateUI();
+            }
+
+            collide(m = this.player.matrix, o = this.player.pos) {
+                for (let y = 0; y < m.length; ++y) {
+                    for (let x = 0; x < m[y].length; ++x) {
+                        if (m[y][x] !== 0) {
+                            const ay = y + o.y, ax = x + o.x;
+                            if (ay >= 22 || ax < 0 || ax >= 10 || (ay >= 0 && this.arena[ay][ax] !== 0)) return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            playerRotate(dir) {
+                const oldM = JSON.parse(JSON.stringify(this.player.matrix));
+                const oldR = this.player.rotation;
+                const oldP = { ...this.player.pos };
+                const newR = (oldR + dir + 4) % 4;
+                const rotated = this.player.matrix[0].map((_, i) => this.player.matrix.map(row => row[i]));
+                this.player.matrix = dir > 0 ? rotated.map(row => row.reverse()) : rotated.reverse();
+                const kickTable = (this.player.type === 'I') ? KICKS_I : KICKS;
+                const kickSet = kickTable[`${oldR}-${newR}`] || [[0, 0]];
+                let success = false;
+                for (let [kx, ky] of kickSet) {
+                    this.player.pos.x += kx; this.player.pos.y -= ky;
+                    if (!this.collide()) { success = true; break; }
+                    this.player.pos = { ...oldP };
+                }
+                if (success) {
+                    this.player.rotation = newR; this.lastMoveRotate = true; this.lockDelayCounter = 0;
+                    if (cfg.ospin && this.player.type === 'O' && !this.isOtransformed) {
+                        if (this.oSpinRotCount === 0) this.oSpinTimer = 3000;
+                        this.oSpinRotCount++;
+                        if (this.oSpinRotCount >= 15 && this.oSpinTimer > 0) {
+                            this.player.matrix = JSON.parse(JSON.stringify(PIECES['I']));
+                            this.isOtransformed = true; this.showAction("O-SPIN");
+                        }
+                    }
+                } else { this.player.matrix = oldM; this.player.pos = { ...oldP }; }
+            }
+
+            playerMove(dir) {
+                this.player.pos.x += dir;
+                if (this.collide()) { this.player.pos.x -= dir; return false; }
+                this.lastMoveRotate = false; this.lockDelayCounter = 0; return true;
+            }
+
+            playerDrop() {
+                this.player.pos.y++;
+                if (this.collide()) { this.player.pos.y--; return false; }
+                this.lockDelayCounter = 0; this.dropCounter = 0; this.lastMoveRotate = false; return true;
+            }
+
+            lock() {
+                let tSpinInfo = { isTSpin: false, isMini: false };
+                if (this.player.type === 'T' && this.lastMoveRotate) tSpinInfo = this.checkTSpin();
+                this.player.matrix.forEach((row, y) => row.forEach((v, x) => {
+                    if (v !== 0 && this.arena[y + this.player.pos.y]) this.arena[y + this.player.pos.y][x + this.player.pos.x] = this.player.color;
+                }));
+                this.sweep(tSpinInfo); this.reset();
+            }
+
+            checkTSpin() {
+                let corners = 0; let frontCorners = 0; const { x, y } = this.player.pos;
+                const cornerCoords = [{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 0, y: 2 }, { x: 2, y: 2 }];
+                const frontMap = { 0: [0, 1], 1: [1, 3], 2: [2, 3], 3: [0, 2] };
+                const myFronts = frontMap[this.player.rotation];
+                cornerCoords.forEach((c, i) => {
+                    const ay = y + c.y, ax = x + c.x;
+                    if (ax < 0 || ax >= 10 || ay >= 22 || (ay >= 0 && this.arena[ay][ax] !== 0)) { corners++; if (myFronts.includes(i)) frontCorners++; }
+                });
+                return corners >= 3 ? { isTSpin: true, isMini: frontCorners < 2 } : { isTSpin: false, isMini: false };
+            }
+
+            sweep(tSpinInfo) {
+                let lines = 0;
+                outer: for (let y = 21; y >= 0; --y) {
+                    for (let x = 0; x < 10; ++x) { if (this.arena[y][x] === 0) continue outer; }
+                    this.arena.splice(y, 1); this.arena.unshift(new Array(10).fill(0)); ++y; lines++;
+                }
+                const isPerfectClear = this.arena.every(row => row.every(cell => cell === 0));
+                if (lines > 0 || tSpinInfo.isTSpin) {
+                    let actionText = ""; let atk = 0;
+                    if (tSpinInfo.isTSpin) {
+                        const mini = tSpinInfo.isMini ? "MINI " : "";
+                        const lineNames = ["", "SINGLE", "DOUBLE", "TRIPLE"];
+                        actionText = `T-SPIN ${mini}${lineNames[lines] || "NON-LINE"}`;
+                        atk = tSpinInfo.isMini ? [0, 1, 2, 3][lines] : [0, 2, 4, 6][lines];
+                    } else {
+                        const lineNames = ["", "SINGLE", "DOUBLE", "TRIPLE", "TETRIS"];
+                        actionText = lineNames[lines]; atk = [0, 0, 1, 2, 4][lines];
+                    }
+                    if (lines > 0) this.player.ren++; else this.player.ren = -1;
+                    if ((tSpinInfo.isTSpin || lines === 4) && lines > 0) { if (this.player.btb) atk += 1; this.player.btb = true; }
+                    else if (lines > 0) this.player.btb = false;
+                    atk += Math.floor(this.player.ren / 2);
+                    if (isPerfectClear) { actionText = "PERFECT CLEAR"; atk += 10; }
+                    if (atk > 0) {
+                        if (this.pendingGarbage > 0) { const offset = Math.min(atk, this.pendingGarbage); atk -= offset; this.pendingGarbage -= offset; this.updateMeter(); }
+                        if (isOnline && conn && conn.open && atk > 0 && !this.isAI) {
+                            conn.send({ type: 'attack', amount: atk });
+                        } else if (this.opponent && atk > 0) {
+                            this.opponent.receiveGarbage(atk);
+                        }
+                    }
+                    if (actionText) this.showAction(actionText + (this.player.ren > 0 ? `\n${this.player.ren} REN` : ""));
+                } else this.player.ren = -1;
+                this.player.score += (lines * 100); this.updateUI();
+            }
+
+            receiveGarbage(n) { this.pendingGarbage += n; this.updateMeter(); }
+            pushGarbageToArena(n) {
+                for (let i = 0; i < n; i++) { const r = new Array(10).fill(8); r[Math.floor(Math.random() * 10)] = 0; this.arena.shift(); this.arena.push(r); }
+                let limit = 0; while (this.collide() && limit < 22) { this.player.pos.y--; limit++; }
+                if (this.player.pos.y < 0) this.gameOver();
+            }
+
+            updateMeter() { if (this.meterFill) { const percent = Math.min(100, (this.pendingGarbage / 20) * 100); this.meterFill.style.height = percent + '%'; } }
+
+            playerHold() {
+                if (!this.player.canHold) return;
+                const curType = this.player.type, curColor = this.player.color;
+                if (this.player.holdType) {
+                    this.player.type = this.player.holdType; this.player.color = this.player.holdColor;
+                    this.player.matrix = JSON.parse(JSON.stringify(PIECES[this.player.type]));
+                    this.player.pos = { x: 3, y: 0 }; this.player.rotation = 0;
+                } else this.reset();
+                this.player.holdType = curType; this.player.holdColor = curColor; this.player.canHold = false;
+                this.isOtransformed = false; this.oSpinRotCount = 0;
+                if (this.isAI) this.aiPlan();
+                this.updateUI();
+            }
+
+            gameOver() {
+                if (this.isGameOver) return; this.isGameOver = true;
+
+                if (isOnline && conn && conn.open && !this.isAI) {
+                    conn.send({ type: 'gameover' });
+                }
+
+                let msg = this.isAI ? TRANSLATIONS[cfg.lang].victory : (this.opponent ? TRANSLATIONS[cfg.lang].defeat : TRANSLATIONS[cfg.lang].gameover);
+                showToast(msg); setTimeout(() => location.reload(), 2500);
+            }
+
+            aiPlan() {
+                const evalBoard = (type) => {
+                    let best = { s: -Infinity, x: 0, r: 0 };
+                    for (let r = 0; r < 4; r++) {
+                        let m = JSON.parse(JSON.stringify(PIECES[type]));
+                        for (let i = 0; i < r; i++) { let rot = m[0].map((_, idx) => m.map(row => row[idx])); m = rot.map(row => row.reverse()); }
+                        for (let x = -2; x < 10; x++) {
+                            if (this.collide(m, { x, y: 0 })) continue;
+                            let y = 0; while (!this.collide(m, { x, y: y + 1 })) y++;
+                            let holes = 0;
+                            let templateScore = 0;
+
+                            for (let c = 0; c < 10; c++) {
+                                let found = false;
+                                for (let row = 0; row < 22; row++) {
+                                    let isCurrent = (row >= y && row < y + m.length && c >= x && c < x + m[0].length && m[row - y][c - x]);
+                                    let val = isCurrent ? 1 : this.arena[row][c];
+                                    if (val) found = true; else if (found) holes++;
+
+                                    if (this.targetBoard && isCurrent) {
+                                        let target = this.targetBoard[row][c];
+                                        if (target === 1) {
+                                            templateScore += 1000;
+                                        } else if (target === 0) {
+                                            templateScore -= 2000;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (this.targetBoard) {
+                                for (let c = x; c < x + m[0].length; c++) {
+                                    if (c < 0 || c >= 10) continue;
+                                    let bottomRow = -1;
+                                    for (let r_m = m.length - 1; r_m >= 0; r_m--) {
+                                        if (m[r_m][c - x]) { bottomRow = y + r_m; break; }
+                                    }
+                                    if (bottomRow !== -1) {
+                                        for (let row = bottomRow + 1; row < 22; row++) {
+                                            if (this.targetBoard[row][c] === 1 && this.arena[row][c] === 0) {
+                                                templateScore -= 5000;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            let score = (y * 10) - (holes * 150) + templateScore;
+                            if (score > best.s) { best.s = score; best.x = x; best.r = r; }
+                        }
+                    }
+                    if (best.s === -Infinity) { best = { s: -10000, x: 3, r: 0 }; }
+                    return best;
+                };
+
+                let cur = evalBoard(this.player.type); let holdT = this.player.holdType || this.nextQueue[0]; let hld = evalBoard(holdT);
+                if (this.player.canHold && hld.s > cur.s + 50) { this.aiNeedHold = true; this.aiTargetX = hld.x; this.aiTargetRot = hld.r; }
+                else { this.aiNeedHold = false; this.aiTargetX = cur.x; this.aiTargetRot = cur.r; }
+            }
+
+            update(dt) {
+                if (this.isGameOver) return;
+
+                if (this.isNetworkPlayer) {
+                    this.draw();
+                    return;
+                }
+
+                if (this.oSpinTimer > 0) { this.oSpinTimer -= dt; if (this.oSpinTimer <= 0) this.oSpinRotCount = 0; }
+                this.dropCounter += dt;
+
+                if (this.isAI) {
+                    this.aiTimer = (this.aiTimer || 0) + dt;
+                    let speed = Math.max(10, 500 - cfg.lv * 10);
+                    if (this.aiTimer > speed) {
+                        if (this.aiNeedHold) this.playerHold();
+                        else if (this.player.rotation !== this.aiTargetRot) this.playerRotate(1);
+                        else if (this.player.pos.x < this.aiTargetX) { if (!this.playerMove(1)) this.aiTargetX = this.player.pos.x; }
+                        else if (this.player.pos.x > this.aiTargetX) { if (!this.playerMove(-1)) this.aiTargetX = this.player.pos.x; }
+                        else if (!this.playerDrop()) this.lock();
+                        this.aiTimer = 0;
+                    }
+                } else {
+                    if (this.dropCounter > (keysDown[cfg.keys.soft] ? 1000 / cfg.sdf : 1000)) this.playerDrop();
+                    this.handleInput(dt);
+                    if (this.collide(this.player.matrix, { x: this.player.pos.x, y: this.player.pos.y + 1 })) {
+                        this.lockDelayCounter += dt; if (this.lockDelayCounter >= this.lockDelayThreshold) { this.lock(); this.lockDelayCounter = 0; }
+                    } else this.lockDelayCounter = 0;
+
+                    // Sync state if online
+                    if (isOnline && conn && conn.open) {
+                        this.syncTimer = (this.syncTimer || 0) + dt;
+                        if (this.syncTimer > 30) { // Sync fast (approx 33fps) for real-time responsiveness
+                            conn.send({ type: 'state', state: this.getState() });
+                            this.syncTimer = 0;
+                        }
+                    }
+                }
+                this.draw();
+            }
+
+            handleInput(dt) {
+                const handleSide = (key, side) => {
+                    const dir = side === 'L' ? -1 : 1;
+                    if (keysDown[cfg.keys[key]]) {
+                        if (this['das' + side] === 0) this.playerMove(dir);
+                        this['das' + side] += dt;
+                        if (this['das' + side] >= cfg.das) {
+                            this['arr' + side] += dt;
+                            while (this['arr' + side] >= cfg.arr) { if (!this.playerMove(dir)) break; this['arr' + side] -= (cfg.arr || 1); }
+                        }
+                    } else { this['das' + side] = 0; this['arr' + side] = 0; }
+                };
+                handleSide('left', 'L'); handleSide('right', 'R');
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, 240, 480); const s = 24; const off = { x: 0, y: -2 };
+                if (!this.isAI) {
+                    const gp = { ...this.player.pos }; while (!this.collide(this.player.matrix, { x: gp.x, y: gp.y + 1 })) gp.y++;
+                    this.ctx.globalAlpha = cfg.ghost; this.drawM(this.player.matrix, { x: gp.x, y: gp.y + off.y }, s, this.player.color); this.ctx.globalAlpha = 1.0;
+                }
+                this.drawM(this.arena, off, s); this.drawM(this.player.matrix, { x: this.player.pos.x, y: this.player.pos.y + off.y }, s, this.player.color);
+            }
+
+            drawM(m, o, s, overrideColor = null) {
+                if (!m) return;
+                m.forEach((row, y) => row.forEach((v, x) => {
+                    if (v !== 0 && (y + o.y) >= 0) {
+                        this.ctx.fillStyle = COLORS[overrideColor || v]; this.ctx.fillRect((x + o.x) * s, (y + o.y) * s, s, s);
+                        this.ctx.strokeStyle = 'rgba(0,0,0,0.5)'; this.ctx.strokeRect((x + o.x) * s, (y + o.y) * s, s, s);
+                    }
+                }));
+            }
+
+            showAction(txt) {
+                if (!this.actionLayer) return;
+                const el = document.createElement('div'); el.className = 'action-text'; el.innerText = txt; this.actionLayer.appendChild(el);
+                setTimeout(() => el.remove(), 1000);
+            }
+
+            updateUI() {
+                const drawMini = (ctx, type, overrideColor = null) => {
+                    const t = THEMES[cfg.theme] || THEMES['default'];
+                    if (!ctx) return; ctx.fillStyle = t.canvasBg; ctx.fillRect(0, 0, 60, 60);
+                    if (!type) return; const m = PIECES[type], s = 10; ctx.fillStyle = COLORS[overrideColor || (Object.keys(PIECES).indexOf(type) + 1)];
+                    const ox = (60 - m[0].length * s) / 2, oy = (60 - m.length * s) / 2;
+                    m.forEach((row, y) => row.forEach((v, x) => { if (v) ctx.fillRect(x * s + ox, y * s + oy, s - 1, s - 1); }));
+                };
+                drawMini(this.holdCanvas.getContext('2d'), this.player.holdType, this.player.holdColor);
+                this.nextQueue.slice(0, this.nextCount).forEach((t, i) => { if (this.nextCanvases[i]) drawMini(this.nextCanvases[i].getContext('2d'), t); });
+                if (this.scoreElem) this.scoreElem.innerText = this.player.score;
+                const renEl = document.getElementById(this.isAI ? 'c-ren' : 'p-ren'); if (renEl) renEl.innerText = this.player.ren > 0 ? this.player.ren : 0;
+            }
+        }
+
+        // --- Animation Loop ---
+        let p1, cpu, lastTime = 0, keysDown = {};
+        let isPaused = false;
+        function animate(t = 0) {
+            const dt = Math.min(t - lastTime, 50);
+            lastTime = t;
+            if (!isPaused) {
+                if (p1) p1.update(dt);
+                if (cpu) cpu.update(dt);
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // --- Start Game ---
+        function startGame(isCPU, playerTmpl = null, isLoad = false) {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('mode-select-menu').style.display = 'none';
+            document.getElementById('game-view').style.display = 'flex';
+            const meters = document.querySelectorAll('.meter-container');
+
+            let cpuTmpl = null;
+            if (cfg.lv >= 11 && cfg.lv <= 20) cpuTmpl = 'dt';
+            else if (cfg.lv >= 21 && cfg.lv <= 30) cpuTmpl = 'hren';
+            else if (cfg.lv >= 31 && cfg.lv <= 40) cpuTmpl = 'nren';
+            else if (cfg.lv >= 41 && cfg.lv <= 50) cpuTmpl = 'hachi';
+
+            if (isCPU) {
+                meters.forEach(m => m.style.display = 'block'); document.getElementById('cpu-field').style.display = 'flex';
+                p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', playerTmpl, isLoad);
+                cpu = new Tetris('c-canvas', 'c-hold', 'c-next', 'c-score', true, 'c-action-layer', 'c-meter', cpuTmpl, isLoad);
+                p1.opponent = cpu; cpu.opponent = p1; document.getElementById('current-lv').innerText = cfg.lv;
+            } else {
+                meters.forEach(m => m.style.display = 'none'); document.getElementById('cpu-field').style.display = 'none';
+                p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', playerTmpl, isLoad);
+                cpu = null;
+            }
+            isPaused = false;
+
+            if (!isLoad && !lastTime) animate();
+            else if (isLoad) lastTime = performance.now();
+        }
+
+        function toggleSettings() { const s = document.getElementById('settings-overlay').style; s.display = s.display === 'flex' ? 'none' : 'flex'; }
+        function showToast(txt) {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            el.className = 'toast';
+            el.innerText = txt;
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+
+        // --- キー操作処理（大文字小文字を区別せず処理する） ---
+        window.addEventListener('keydown', e => {
+            if (capturingKey) {
+                cfg.keys[capturingKey] = e.key; capturingKey = null; updateUIFromCfg(); saveCfg(); e.preventDefault();
+                return;
+            }
+
+            // 入力欄にフォーカスがあるときはゲームキーを無視する
+            if (document.activeElement.tagName === 'INPUT') return;
+
+            let key = e.key;
+            let matchedKey = key;
+            // 設定されたキーと大文字・小文字を無視して一致するものがあれば、設定済みのキー名に変換する
+            for (let k in cfg.keys) {
+                if (cfg.keys[k].toLowerCase() === key.toLowerCase()) {
+                    matchedKey = cfg.keys[k];
+                    break;
+                }
+            }
+
+            keysDown[matchedKey] = true;
+            keysDown[key] = true;
+
+            if (p1 && !p1.isGameOver && !isPaused) {
+                if (matchedKey === cfg.keys.rotR) p1.playerRotate(1);
+                if (matchedKey === cfg.keys.rotL) p1.playerRotate(-1);
+                if (matchedKey === cfg.keys.hold || matchedKey === cfg.keys.hold2) p1.playerHold();
+                if (matchedKey === cfg.keys.hard) { e.preventDefault(); while (p1.playerDrop()); p1.lock(); }
+            }
+        });
+
+        window.addEventListener('keyup', e => {
+            let key = e.key;
+            let matchedKey = key;
+            for (let k in cfg.keys) {
+                if (cfg.keys[k].toLowerCase() === key.toLowerCase()) {
+                    matchedKey = cfg.keys[k];
+                    break;
+                }
+            }
+            keysDown[matchedKey] = false;
+            keysDown[key] = false;
+        });
+
+        loadCfg();
+        updateMenuLoadButton();
+        const bg = document.getElementById('bg-canvas'); const bctx = bg.getContext('2d');
+        function resize() {
+            bg.width = window.innerWidth;
+            bg.height = window.innerHeight;
+
+            const scaleX = window.innerWidth / 750;
+            const scaleY = window.innerHeight / 650;
+            const scale = Math.min(scaleX, scaleY, 1);
+
+            const gameView = document.getElementById('game-view');
+            if (gameView) {
+                gameView.style.transform = `scale(${scale})`;
+                gameView.style.transformOrigin = 'center center';
+            }
+
+            const menu = document.getElementById('menu');
+            if (menu) {
+                menu.style.transform = `scale(${scale})`;
+                menu.style.transformOrigin = 'center center';
+            }
+        }
+        window.onresize = resize; resize();
+        const stars = Array.from({ length: 80 }, () => ({ x: Math.random() * bg.width, y: Math.random() * bg.height, s: Math.random() * 2, o: Math.random() }));
+        function drawBg() {
+            const t = THEMES[cfg.theme] || THEMES['default'];
+            bctx.fillStyle = t.bg; bctx.fillRect(0, 0, bg.width, bg.height);
+            stars.forEach(s => { bctx.fillStyle = `rgba(${t.star}, ${s.o})`; bctx.fillRect(s.x, s.y, s.s, s.s); s.y = (s.y + 0.2) % bg.height; });
+            requestAnimationFrame(drawBg);
+        }
+        drawBg();
+        animate(); 
+    </script>
+</body>
+
+</html>
