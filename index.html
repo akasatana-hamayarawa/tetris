@@ -886,8 +886,8 @@
     <div id="game-view">
         <div class="field-wrap">
             <div id="online-self-indicator" class="rainbow-text" style="display:none; margin-top: -30px;">自分⇩</div>
-            <div style="font-size:12px; color:var(--accent); font-weight:bold; letter-spacing:2px;"
-                data-tr="player-label">PLAYER</div>
+            <div id="p1-name-display"
+                style="font-size:12px; color:var(--accent); font-weight:bold; letter-spacing:2px;"></div>
             <div class="board-area">
                 <div id="p-meter-container" class="meter-container">
                     <div id="p-meter" class="meter-fill" style="height:0%;"></div>
@@ -1132,6 +1132,11 @@
             document.getElementById('theme-select').value = cfg.theme;
 
             document.getElementById('player-name-input').value = cfg.playerName;
+
+            // ▼ 追加: 自分の盤面の上に設定したプレイヤー名を表示する
+            const p1NameDisp = document.getElementById('p1-name-display');
+            if (p1NameDisp) p1NameDisp.innerText = cfg.playerName;
+
             document.getElementById('lv-range').value = cfg.lv; document.getElementById('lv-val').innerText = cfg.lv;
             document.getElementById('ghost-range').value = cfg.ghost * 100; document.getElementById('ghost-val').innerText = cfg.ghost;
             document.getElementById('das-range').value = cfg.das; document.getElementById('das-val').innerText = cfg.das;
@@ -1371,20 +1376,31 @@
         }
         function setupConnectionEvents(connection) {
             conn = connection;
-            conn.on('open', () => {
+
+            const onOpen = () => {
                 document.getElementById('lobby-status').innerText = TRANSLATIONS[cfg.lang]["online-connected"];
                 document.getElementById('lobby-status').style.color = '#00ff00';
 
                 // 交換: 自分の名前を送る
                 conn.send({ type: 'hello', name: cfg.playerName });
-            });
+            };
+
+            // ▼ 修正: 通信が既に開いている場合でも確実に処理を実行する
+            if (conn.open) {
+                onOpen();
+            } else {
+                conn.on('open', onOpen);
+            }
 
             conn.on('data', (data) => {
                 if (data.type === 'hello') {
                     opponentName = data.name;
-                    document.getElementById('lobby-p2-name').innerText = opponentName;
+                    // ホストかゲストかで名前を表示する場所を変える
                     if (isHost) {
+                        document.getElementById('lobby-p2-name').innerText = opponentName;
                         document.getElementById('btn-start-online').style.display = 'inline-block';
+                    } else {
+                        document.getElementById('lobby-p1-name').innerText = opponentName;
                     }
                 }
                 else if (data.type === 'start') {
