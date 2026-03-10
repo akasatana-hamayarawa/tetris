@@ -592,6 +592,53 @@
         #delete-confirm-input:focus {
             box-shadow: 0 0 10px #ff4444;
         }
+
+        /* Quick Match Animations */
+        .radar-container {
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 20px rgba(0, 240, 240, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .radar-ping {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            animation: radarPing 2s ease-out infinite;
+            opacity: 0;
+        }
+
+        @keyframes radarPing {
+            0% {
+                transform: scale(0.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulseText {
+            0% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+                text-shadow: 0 0 10px #fff;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
+        }
     </style>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
@@ -783,6 +830,10 @@
         <div id="online-menu" style="display:none;">
             <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 20px;"
                 data-tr="menu-online">ONLINE PLAY</h2>
+            <div style="margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+                <button class="btn" id="btn-quick-match" style="--accent: #00f0f0; width: 100%;"
+                    onclick="startQuickMatch()" data-tr="online-quickmatch">QUICK MATCH</button>
+            </div>
             <div style="margin-bottom: 20px;">
                 <button class="btn" id="btn-create-room" style="--accent: #ffaa00; width: 100%;" onclick="hostRoom()"
                     data-tr="online-create">CREATE ROOM</button>
@@ -830,6 +881,27 @@
                 onclick="startOnlineGame()" data-tr="online-start">START GAME</button>
             <button class="btn" style="border-color:#888; color:#888; margin-top:10px; width: 100%;"
                 onclick="disconnectOnline()" data-tr="online-leave">LEAVE ROOM</button>
+        </div>
+
+        <div id="quick-match-lobby" style="display:none; text-align: center; margin-top: 50px;">
+            <h2 style="color:var(--accent); text-shadow:0 0 20px var(--accent); margin-bottom: 40px; font-size: 32px; letter-spacing: 5px;"
+                data-tr="online-quickmatch">QUICK MATCH</h2>
+
+            <div class="radar-container"
+                style="position: relative; width: 120px; height: 120px; margin: 0 auto 40px auto;">
+                <div class="radar-ping"></div>
+                <div class="radar-ping" style="animation-delay: 1s;"></div>
+                <div
+                    style="font-size: 40px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--accent);">
+                    🔍</div>
+            </div>
+
+            <div id="qm-status"
+                style="font-size: 18px; color: #fff; letter-spacing: 2px; margin-bottom: 30px; animation: pulseText 1.5s infinite;"
+                data-tr="online-searching">Searching for opponent...</div>
+
+            <button class="btn" style="border-color:#888; color:#888; width: 220px;" onclick="cancelQuickMatch()"
+                data-tr="online-leave">LEAVE ROOM</button>
         </div>
         <div id="template-menu" style="display:none;">
             <div id="tmpl-main-list">
@@ -1093,8 +1165,8 @@
         };
 
         const TRANSLATIONS = {
-            en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "label-ghost": "GHOST OPACITY", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark" },
-            ja: { settings: "設定", "tab-general": "一般", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク" }
+            en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "label-ghost": "GHOST OPACITY", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark" },
+            ja: { settings: "設定", "tab-general": "一般", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク" }
         };
 
         const THEMES = {
@@ -1347,6 +1419,8 @@
         let isHost = false;
         let isOnline = false;
         let opponentName = "PLAYER 2";
+        let qmIndex = 0;
+        let isQuickMatch = false;
 
         function showOnlineMenu() {
             document.getElementById('main-menu-btns').style.display = 'none';
@@ -1400,11 +1474,19 @@
             conn = connection;
 
             const onOpen = () => {
-                document.getElementById('lobby-status').innerText = TRANSLATIONS[cfg.lang]["online-connected"];
-                document.getElementById('lobby-status').style.color = '#00ff00';
-
-                // 交換: 自分の名前を送る
-                conn.send({ type: 'hello', name: cfg.playerName });
+                if (isQuickMatch) {
+                    let statusEl = document.getElementById('qm-status');
+                    statusEl.innerText = TRANSLATIONS[cfg.lang]["online-connected"] || "MATCH FOUND!";
+                    statusEl.style.color = '#00ff00';
+                    statusEl.style.animation = 'none';
+                    // 交換: 自分の名前を送る
+                    conn.send({ type: 'hello', name: cfg.playerName });
+                } else {
+                    document.getElementById('lobby-status').innerText = TRANSLATIONS[cfg.lang]["online-connected"];
+                    document.getElementById('lobby-status').style.color = '#00ff00';
+                    // 交換: 自分の名前を送る
+                    conn.send({ type: 'hello', name: cfg.playerName });
+                }
             };
 
             // ▼ 修正: 通信が既に開いている場合でも確実に処理を実行する
@@ -1415,14 +1497,31 @@
             }
 
             conn.on('data', (data) => {
-                if (data.type === 'hello') {
+                if (data.type === 'reject') {
+                    // Host is already in a game
+                    conn.close();
+                    if (isQuickMatch) {
+                        qmIndex++;
+                        searchQuickMatch();
+                    } else {
+                        showToast(TRANSLATIONS[cfg.lang]["online-err-full"] || "Room is full");
+                        disconnectOnline();
+                    }
+                }
+                else if (data.type === 'hello') {
                     opponentName = data.name;
                     // ホストかゲストかで名前を表示する場所を変える
                     if (isHost) {
-                        document.getElementById('lobby-p2-name').innerText = opponentName;
-                        document.getElementById('btn-start-online').style.display = 'inline-block';
+                        if (isQuickMatch) {
+                            setTimeout(() => { startOnlineGame(); }, 1000); // start automatically for host
+                        } else {
+                            document.getElementById('lobby-p2-name').innerText = opponentName;
+                            document.getElementById('btn-start-online').style.display = 'inline-block';
+                        }
                     } else {
-                        document.getElementById('lobby-p1-name').innerText = opponentName;
+                        if (!isQuickMatch) {
+                            document.getElementById('lobby-p1-name').innerText = opponentName;
+                        }
                     }
                 }
                 else if (data.type === 'start') {
@@ -1475,6 +1574,13 @@
                 document.getElementById('lobby-status').style.color = '#ffaa00';
 
                 peer.on('connection', (connection) => {
+                    if (conn && conn.open || isOnline) {
+                        connection.on('open', () => {
+                            connection.send({ type: 'reject' });
+                            setTimeout(() => connection.close(), 500);
+                        });
+                        return;
+                    }
                     setupConnectionEvents(connection);
                 });
             });
@@ -1522,6 +1628,86 @@
             });
         }
 
+        function startQuickMatch() {
+            isQuickMatch = true;
+            qmIndex = 1;
+
+            document.getElementById('online-menu').style.display = 'none';
+            document.getElementById('quick-match-lobby').style.display = 'block';
+
+            let statusEl = document.getElementById('qm-status');
+            statusEl.innerText = TRANSLATIONS[cfg.lang]["online-searching"] || "Searching for opponent...";
+            statusEl.style.color = '#fff';
+            statusEl.style.animation = 'pulseText 1.5s infinite';
+
+            searchQuickMatch();
+        }
+
+        function cancelQuickMatch() {
+            isQuickMatch = false;
+            if (peer) { peer.destroy(); peer = null; }
+            if (conn) { conn.close(); conn = null; }
+            document.getElementById('quick-match-lobby').style.display = 'none';
+            document.getElementById('online-menu').style.display = 'block';
+        }
+
+        function searchQuickMatch() {
+            if (qmIndex > 50) {
+                showToast(cfg.lang === 'ja' ? "対戦相手が見つかりませんでした" : "No opponent found.");
+                disconnectOnline();
+                return;
+            }
+
+            if (peer) peer.destroy();
+            const targetId = "TETRIS-QM-" + qmIndex;
+
+            // Try to become the host for this QM slot
+            peer = new Peer(targetId, { debug: 2 });
+
+            peer.on('open', (id) => {
+                // Successfully hosted
+                isHost = true;
+                peer.on('connection', (connection) => {
+                    if (conn && conn.open || isOnline) {
+                        connection.on('open', () => {
+                            connection.send({ type: 'reject' });
+                            setTimeout(() => connection.close(), 500);
+                        });
+                        return;
+                    }
+                    setupConnectionEvents(connection);
+                });
+            });
+
+            peer.on('error', (err) => {
+                // If ID is already taken, someone is hosting it. Try to join them.
+                if (err.type === 'unavailable-id') {
+                    peer.destroy();
+                    peer = new Peer({ debug: 2 });
+                    peer.on('open', () => {
+                        isHost = false;
+                        document.getElementById('lobby-p1-name').innerText = "---";
+                        document.getElementById('lobby-p2-name').innerText = cfg.playerName;
+
+                        const connection = peer.connect(targetId, { reliable: true });
+                        setupConnectionEvents(connection);
+
+                        // Fallback timeout in case the connection hangs
+                        setTimeout(() => {
+                            if (!conn || !conn.open) {
+                                qmIndex++;
+                                searchQuickMatch();
+                            }
+                        }, 3000);
+                    });
+                } else {
+                    console.error("Quick Match Error:", err);
+                    showToast(cfg.lang === 'ja' ? "クイックマッチ中にエラーが発生しました" : "Error during Quick Match.");
+                    disconnectOnline();
+                }
+            });
+        }
+
         function resetOnlineLobby() {
             document.getElementById('btn-create-room').innerText = TRANSLATIONS[cfg.lang]["online-create"];
             document.getElementById('btn-join-room').innerText = TRANSLATIONS[cfg.lang]["online-join"];
@@ -1530,8 +1716,9 @@
         function disconnectOnline() {
             if (conn) conn.close();
             if (peer) peer.destroy();
-            conn = null; peer = null; isOnline = false; isHost = false;
+            conn = null; peer = null; isOnline = false; isHost = false; isQuickMatch = false;
             document.getElementById('online-lobby').style.display = 'none';
+            document.getElementById('quick-match-lobby').style.display = 'none';
             document.getElementById('online-menu').style.display = 'block';
             resetOnlineLobby();
         }
