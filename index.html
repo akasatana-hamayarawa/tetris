@@ -906,7 +906,6 @@
         <div id="template-menu" style="display:none;">
             <div id="tmpl-main-list">
                 <button class="btn" onclick="selectTemplate('dt')" data-tr="tmpl-dt">DT Cannon</button><br>
-                <button class="btn" onclick="selectTemplate('pc')" data-tr="tmpl-pc">Perfect Clear Setup</button><br>
                 <button class="btn" onclick="selectTemplate('tst')" data-tr="tmpl-tst">TST Tower</button><br>
 
                 <button class="btn" style="border-color: #00ff00; color: #00ff00;" onclick="toggleRenMenu(true)"
@@ -915,6 +914,8 @@
                     data-tr="tmpl-ES">Elevator series</button><br>
                 <button class="btn" style="border-color: #ffff00; color: #ffff00;" onclick="toggleTdMenu(true)"
                     data-tr="tmpl-TS">TD series</button><br>
+                <button class="btn" style="border-color: #ff6600; color: #ff6600;" onclick="togglePCMenu(true)"
+                    data-tr="tmpl-PCS">PC series</button><br>
 
                 <button class="btn" style="border-color:#888; color:#888; margin-top:20px;" onclick="hideTemplateMenu()"
                     data-tr="tmpl-back">BACK</button>
@@ -936,13 +937,20 @@
             </div>
 
             <div id="tmpl-td-list" style="display:none;">
-                <button class="btn" onclick="selectTemplate('hachi')" data-tr="tmpl-hachi">Hachimitsu
-                    Cannon</button><br>
-                <button class="btn" onclick="selectTemplate('meisou')" data-tr="tmpl-meisou">stray Cannon</button><br>
-                <button class="btn" onclick="selectTemplate('sgk2')" data-tr="tmpl-sgk2">Mountain Stacking
-                    No.2</button><br>
+                <button class="btn" onclick="selectTemplate('hachi')" data-tr="tmpl-hachi">HachimitsuCannon</button><br>
+                <button class="btn" onclick="selectTemplate('meisou')" data-tr="tmpl-meisou">straysCannon</button><br>
+                <button class="btn" onclick="selectTemplate('sgk2')"
+                    data-tr="tmpl-sgk2">MountainStackingNo.2</button><br>
+                <button class="btn" onclick="selectTemplate('gmsr')" data-tr="tmpl-gmsr">gamushiro Cannon</button><br>
                 <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
                     onclick="toggleTdMenu(false)">◀ 戻る</button>
+            </div>
+
+            <div id="tmpl-pc-list" style="display:none;">
+                <button class="btn" onclick="selectTemplate('pc')" data-tr="tmpl-pc">Perfect Clear Setup</button><br>
+                <button class="btn" onclick="selectTemplate('hpc')" data-tr="tmpl-hpc">Perfect Clear Setup</button><br>
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
+                    onclick="togglePCMenu(false)">◀ 戻る</button>
             </div>
         </div>
 
@@ -1161,12 +1169,62 @@
                     "I",
                     "J"
                 ]
-            }
+            },
+            gmsr: {
+                "board": [
+                    "1.......44",
+                    "1.......44",
+                    "122.....33",
+                    "12....5533",
+                    "52.7755133",
+                    "55..776133",
+                    "25.7766144",
+                    "222.776144"
+                ],
+                "hold": "T",
+                "queue": [
+                    "T",
+                    "S",
+                    "O",
+                    "I",
+                    "J"
+                ]
+            },
+            hpc: {
+    "board": [
+        "777777..77",
+        "7777777..7",
+        "333.333333",
+        "3...333333",
+        "4444444..4",
+        "4444444..4",
+        "55..555555",
+        "5..5555555",
+        "222222.222",
+        "222222...2",
+        "1.11111111",
+        "1.11111111",
+        "1.11111111",
+        "1.11111111",
+        "666666...6",
+        "6666666.66"
+    ],
+    "hold": null,
+    "queue": [
+        "Z",
+        "L",
+        "O",
+        "S",
+        "J",
+        "I",
+        "T"
+    ]
+}
         };
 
         const TRANSLATIONS = {
             en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "label-ghost": "GHOST OPACITY", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark" },
-            ja: { settings: "設定", "tab-general": "一般", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク" }
+            ja: { settings: "設定", "tab-general": "一般", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS":"パフェ系","tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-hpc": "変なパフェ", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク" }
         };
 
         const THEMES = {
@@ -1442,7 +1500,7 @@
         function initPeer(id, onSuccess) {
             if (peer) peer.destroy();
 
-            // PeerJS Cloudサーバーに確実に接続するためのオプション（任意）
+            // PeerJS Cloudサーバーに確実に接続するためのオプション
             const peerOptions = {
                 debug: 2
             };
@@ -1810,6 +1868,18 @@
         function toggleTdMenu(showSub) {
             const mainList = document.getElementById('tmpl-main-list');
             const subList = document.getElementById('tmpl-td-list');
+            if (showSub) {
+                mainList.style.display = 'none';
+                subList.style.display = 'block';
+            } else {
+                mainList.style.display = 'block';
+                subList.style.display = 'none';
+            }
+        }
+
+        function togglePCMenu(showSub) {
+            const mainList = document.getElementById('tmpl-main-list');
+            const subList = document.getElementById('tmpl-pc-list');
             if (showSub) {
                 mainList.style.display = 'none';
                 subList.style.display = 'block';
