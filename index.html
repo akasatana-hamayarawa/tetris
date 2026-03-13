@@ -639,6 +639,95 @@
                 opacity: 0.5;
             }
         }
+
+        /* Touch Controls */
+        #touch-controls {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            #touch-controls {
+                display: flex;
+            }
+            #game-view {
+                transform: scale(0.65);
+                transform-origin: top center;
+                margin-top: 10px;
+            }
+            body {
+                align-items: flex-start;
+            }
+            .stat-box {
+                padding: 5px;
+                width: 60px;
+            }
+            .meter-container {
+                height: 380px;
+            }
+        }
+
+        .touch-dpad {
+            display: grid;
+            grid-template-columns: 60px 60px 60px;
+            grid-template-rows: 60px 60px 60px;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        .touch-actions {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            pointer-events: auto;
+        }
+
+        .t-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(0, 240, 240, 0.4);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.7);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .t-btn.empty {
+            background: transparent;
+            border: none;
+        }
+
+        .t-btn:active {
+            background: rgba(0, 240, 240, 0.4);
+            border-color: rgba(0, 240, 240, 1);
+            color: #fff;
+        }
+        
+        .t-btn.t-hold, .t-btn.t-rotl, .t-btn.t-rotr {
+            width: 70px;
+            height: 70px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .t-btn.t-hold {
+            border-radius: 10px;
+            height: 50px;
+            align-self: center;
+            margin-right: 10px;
+        }
     </style>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
@@ -963,6 +1052,26 @@
                 CPU</button><br>
             <button class="btn" style="border-color:#888; color:#888; margin-top:20px;" onclick="cancelTemplateSelect()"
                 data-tr="tmpl-back">BACK</button>
+        </div>
+    </div>
+
+    <!-- Touch Controls Overlay -->
+    <div id="touch-controls">
+        <div class="touch-dpad">
+            <div class="t-btn empty"></div>
+            <div class="t-btn t-up" data-action="hard">▲</div>
+            <div class="t-btn empty"></div>
+            <div class="t-btn t-left" data-action="left">◀</div>
+            <div class="t-btn empty"></div>
+            <div class="t-btn t-right" data-action="right">▶</div>
+            <div class="t-btn empty"></div>
+            <div class="t-btn t-down" data-action="soft">▼</div>
+            <div class="t-btn empty"></div>
+        </div>
+        <div class="touch-actions">
+            <div class="t-btn t-hold" data-action="hold">HOLD</div>
+            <div class="t-btn t-rotl" data-action="rotL">↺</div>
+            <div class="t-btn t-rotr" data-action="rotR">↻</div>
         </div>
     </div>
 
@@ -2319,7 +2428,90 @@ gspc:{
         // --- Animation Loop ---
         let p1, cpu, lastTime = 0, keysDown = {};
         let isPaused = false;
+
+        // --- Gamepad & Touch Controls ---
+        let prevGamepadState = [];
+        function pollGamepad() {
+            const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+            for (let i = 0; i < gamepads.length; i++) {
+                const gp = gamepads[i];
+                if (!gp) continue;
+                
+                const prevState = prevGamepadState[i] || {};
+                const currentState = {};
+                
+                const isPressed = (idx) => gp.buttons[idx] && gp.buttons[idx].pressed;
+                
+                const leftAxis = gp.axes[0] < -0.5;
+                const rightAxis = gp.axes[0] > 0.5;
+                const downAxis = gp.axes[1] > 0.5;
+                const upAxis = gp.axes[1] < -0.5;
+
+                const left = isPressed(14) || leftAxis;
+                const right = isPressed(15) || rightAxis;
+                const softDrop = isPressed(13) || downAxis;
+                const hardDrop = isPressed(12) || upAxis;
+                const rotR = isPressed(0);
+                const rotL = isPressed(1) || isPressed(2);
+                const holdBtn = isPressed(4) || isPressed(5);
+
+                currentState.left = left;
+                currentState.right = right;
+                currentState.softDrop = softDrop;
+                currentState.hardDrop = hardDrop;
+                currentState.rotR = rotR;
+                currentState.rotL = rotL;
+                currentState.holdBtn = holdBtn;
+
+                keysDown[cfg.keys.left] = left;
+                keysDown[cfg.keys.right] = right;
+                keysDown[cfg.keys.soft] = softDrop;
+
+                if (p1 && !p1.isGameOver && !isPaused) {
+                    if (rotR && !prevState.rotR) p1.playerRotate(1);
+                    if (rotL && !prevState.rotL) p1.playerRotate(-1);
+                    if (holdBtn && !prevState.holdBtn) p1.playerHold();
+                    if (hardDrop && !prevState.hardDrop) { while (p1.playerDrop()); p1.lock(); }
+                }
+                
+                prevGamepadState[i] = currentState;
+                break;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+             const tBtns = document.querySelectorAll('.t-btn[data-action]');
+             tBtns.forEach(btn => {
+                 let action = btn.getAttribute('data-action');
+                 
+                 btn.addEventListener('touchstart', (e) => {
+                     e.preventDefault();
+                     if (action === 'left' || action === 'right' || action === 'soft') {
+                         keysDown[cfg.keys[action]] = true;
+                     } else {
+                         if (p1 && !p1.isGameOver && !isPaused) {
+                             if (action === 'rotR') p1.playerRotate(1);
+                             if (action === 'rotL') p1.playerRotate(-1);
+                             if (action === 'hold') p1.playerHold();
+                             if (action === 'hard') { while (p1.playerDrop()); p1.lock(); }
+                         }
+                     }
+                 }, {passive: false});
+
+                 const endTouch = (e) => {
+                     e.preventDefault();
+                     if (action === 'left' || action === 'right' || action === 'soft') {
+                         keysDown[cfg.keys[action]] = false;
+                     }
+                 };
+                 
+                 btn.addEventListener('touchend', endTouch);
+                 btn.addEventListener('touchcancel', endTouch);
+             });
+        });
+
         function animate(t = 0) {
+            pollGamepad();
             const dt = Math.min(t - lastTime, 50);
             lastTime = t;
             if (!isPaused) {
