@@ -658,18 +658,22 @@
             #touch-controls {
                 display: flex;
             }
+
             #game-view {
                 transform: scale(0.65);
                 transform-origin: top center;
                 margin-top: 10px;
             }
+
             body {
                 align-items: flex-start;
             }
+
             .stat-box {
                 padding: 5px;
                 width: 60px;
             }
+
             .meter-container {
                 height: 380px;
             }
@@ -714,8 +718,10 @@
             border-color: rgba(0, 240, 240, 1);
             color: #fff;
         }
-        
-        .t-btn.t-hold, .t-btn.t-rotl, .t-btn.t-rotr {
+
+        .t-btn.t-hold,
+        .t-btn.t-rotl,
+        .t-btn.t-rotr {
             width: 70px;
             height: 70px;
             font-size: 20px;
@@ -1301,54 +1307,54 @@
                 ]
             },
             hpc: {
-    "board": [
-        "777777..77",
-        "7777777..7",
-        "333.333333",
-        "3...333333",
-        "4444444..4",
-        "4444444..4",
-        "55..555555",
-        "5..5555555",
-        "222222.222",
-        "222222...2",
-        "1.11111111",
-        "1.11111111",
-        "1.11111111",
-        "1.11111111",
-        "666666...6",
-        "6666666.66"
-    ],
-    "hold": null,
-    "queue": [
-        "Z",
-        "L",
-        "O",
-        "S",
-        "J",
-        "I",
-        "T"
-    ]
-},
-gspc:{
-    "board": [
-        "122......3",
-        "12...75333",
-        "126.775544",
-        "16667..544"
-    ],
-    "hold": null,
-    "queue": [
-        "T",
-        "L",
-        "J"
-    ]
-}
+                "board": [
+                    "777777..77",
+                    "7777777..7",
+                    "333.333333",
+                    "3...333333",
+                    "4444444..4",
+                    "4444444..4",
+                    "55..555555",
+                    "5..5555555",
+                    "222222.222",
+                    "222222...2",
+                    "1.11111111",
+                    "1.11111111",
+                    "1.11111111",
+                    "1.11111111",
+                    "666666...6",
+                    "6666666.66"
+                ],
+                "hold": null,
+                "queue": [
+                    "Z",
+                    "L",
+                    "O",
+                    "S",
+                    "J",
+                    "I",
+                    "T"
+                ]
+            },
+            gspc: {
+                "board": [
+                    "122......3",
+                    "12...75333",
+                    "126.775544",
+                    "16667..544"
+                ],
+                "hold": null,
+                "queue": [
+                    "T",
+                    "L",
+                    "J"
+                ]
+            }
         };
 
         const TRANSLATIONS = {
             en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "label-ghost": "GHOST OPACITY", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark" },
-            ja: { settings: "設定", "tab-general": "一般", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS":"パフェ系","tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-hpc": "変なパフェ", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク" }
+            ja: { settings: "設定", "tab-general": "一般", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-hpc": "変なパフェ", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク" }
         };
 
         const THEMES = {
@@ -2171,10 +2177,23 @@ gspc:{
                 this.lastMoveRotate = false; this.lockDelayCounter = 0; return true;
             }
 
-            playerDrop() {
+            playerDrop(isSoftDrop = false) {
                 this.player.pos.y++;
                 if (this.collide()) { this.player.pos.y--; return false; }
+                if (isSoftDrop && !this.isAI) { this.player.score += 1; this.updateUI(); }
                 this.lockDelayCounter = 0; this.dropCounter = 0; this.lastMoveRotate = false; return true;
+            }
+
+            hardDrop() {
+                let dropped = 0;
+                while (this.playerDrop()) {
+                    dropped++;
+                }
+                if (!this.isAI && dropped > 0) {
+                    this.player.score += dropped * 2;
+                    this.updateUI();
+                }
+                this.lock();
             }
 
             lock() {
@@ -2205,22 +2224,55 @@ gspc:{
                     this.arena.splice(y, 1); this.arena.unshift(new Array(10).fill(0)); ++y; lines++;
                 }
                 const isPerfectClear = this.arena.every(row => row.every(cell => cell === 0));
+                
                 if (lines > 0 || tSpinInfo.isTSpin) {
                     let actionText = ""; let atk = 0;
+                    let lineScore = 0;
+                    const level = cfg.lv || 1;
+                    
                     if (tSpinInfo.isTSpin) {
                         const mini = tSpinInfo.isMini ? "MINI " : "";
                         const lineNames = ["", "SINGLE", "DOUBLE", "TRIPLE"];
                         actionText = `T-SPIN ${mini}${lineNames[lines] || "NON-LINE"}`;
                         atk = tSpinInfo.isMini ? [0, 1, 2, 3][lines] : [0, 2, 4, 6][lines];
+                        
+                        if (tSpinInfo.isMini) {
+                            lineScore = [100, 200, 400][lines] * level;
+                        } else {
+                            lineScore = [400, 800, 1200, 1600][lines] * level;
+                        }
                     } else {
                         const lineNames = ["", "SINGLE", "DOUBLE", "TRIPLE", "TETRIS"];
-                        actionText = lineNames[lines]; atk = [0, 0, 1, 2, 4][lines];
+                        if (lines > 0) actionText = lineNames[lines];
+                        atk = [0, 0, 1, 2, 4][lines];
+                        lineScore = [0, 100, 300, 500, 800][lines] * level;
                     }
+                    
                     if (lines > 0) this.player.ren++; else this.player.ren = -1;
-                    if ((tSpinInfo.isTSpin || lines === 4) && lines > 0) { if (this.player.btb) atk += 1; this.player.btb = true; }
-                    else if (lines > 0) this.player.btb = false;
+                    
+                    if ((tSpinInfo.isTSpin || lines === 4) && lines > 0) {
+                        if (this.player.btb) {
+                            atk += 1;
+                            actionText = "B2B " + actionText;
+                            lineScore = Math.floor(lineScore * 1.5);
+                        }
+                        this.player.btb = true;
+                    } else if (lines > 0) {
+                        this.player.btb = false;
+                    }
+                    
+                    if (lines > 0 && this.player.ren > 0) {
+                        lineScore += 50 * this.player.ren * level;
+                    }
+                    
                     atk += Math.floor(this.player.ren / 2);
-                    if (isPerfectClear) { actionText = "PERFECT CLEAR"; atk += 10; }
+                    
+                    if (isPerfectClear) {
+                        actionText = "PERFECT CLEAR";
+                        atk += 10;
+                        lineScore += [0, 800, 1200, 1800, 2000][lines] * level;
+                    }
+                    
                     if (atk > 0) {
                         if (this.pendingGarbage > 0) { const offset = Math.min(atk, this.pendingGarbage); atk -= offset; this.pendingGarbage -= offset; this.updateMeter(); }
                         if (isOnline && conn && conn.open && atk > 0 && !this.isAI) {
@@ -2230,8 +2282,11 @@ gspc:{
                         }
                     }
                     if (actionText) this.showAction(actionText + (this.player.ren > 0 ? `\n${this.player.ren} REN` : ""));
-                } else this.player.ren = -1;
-                this.player.score += (lines * 100); this.updateUI();
+                    this.player.score += lineScore;
+                } else {
+                    this.player.ren = -1;
+                }
+                this.updateUI();
             }
 
             receiveGarbage(n) { this.pendingGarbage += n; this.updateMeter(); }
@@ -2352,7 +2407,7 @@ gspc:{
                         this.aiTimer = 0;
                     }
                 } else {
-                    if (this.dropCounter > (keysDown[cfg.keys.soft] ? 1000 / cfg.sdf : 1000)) this.playerDrop();
+                    if (this.dropCounter > (keysDown[cfg.keys.soft] ? 1000 / cfg.sdf : 1000)) this.playerDrop(keysDown[cfg.keys.soft]);
                     this.handleInput(dt);
                     if (this.collide(this.player.matrix, { x: this.player.pos.x, y: this.player.pos.y + 1 })) {
                         this.lockDelayCounter += dt; if (this.lockDelayCounter >= this.lockDelayThreshold) { this.lock(); this.lockDelayCounter = 0; }
@@ -2436,12 +2491,12 @@ gspc:{
             for (let i = 0; i < gamepads.length; i++) {
                 const gp = gamepads[i];
                 if (!gp) continue;
-                
+
                 const prevState = prevGamepadState[i] || {};
                 const currentState = {};
-                
+
                 const isPressed = (idx) => gp.buttons[idx] && gp.buttons[idx].pressed;
-                
+
                 const leftAxis = gp.axes[0] < -0.5;
                 const rightAxis = gp.axes[0] > 0.5;
                 const downAxis = gp.axes[1] > 0.5;
@@ -2471,43 +2526,43 @@ gspc:{
                     if (rotR && !prevState.rotR) p1.playerRotate(1);
                     if (rotL && !prevState.rotL) p1.playerRotate(-1);
                     if (holdBtn && !prevState.holdBtn) p1.playerHold();
-                    if (hardDrop && !prevState.hardDrop) { while (p1.playerDrop()); p1.lock(); }
+                    if (hardDrop && !prevState.hardDrop) p1.hardDrop();
                 }
-                
+
                 prevGamepadState[i] = currentState;
                 break;
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-             const tBtns = document.querySelectorAll('.t-btn[data-action]');
-             tBtns.forEach(btn => {
-                 let action = btn.getAttribute('data-action');
-                 
-                 btn.addEventListener('touchstart', (e) => {
-                     e.preventDefault();
-                     if (action === 'left' || action === 'right' || action === 'soft') {
-                         keysDown[cfg.keys[action]] = true;
-                     } else {
-                         if (p1 && !p1.isGameOver && !isPaused) {
-                             if (action === 'rotR') p1.playerRotate(1);
-                             if (action === 'rotL') p1.playerRotate(-1);
-                             if (action === 'hold') p1.playerHold();
-                             if (action === 'hard') { while (p1.playerDrop()); p1.lock(); }
-                         }
-                     }
-                 }, {passive: false});
+            const tBtns = document.querySelectorAll('.t-btn[data-action]');
+            tBtns.forEach(btn => {
+                let action = btn.getAttribute('data-action');
 
-                 const endTouch = (e) => {
-                     e.preventDefault();
-                     if (action === 'left' || action === 'right' || action === 'soft') {
-                         keysDown[cfg.keys[action]] = false;
-                     }
-                 };
-                 
-                 btn.addEventListener('touchend', endTouch);
-                 btn.addEventListener('touchcancel', endTouch);
-             });
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    if (action === 'left' || action === 'right' || action === 'soft') {
+                        keysDown[cfg.keys[action]] = true;
+                    } else {
+                        if (p1 && !p1.isGameOver && !isPaused) {
+                            if (action === 'rotR') p1.playerRotate(1);
+                            if (action === 'rotL') p1.playerRotate(-1);
+                            if (action === 'hold') p1.playerHold();
+                            if (action === 'hard') p1.hardDrop();
+                        }
+                    }
+                }, { passive: false });
+
+                const endTouch = (e) => {
+                    e.preventDefault();
+                    if (action === 'left' || action === 'right' || action === 'soft') {
+                        keysDown[cfg.keys[action]] = false;
+                    }
+                };
+
+                btn.addEventListener('touchend', endTouch);
+                btn.addEventListener('touchcancel', endTouch);
+            });
         });
 
         function animate(t = 0) {
@@ -2587,7 +2642,7 @@ gspc:{
                 if (matchedKey === cfg.keys.rotR) p1.playerRotate(1);
                 if (matchedKey === cfg.keys.rotL) p1.playerRotate(-1);
                 if (matchedKey === cfg.keys.hold || matchedKey === cfg.keys.hold2) p1.playerHold();
-                if (matchedKey === cfg.keys.hard) { e.preventDefault(); while (p1.playerDrop()); p1.lock(); }
+                if (matchedKey === cfg.keys.hard) { e.preventDefault(); p1.hardDrop(); }
             }
         });
 
