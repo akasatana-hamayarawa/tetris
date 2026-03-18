@@ -752,6 +752,7 @@
             <div class="settings-tabs">
                 <button class="tab-btn active" onclick="openTab(event, 'tab-general')"
                     data-tr="tab-general">GENERAL</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-ui')" data-tr="tab-ui">UI SETTINGS</button>
                 <button class="tab-btn" onclick="openTab(event, 'tab-handling')"
                     data-tr="tab-handling">HANDLING</button>
                 <button class="tab-btn" onclick="openTab(event, 'tab-keys')" data-tr="tab-keys">KEYS</button>
@@ -764,6 +765,19 @@
                         onchange="cfg.playerName = this.value; saveCfg();">
                 </div>
                 <div class="setting-row">
+                    <label data-tr="label-lang">LANGUAGE</label>
+                    <div class="lang-switch">
+                        <button class="lang-btn" id="lang-ja" onclick="setLang('ja')">日本語</button>
+                        <button class="lang-btn" id="lang-en" onclick="setLang('en')">English</button>
+                    </div>
+                </div>
+                <div class="setting-row"><label data-tr="label-level">CPU LEVEL</label>
+                    <div><span id="lv-val">5</span><input type="range" id="lv-range" min="1" max="50"></div>
+                </div>
+            </div>
+
+            <div id="tab-ui" class="modal-body tab-content" style="display:none;">
+                <div class="setting-row">
                     <label data-tr="label-theme">THEME COLOR</label>
                     <select id="theme-select" class="modal-input"
                         style="width:150px; cursor:pointer; background:#222; color:#fff;"
@@ -773,16 +787,6 @@
                         <option value="light" data-tr="theme-light">Light</option>
                         <option value="dark" data-tr="theme-dark">Dark</option>
                     </select>
-                </div>
-                <div class="setting-row">
-                    <label data-tr="label-lang">LANGUAGE</label>
-                    <div class="lang-switch">
-                        <button class="lang-btn" id="lang-ja" onclick="setLang('ja')">日本語</button>
-                        <button class="lang-btn" id="lang-en" onclick="setLang('en')">English</button>
-                    </div>
-                </div>
-                <div class="setting-row"><label data-tr="label-level">CPU LEVEL</label>
-                    <div><span id="lv-val">5</span><input type="range" id="lv-range" min="1" max="50"></div>
                 </div>
                 <div class="setting-row"><label data-tr="label-ghost">GHOST OPACITY</label>
                     <div><span id="ghost-val">0.15</span><input type="range" id="ghost-range" min="0" max="100"
@@ -1353,8 +1357,8 @@
         };
 
         const TRANSLATIONS = {
-            en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "label-ghost": "GHOST OPACITY", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark" },
-            ja: { settings: "設定", "tab-general": "一般", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-hpc": "変なパフェ", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク" }
+            en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-ui": "UI SETTINGS", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "label-ghost": "GHOST OPACITY", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark" },
+            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-hpc": "変なパフェ", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク" }
         };
 
         const THEMES = {
@@ -1609,6 +1613,8 @@
         let opponentName = "PLAYER 2";
         let qmIndex = 0;
         let isQuickMatch = false;
+        let p1Wins = 0;
+        let p2Wins = 0;
 
         function showOnlineMenu() {
             document.getElementById('main-menu-btns').style.display = 'none';
@@ -1667,6 +1673,8 @@
                     statusEl.innerText = TRANSLATIONS[cfg.lang]["online-connected"] || "MATCH FOUND!";
                     statusEl.style.color = '#00ff00';
                     statusEl.style.animation = 'none';
+                    p1Wins = 0;
+                    p2Wins = 0;
                     // 交換: 自分の名前を送る
                     conn.send({ type: 'hello', name: cfg.playerName });
                 } else {
@@ -1698,19 +1706,37 @@
                 }
                 else if (data.type === 'hello') {
                     opponentName = data.name;
+                    let displayOpponentName = opponentName;
+
+                    // Name Collision Avoidance
+                    if (isHost && opponentName === cfg.playerName) {
+                        displayOpponentName = opponentName + " (2)";
+                        opponentName = displayOpponentName; // For the host UI
+                        conn.send({ type: 'name_override', newName: opponentName });
+                    }
+
                     // ホストかゲストかで名前を表示する場所を変える
                     if (isHost) {
                         if (isQuickMatch) {
                             setTimeout(() => { startOnlineGame(); }, 1000); // start automatically for host
                         } else {
-                            document.getElementById('lobby-p2-name').innerText = opponentName;
+                            document.getElementById('lobby-p2-name').innerText = displayOpponentName;
                             document.getElementById('btn-start-online').style.display = 'inline-block';
                         }
                     } else {
                         if (!isQuickMatch) {
-                            document.getElementById('lobby-p1-name').innerText = opponentName;
+                            document.getElementById('lobby-p1-name').innerText = displayOpponentName;
                         }
                     }
+                }
+                else if (data.type === 'name_override') {
+                    // Host has commanded us to change our visual display name for the match to avoid a collision.
+                    cfg.playerName = data.newName;
+                    document.getElementById('player-name-input').value = data.newName;
+                    const p1NameDisp = document.getElementById('p1-name-display');
+                    if (p1NameDisp) p1NameDisp.innerText = data.newName;
+                    saveCfg();
+                    showToast(cfg.lang === 'ja' ? `名前が被ったため、${data.newName}に変更されました` : `Name changed to ${data.newName} to avoid collision.`);
                 }
                 else if (data.type === 'start') {
                     startOnlineGameExecution();
@@ -1730,8 +1756,19 @@
                         cpu.isGameOver = true;
                         if (p1 && !p1.isGameOver) {
                             p1.isGameOver = true;
-                            showToast(TRANSLATIONS[cfg.lang].victory);
-                            setTimeout(() => returnToMenu(), 3000);
+                            if (isQuickMatch) {
+                                p1Wins++;
+                                if (p1Wins >= 2) {
+                                    showToast(TRANSLATIONS[cfg.lang].victory + " (Match Winner!)");
+                                    setTimeout(() => returnToMenu(), 3000);
+                                } else {
+                                    showToast(TRANSLATIONS[cfg.lang].victory + ` (Round Won! Score: ${p1Wins} - ${p2Wins})`);
+                                    setTimeout(() => resetRound(), 3000);
+                                }
+                            } else {
+                                showToast(TRANSLATIONS[cfg.lang].victory);
+                                setTimeout(() => returnToMenu(), 3000);
+                            }
                         }
                     }
                 }
@@ -1742,7 +1779,7 @@
                 showToast(cfg.lang === 'ja' ? "対戦相手との通信が切断されました" : "Opponent disconnected.");
                 disconnectOnline();
                 if (isOnline) {
-                    returnToMenu();
+                    setTimeout(() => returnToMenu(), 1500);
                 }
             });
         }
@@ -2224,18 +2261,18 @@
                     this.arena.splice(y, 1); this.arena.unshift(new Array(10).fill(0)); ++y; lines++;
                 }
                 const isPerfectClear = this.arena.every(row => row.every(cell => cell === 0));
-                
+
                 if (lines > 0 || tSpinInfo.isTSpin) {
                     let actionText = ""; let atk = 0;
                     let lineScore = 0;
                     const level = cfg.lv || 1;
-                    
+
                     if (tSpinInfo.isTSpin) {
                         const mini = tSpinInfo.isMini ? "MINI " : "";
                         const lineNames = ["", "SINGLE", "DOUBLE", "TRIPLE"];
                         actionText = `T-SPIN ${mini}${lineNames[lines] || "NON-LINE"}`;
                         atk = tSpinInfo.isMini ? [0, 1, 2, 3][lines] : [0, 2, 4, 6][lines];
-                        
+
                         if (tSpinInfo.isMini) {
                             lineScore = [100, 200, 400][lines] * level;
                         } else {
@@ -2247,9 +2284,9 @@
                         atk = [0, 0, 1, 2, 4][lines];
                         lineScore = [0, 100, 300, 500, 800][lines] * level;
                     }
-                    
+
                     if (lines > 0) this.player.ren++; else this.player.ren = -1;
-                    
+
                     if ((tSpinInfo.isTSpin || lines === 4) && lines > 0) {
                         if (this.player.btb) {
                             atk += 1;
@@ -2260,19 +2297,19 @@
                     } else if (lines > 0) {
                         this.player.btb = false;
                     }
-                    
+
                     if (lines > 0 && this.player.ren > 0) {
                         lineScore += 50 * this.player.ren * level;
                     }
-                    
+
                     atk += Math.floor(this.player.ren / 2);
-                    
+
                     if (isPerfectClear) {
                         actionText = "PERFECT CLEAR";
                         atk += 10;
                         lineScore += [0, 800, 1200, 1800, 2000][lines] * level;
                     }
-                    
+
                     if (atk > 0) {
                         if (this.pendingGarbage > 0) { const offset = Math.min(atk, this.pendingGarbage); atk -= offset; this.pendingGarbage -= offset; this.updateMeter(); }
                         if (isOnline && conn && conn.open && atk > 0 && !this.isAI) {
@@ -2319,8 +2356,20 @@
                     conn.send({ type: 'gameover' });
                 }
 
+                if (isQuickMatch && !this.isAI) {
+                    p2Wins++;
+                    if (p2Wins >= 2) {
+                        showToast(TRANSLATIONS[cfg.lang].defeat + " (Match Lost!)");
+                        setTimeout(() => returnToMenu(), 3000);
+                    } else {
+                        showToast(TRANSLATIONS[cfg.lang].defeat + ` (Round Lost! Score: ${p1Wins} - ${p2Wins})`);
+                        setTimeout(() => resetRound(), 3000);
+                    }
+                    return;
+                }
+
                 let msg = this.isAI ? TRANSLATIONS[cfg.lang].victory : (this.opponent ? TRANSLATIONS[cfg.lang].defeat : TRANSLATIONS[cfg.lang].gameover);
-                showToast(msg); setTimeout(() => location.reload(), 2500);
+                showToast(msg); setTimeout(() => returnToMenu(), 3000);
             }
 
             aiPlan() {
@@ -2564,6 +2613,22 @@
                 btn.addEventListener('touchcancel', endTouch);
             });
         });
+
+        function resetRound() {
+            p1.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
+            p1.player.score = 0; p1.player.ren = -1; p1.player.btb = false;
+            p1.pendingGarbage = 0; p1.isGameOver = false; p1.player.holdType = null;
+            while (p1.nextQueue.length < 10) p1.nextQueue.push(p1.pullFromBag());
+            p1.reset(); p1.updateMeter(); p1.updateUI();
+
+            if (cpu) {
+                cpu.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
+                cpu.player.score = 0; cpu.player.ren = -1; cpu.player.btb = false;
+                cpu.pendingGarbage = 0; cpu.isGameOver = false; cpu.player.holdType = null;
+                while (cpu.nextQueue.length < 10) cpu.nextQueue.push(cpu.pullFromBag());
+                cpu.reset(); cpu.updateMeter(); cpu.updateUI();
+            }
+        }
 
         function animate(t = 0) {
             pollGamepad();
