@@ -3002,7 +3002,17 @@
             handleInput(dt) {
                 const handleSide = (key, side) => {
                     const dir = side === 'L' ? -1 : 1;
-                    if (keysDown[cfg.keys[key]]) {
+                    let isPressed = keysDown[cfg.keys[key]];
+                    
+                    if (keysDown[cfg.keys.left] && keysDown[cfg.keys.right]) {
+                        if ((keysDownTime[cfg.keys.left] || 0) > (keysDownTime[cfg.keys.right] || 0)) {
+                            if (key === 'right') isPressed = false;
+                        } else {
+                            if (key === 'left') isPressed = false;
+                        }
+                    }
+
+                    if (isPressed) {
                         if (this['das' + side] === 0) this.playerMove(dir);
                         this['das' + side] += dt;
                         if (this['das' + side] >= cfg.das) {
@@ -3288,7 +3298,17 @@
 
                     const handleSide = (key, side) => {
                         const dir = side === 'L' ? -1 : 1;
-                        if (keysDown[cfg.keys[key]]) {
+                        let isPressed = keysDown[cfg.keys[key]];
+                        
+                        if (keysDown[cfg.keys.left] && keysDown[cfg.keys.right]) {
+                            if ((keysDownTime[cfg.keys.left] || 0) > (keysDownTime[cfg.keys.right] || 0)) {
+                                if (key === 'right') isPressed = false;
+                            } else {
+                                if (key === 'left') isPressed = false;
+                            }
+                        }
+
+                        if (isPressed) {
                             if (this.me['das' + side] === 0) this.playerMove(dir);
                             this.me['das' + side] += dt;
                             if (this.me['das' + side] >= cfg.das) {
@@ -3395,7 +3415,7 @@
         }
 
         // --- Animation Loop ---
-        let p1, cpu, lastTime = 0, keysDown = {};
+        let p1, cpu, lastTime = 0, keysDown = {}, keysDownTime = {};
         let isPaused = false;
 
         // --- Gamepad & Touch Controls ---
@@ -3432,6 +3452,9 @@
                 currentState.rotL = rotL;
                 currentState.holdBtn = holdBtn;
 
+                if (left && !keysDown[cfg.keys.left]) keysDownTime[cfg.keys.left] = performance.now();
+                if (right && !keysDown[cfg.keys.right]) keysDownTime[cfg.keys.right] = performance.now();
+
                 keysDown[cfg.keys.left] = left;
                 keysDown[cfg.keys.right] = right;
                 keysDown[cfg.keys.soft] = softDrop;
@@ -3456,6 +3479,7 @@
                 btn.addEventListener('touchstart', (e) => {
                     e.preventDefault();
                     if (action === 'left' || action === 'right' || action === 'soft') {
+                        if (!keysDown[cfg.keys[action]]) keysDownTime[cfg.keys[action]] = performance.now();
                         keysDown[cfg.keys[action]] = true;
                     } else {
                         let isPMode = window.partyModeInstance && isPartyMode && !isPaused && !window.partyModeInstance.isGameOver;
@@ -3594,6 +3618,11 @@
                     matchedKey = cfg.keys[k];
                     break;
                 }
+            }
+
+            if (!keysDown[matchedKey]) {
+                keysDownTime[matchedKey] = performance.now();
+                keysDownTime[key] = performance.now();
             }
 
             keysDown[matchedKey] = true;
