@@ -1526,7 +1526,11 @@
         }
 
         function exportConfig() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cfg, null, 2));
+            let exportData = { ...cfg };
+            delete exportData.playerName;
+            delete exportData.hasCompletedTutorial;
+            
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
             const dlAnchorElem = document.createElement('a');
             dlAnchorElem.setAttribute("href", dataStr);
             dlAnchorElem.setAttribute("download", "tetris_ultimate_config.json");
@@ -1540,13 +1544,12 @@
             reader.onload = function(e) {
                 try {
                     const parsed = JSON.parse(e.target.result);
+                    delete parsed.playerName;
+                    delete parsed.hasCompletedTutorial;
+                    
                     cfg = { ...cfg, ...parsed, keys: { ...cfg.keys, ...parsed.keys } };
                     saveCfg();
                     updateUIFromCfg();
-                    
-                    // Attempt to reserve the new imported name
-                    if (identityPeer) identityPeer.destroy();
-                    identityPeer = new Peer('TETRIS-ID-' + cfg.playerName, { debug: 0 });
                     
                     showToast(cfg.lang === 'ja' ? "設定を読み込みました" : "Config imported successfully.");
                 } catch (err) {
