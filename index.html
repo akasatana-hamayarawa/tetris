@@ -2897,65 +2897,189 @@
                 showToast(msg); setTimeout(() => returnToMenu(), 3000);
             }
 
+            getPrefixMatrix(type, r) {
+                if (!this.memoMatrices) this.memoMatrices = {};
+                let key = type + r;
+                if (this.memoMatrices[key]) return this.memoMatrices[key];
+                let m = JSON.parse(JSON.stringify(PIECES[type]));
+                for (let i = 0; i < r; i++) { 
+                    let rot = m[0].map((_, idx) => m.map(row => row[idx])); 
+                    m = rot.map(row => row.reverse()); 
+                }
+                this.memoMatrices[key] = m;
+                return m;
+            }
+
+            checkCollisionRaw(type, x, y, r) {
+                let m = this.getPrefixMatrix(type, r);
+                for (let yy = 0; yy < m.length; ++yy) {
+                    for (let xx = 0; xx < m[yy].length; ++xx) {
+                        if (m[yy][xx] !== 0) {
+                            let ax = x + xx;
+                            let ay = y + yy;
+                            if (ax < 0 || ax >= 10 || ay >= 22 || (ay >= 0 && this.arena[ay][ax] !== 0)) return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            getLockablePlacements(type) {
+                let placements = [];
+                for(let r=0; r<4; r++) {
+                    for(let x=-2; x<10; x++) {
+                        if (!this.checkCollisionRaw(type, x, 0, r)) {
+                            let y = 0;
+                            while (!this.checkCollisionRaw(type, x, y + 1, r)) y++;
+                            placements.push({x, y, r});
+                        }
+                    }
+                }
+                return placements;
+            }
+
             aiPlan() {
                 const evalBoard = (type) => {
                     let best = { s: -Infinity, x: 0, r: 0 };
-                    for (let r = 0; r < 4; r++) {
-                        let m = JSON.parse(JSON.stringify(PIECES[type]));
-                        for (let i = 0; i < r; i++) { let rot = m[0].map((_, idx) => m.map(row => row[idx])); m = rot.map(row => row.reverse()); }
-                        for (let x = -2; x < 10; x++) {
-                            if (this.collide(m, { x, y: 0 })) continue;
-                            let y = 0; while (!this.collide(m, { x, y: y + 1 })) y++;
-                            let holes = 0;
-                            let templateScore = 0;
-
-                            for (let c = 0; c < 10; c++) {
-                                let found = false;
-                                for (let row = 0; row < 22; row++) {
-                                    let isCurrent = (row >= y && row < y + m.length && c >= x && c < x + m[0].length && m[row - y][c - x]);
-                                    let val = isCurrent ? 1 : this.arena[row][c];
-                                    if (val) found = true; else if (found) holes++;
-
-                                    if (this.targetBoard && isCurrent) {
-                                        let target = this.targetBoard[row][c];
-                                        if (target === 1) {
-                                            templateScore += 1000;
-                                        } else if (target === 0) {
-                                            templateScore -= 2000;
-                                        }
-                                    }
+                    let placements = this.getLockablePlacements(type);
+                    
+                    for (let p of placements) {
+                        let {x, y, r} = p;
+                        let m = this.getPrefixMatrix(type, r);
+                        let sim = this.arena.map(row => [...row]);
+                        
+                        // Center of mass landing height equivalent
+                        let landingHeight = 22 - (y + m.length / 2); 
+                        
+                        for (let pr = 0; pr < m.length; pr++) {
+                            for (let pc = 0; pc < m[pr].length; pc++) {
+                                if (m[pr][pc]) {
+                                    if (y + pr >= 0 && y + pr < 22 && x + pc >= 0 && x + pc < 10) sim[y + pr][x + pc] = 1;
                                 }
                             }
+                        }
+                        
+                        let linesCleared = 0;
+                        let newSim = [];
+                        for (let sr = 0; sr < 22; sr++) {
+                            if (sim[sr].every(cell => cell !== 0)) {
+                                linesCleared++;
+                            } else {
+                                newSim.push(sim[sr]);
+                            }
+                        }
+                        while (newSim.length < 22) newSim.unshift(new Array(10).fill(0));
+                        sim = newSim;
 
-                            if (this.targetBoard) {
-                                for (let c = x; c < x + m[0].length; c++) {
-                                    if (c < 0 || c >= 10) continue;
-                                    let bottomRow = -1;
-                                    for (let r_m = m.length - 1; r_m >= 0; r_m--) {
-                                        if (m[r_m][c - x]) { bottomRow = y + r_m; break; }
-                                    }
-                                    if (bottomRow !== -1) {
-                                        for (let row = bottomRow + 1; row < 22; row++) {
-                                            if (this.targetBoard[row][c] === 1 && this.arena[row][c] === 0) {
-                                                templateScore -= 5000;
-                                                break;
+                        let rowTransitions = 0;
+                        for (let r2 = 0; r2 < 22; r2++) {
+                            let lastCell = 1; 
+                            for (let c2 = 0; c2 < 10; c2++) {
+                                let cell = sim[r2][c2] > 0 ? 1 : 0;
+                                if (cell !== lastCell) rowTransitions++;
+                                lastCell = cell;
+                            }
+                            if (lastCell !== 1) rowTransitions++;
+                        }
+
+                        let colTransitions = 0;
+                        for (let c2 = 0; c2 < 10; c2++) {
+                            let lastCell = 0; // Top bounding box is empty
+                            for (let r2 = 0; r2 < 22; r2++) {
+                                let cell = sim[r2][c2] > 0 ? 1 : 0;
+                                if (cell !== lastCell) colTransitions++;
+                                lastCell = cell;
+                            }
+                            if (lastCell !== 1) colTransitions++; // Floor is solid
+                        }
+
+                        let holes = 0, wellSums = 0;
+                        for (let c2 = 0; c2 < 10; c2++) {
+                            let blockFound = false;
+                            for (let r2 = 0; r2 < 22; r2++) {
+                                if (sim[r2][c2] !== 0) {
+                                    blockFound = true;
+                                } else {
+                                    if (blockFound) holes++;
+                                    else {
+                                        let leftSolid = (c2 === 0 || sim[r2][c2-1] !== 0);
+                                        let rightSolid = (c2 === 9 || sim[r2][c2+1] !== 0);
+                                        if (leftSolid && rightSolid) {
+                                            for(let wy = r2; wy < 22; wy++) {
+                                                if (sim[wy][c2] === 0) wellSums += (wy - r2 + 1);
+                                                else break;
                                             }
                                         }
                                     }
                                 }
                             }
-
-                            let score = (y * 10) - (holes * 150) + templateScore;
-                            if (score > best.s) { best.s = score; best.x = x; best.r = r; }
                         }
+
+                        let score = 0;
+                        if (this.targetBoard) {
+                            let templateScore = 0;
+                            for (let pr = 0; pr < m.length; pr++) {
+                                for (let pc = 0; pc < m[pr].length; pc++) {
+                                    if (m[pr][pc]) {
+                                        let rr = y + pr, cc = x + pc;
+                                        if (rr >= 0 && rr < 22 && cc >= 0 && cc < 10) {
+                                            if (this.targetBoard[rr][cc] === 1) templateScore += 1000;
+                                            else if (this.targetBoard[rr][cc] === 0) templateScore -= 2000;
+                                        }
+                                    }
+                                }
+                            }
+                            for (let c = x; c < x + m[0].length; c++) {
+                                if (c >= 0 && c < 10) {
+                                    for (let r2 = Math.min(22, y + m.length); r2 < 22; r2++) {
+                                        if (this.targetBoard[r2][c] === 1 && sim[r2][c] === 0) templateScore -= 5000;
+                                    }
+                                }
+                            }
+                            score += templateScore + (y * 10) - (holes * 200);
+                        } else {
+                            if (cfg.lv >= 30) {
+                                // Genetic AI weights (Dellacherie algorithm) - practically unbeatable
+                                score = (landingHeight * -4.500) 
+                                      + (linesCleared * 3.418) 
+                                      + (rowTransitions * -3.218) 
+                                      + (colTransitions * -9.349) 
+                                      + (holes * -7.899) 
+                                      + (wellSums * -3.386);
+                            } else {
+                                let intelligence = cfg.lv / 30; // 0 to 1
+                                score = (landingHeight * (-10 + intelligence * 5)) 
+                                      + (linesCleared * (1 + intelligence * 2.4)) 
+                                      + (rowTransitions * (-8 + intelligence * 4.8)) 
+                                      + (colTransitions * (-15 + intelligence * 5.7)) 
+                                      + (holes * (-20 + intelligence * 12)) 
+                                      + (wellSums * (-8 + intelligence * 4.6));
+                            }
+                        }
+
+                        if (score > best.s) { best.s = score; best.x = x; best.r = r; }
                     }
-                    if (best.s === -Infinity) { best = { s: -10000, x: 3, r: 0 }; }
+                    if (best.s === -Infinity) { best = { s: -100000, x: 3, r: 0 }; }
                     return best;
                 };
 
-                let cur = evalBoard(this.player.type); let holdT = this.player.holdType || this.nextQueue[0]; let hld = evalBoard(holdT);
-                if (this.player.canHold && hld.s > cur.s + 50) { this.aiNeedHold = true; this.aiTargetX = hld.x; this.aiTargetRot = hld.r; }
+                let cur = evalBoard(this.player.type); 
+                let holdT = this.player.holdType || this.nextQueue[0]; 
+                let hld = evalBoard(holdT);
+                
+                let willHold = false;
+                if (this.player.canHold) {
+                    let holdAdvantage = hld.s - cur.s;
+                    let holdThreshold = Math.max(0, 50 - cfg.lv);
+                    if (holdAdvantage > holdThreshold) willHold = true;
+                }
+
+                if (willHold) { this.aiNeedHold = true; this.aiTargetX = hld.x; this.aiTargetRot = hld.r; }
                 else { this.aiNeedHold = false; this.aiTargetX = cur.x; this.aiTargetRot = cur.r; }
+                
+                if (cfg.lv < 15 && Math.random() < (15 - cfg.lv) * 0.02) {
+                    this.aiTargetX += (Math.random() < 0.5 ? -1 : 1);
+                }
             }
 
             update(dt) {
@@ -2971,14 +3095,37 @@
 
                 if (this.isAI) {
                     this.aiTimer = (this.aiTimer || 0) + dt;
-                    let speed = Math.max(10, 500 - cfg.lv * 10);
-                    if (this.aiTimer > speed) {
-                        if (this.aiNeedHold) this.playerHold();
-                        else if (this.player.rotation !== this.aiTargetRot) this.playerRotate(1);
-                        else if (this.player.pos.x < this.aiTargetX) { if (!this.playerMove(1)) this.aiTargetX = this.player.pos.x; }
-                        else if (this.player.pos.x > this.aiTargetX) { if (!this.playerMove(-1)) this.aiTargetX = this.player.pos.x; }
-                        else if (!this.playerDrop()) this.lock();
-                        this.aiTimer = 0;
+                    let speed = Math.max(0, 500 - cfg.lv * 10);
+                    
+                    if (cfg.lv >= 40) {
+                        let acts = 0;
+                        while (this.aiTimer >= speed && acts < 10) {
+                            acts++;
+                            if (this.aiNeedHold) {
+                                this.playerHold(); this.aiTimer = 0; break;
+                            } else if (this.player.rotation !== this.aiTargetRot) {
+                                let diff = this.aiTargetRot - this.player.rotation;
+                                if (diff === 3 || diff === -1) this.playerRotate(-1);
+                                else this.playerRotate(1);
+                            } else if (this.player.pos.x !== this.aiTargetX) {
+                                let dir = this.player.pos.x < this.aiTargetX ? 1 : -1;
+                                if (!this.playerMove(dir)) this.aiTargetX = this.player.pos.x;
+                            } else {
+                                this.hardDrop(); this.aiTimer = 0; break;
+                            }
+                            if (speed > 0) this.aiTimer -= speed;
+                            else break; // Instant execution mode: loop runs once per frame per action
+                        }
+                        if (speed === 0 && acts === 10) this.aiTimer = 0; // Prevent runaway frame timer
+                    } else {
+                        if (this.aiTimer > Math.max(10, speed)) {
+                            if (this.aiNeedHold) this.playerHold();
+                            else if (this.player.rotation !== this.aiTargetRot) this.playerRotate(1);
+                            else if (this.player.pos.x < this.aiTargetX) { if (!this.playerMove(1)) this.aiTargetX = this.player.pos.x; }
+                            else if (this.player.pos.x > this.aiTargetX) { if (!this.playerMove(-1)) this.aiTargetX = this.player.pos.x; }
+                            else if (!this.playerDrop()) this.lock();
+                            this.aiTimer = 0;
+                        }
                     }
                 } else {
                     if (this.dropCounter > (keysDown[cfg.keys.soft] ? 1000 / cfg.sdf : 1000)) this.playerDrop(keysDown[cfg.keys.soft]);
@@ -3552,16 +3699,10 @@
             document.getElementById('game-view').style.display = 'flex';
             const meters = document.querySelectorAll('.meter-container');
 
-            let cpuTmpl = null;
-            if (cfg.lv >= 11 && cfg.lv <= 20) cpuTmpl = 'dt';
-            else if (cfg.lv >= 21 && cfg.lv <= 30) cpuTmpl = 'hren';
-            else if (cfg.lv >= 31 && cfg.lv <= 40) cpuTmpl = 'nren';
-            else if (cfg.lv >= 41 && cfg.lv <= 50) cpuTmpl = 'hachi';
-
             if (isCPU) {
                 meters.forEach(m => m.style.display = 'block'); document.getElementById('cpu-field').style.display = 'flex';
                 p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', playerTmpl, isLoad);
-                cpu = new Tetris('c-canvas', 'c-hold', 'c-next', 'c-score', true, 'c-action-layer', 'c-meter', cpuTmpl, isLoad);
+                cpu = new Tetris('c-canvas', 'c-hold', 'c-next', 'c-score', true, 'c-action-layer', 'c-meter', null, isLoad);
                 p1.opponent = cpu; cpu.opponent = p1; document.getElementById('current-lv').innerText = cfg.lv;
             } else {
                 meters.forEach(m => m.style.display = 'none'); document.getElementById('cpu-field').style.display = 'none';
