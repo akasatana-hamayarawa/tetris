@@ -831,10 +831,16 @@
     <div id="pause-overlay">
         <h1 data-tr="pause-title" style="margin-bottom: 30px;">PAUSED</h1>
         <div style="display:flex; flex-direction:column; gap:15px; align-items:center; width:100%;">
-            <button class="btn" style="--accent: #00f0f0; width: 300px; margin: 0; padding: 15px;" onclick="document.getElementById('pause-overlay').style.display='none'; openSaveModal();" data-tr="save-and-menu">SAVE & EXIT TO MENU</button>
-            <button class="btn" style="--accent: #55ff55; width: 300px; margin: 0; padding: 15px;" onclick="handlePauseToggle()">RESUME / 続ける</button>
-            <button class="btn" style="--accent: #ffaa00; width: 300px; margin: 0; padding: 15px;" onclick="document.getElementById('pause-overlay').style.display='none'; returnToMenu();">RETURN TO MENU / 戻る</button>
-            <button class="btn" style="--accent: #ff5555; width: 300px; margin: 0; padding: 15px;" onclick="handleRetry()">RETRY / リトライ</button>
+            <button class="btn" style="--accent: #00f0f0; width: 300px; margin: 0; padding: 15px;"
+                onclick="document.getElementById('pause-overlay').style.display='none'; openSaveModal();"
+                data-tr="save-and-menu">SAVE & EXIT TO MENU</button>
+            <button class="btn" style="--accent: #55ff55; width: 300px; margin: 0; padding: 15px;"
+                onclick="handlePauseToggle()">RESUME / 続ける</button>
+            <button class="btn" style="--accent: #ffaa00; width: 300px; margin: 0; padding: 15px;"
+                onclick="document.getElementById('pause-overlay').style.display='none'; returnToMenu();">RETURN TO MENU
+                / 戻る</button>
+            <button class="btn" style="--accent: #ff5555; width: 300px; margin: 0; padding: 15px;"
+                onclick="handleRetry()">RETRY / リトライ</button>
         </div>
     </div>
 
@@ -1189,7 +1195,7 @@
             <div id="tmpl-main-list">
                 <button class="btn" onclick="selectTemplate('dt')" data-tr="tmpl-dt">DT Cannon</button><br>
                 <button class="btn" onclick="selectTemplate('tst')" data-tr="tmpl-tst">TST Tower</button><br>
-                <button class="btn" onclick="selectTemplate('trsn')" data-tr="tmpl-trsn">TST Tower</button><br>
+                <button class="btn" onclick="selectTemplate('trsn')" data-tr="tmpl-trsn">super spiral</button><br>
                 <button class="btn" style="border-color: #00ff00; color: #00ff00;" onclick="toggleRenMenu(true)"
                     data-tr="tmpl-RS">REN series</button><br>
                 <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="toggleElevatorMenu(true)"
@@ -1578,7 +1584,7 @@
 
         const TRANSLATIONS = {
             en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-ui": "UI SETTINGS", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "label-ghost": "GHOST OPACITY", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark", "online-settings": "ROOM SETTINGS", "online-target-wins": "Target Wins", "online-party-mode": "Party Mode (Shared Board)", "online-party-count": "Players (2-4)", "online-create-btn": "CREATE", "tmpl-cancel": "CANCEL", "key-pause": "PAUSE / CANCEL", "key-retry": "RETRY / RESTART", "pause-title": "PAUSED", "pause-msg": "Press PAUSE to Resume. Press RETRY to Restart.", "scale-label": "Screen Size", "btn-screen-scale": "Change Screen Size" },
-            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-gmsr": "ガムシロ砲", "tmpl-hpc": "変なパフェ", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク", "online-settings": "部屋設定", "online-target-wins": "目標勝利数", "online-party-mode": "パーティモード (共有盤面)", "online-party-count": "プレイ人数 (2-4)", "online-create-btn": "作成", "tmpl-cancel": "キャンセル", "key-pause": "ポーズ / キャンセル", "key-retry": "リトライ", "pause-title": "ポーズ中", "pause-msg": "ポーズボタンで再開。リトライボタンでやり直し。", "scale-label": "画面サイズ", "btn-screen-scale": "画面の大きさを変える" }
+            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-gmsr": "ガムシロ砲", "tmpl-hpc": "変なパフェ", "tmpl-trsn": "超螺旋", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク", "online-settings": "部屋設定", "online-target-wins": "目標勝利数", "online-party-mode": "パーティモード (共有盤面)", "online-party-count": "プレイ人数 (2-4)", "online-create-btn": "作成", "tmpl-cancel": "キャンセル", "key-pause": "ポーズ / キャンセル", "key-retry": "リトライ", "pause-title": "ポーズ中", "pause-msg": "ポーズボタンで再開。リトライボタンでやり直し。", "scale-label": "画面サイズ", "btn-screen-scale": "画面の大きさを変える" }
         };
 
         const THEMES = {
@@ -1743,7 +1749,7 @@
             // ▼ 追加: 自分の盤面の上に設定したプレイヤー名を表示する
             const p1NameDisp = document.getElementById('p1-name-display');
             if (p1NameDisp) p1NameDisp.innerText = cfg.playerName;
-            
+
             // Restoring the lost UI elements here!
             document.getElementById('lv-range').value = cfg.lv; document.getElementById('lv-val').innerText = cfg.lv;
             document.getElementById('ghost-range').value = cfg.ghost * 100; document.getElementById('ghost-val').innerText = cfg.ghost;
@@ -1800,7 +1806,7 @@
             const box = document.getElementById('scale-arrows-box');
             const targetWidth = 750 * baseScale / tempScale;
             const targetHeight = 650 * baseScale / tempScale;
-            
+
             box.style.bottom = 'auto'; // Fix CSS inset overriding width/height
             box.style.right = 'auto';
             box.style.width = targetWidth + 'px';
