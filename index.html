@@ -1084,8 +1084,8 @@
             TETRIS<br><span style="font-size:20px; letter-spacing:8px; color:#fff;">ULTIMATE</span></h1>
 
         <div id="main-menu-btns">
-            <button class="btn" style="--accent: #00f0f0;" onclick="startGame(false, null)" data-tr="menu-testplay">TEST
-                PLAY</button><br>
+            <button class="btn" style="--accent: #00f0f0;" onclick="startGame(false, null)" data-tr="menu-solo">Solo
+                Play</button><br>
 
             <button class="btn" id="btn-load" onclick="openLoadModal()" style="--accent: #55ff55;"
                 data-tr="menu-continue">CONTINUE</button><br>
@@ -1283,7 +1283,7 @@
         <div id="mode-select-menu" style="display:none;">
             <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 30px;">MODE SELECT</h2>
             <button class="btn" style="--accent: #00f0f0;" onclick="startSelectedTemplate(false)"
-                data-tr="menu-testplay">TEST PLAY</button><br>
+                data-tr="menu-solo">SOLO PLAY</button><br>
             <button class="btn" style="--accent: #ff5555;" onclick="startSelectedTemplate(true)" data-tr="menu-cpu">VS
                 CPU</button><br>
             <button class="btn" style="border-color:#888; color:#888; margin-top:20px;" onclick="cancelTemplateSelect()"
@@ -1427,13 +1427,6 @@
             "3-0": [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]],
             "0-3": [[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]],
         };
-
-        const O_SPIN_OFFSETS = [
-            { x: 0, y: 0 },
-            { x: 0, y: -1 },
-            { x: -1, y: -1 },
-            { x: -1, y: 0 }
-        ];
 
         const TEMPLATES = {
             dt: { board: [".....5....", "..33.55.55", "...3775551", "22.3677441", "2..6661441", "2...551771", "44.5531277", "44.3331222"], hold: null, queue: ["T", "T"] },
