@@ -365,6 +365,35 @@
             pointer-events: none;
             width: 150px;
             text-align: right;
+            z-index: 2;
+        }
+
+        .hint-overlay-canvas {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 240px;
+            height: 480px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .cpu-hint-badge {
+            position: absolute;
+            top: 10px;
+            left: calc(100% + 8px);
+            padding: 4px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(0, 0, 0, 0.72);
+            color: #ffd166;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            text-shadow: 0 0 8px rgba(255, 209, 102, 0.45);
+            pointer-events: none;
+            z-index: 3;
+            display: none;
         }
 
         .action-text {
@@ -1055,8 +1084,8 @@
             TETRIS<br><span style="font-size:20px; letter-spacing:8px; color:#fff;">ULTIMATE</span></h1>
 
         <div id="main-menu-btns">
-            <button class="btn" style="--accent: #00f0f0;" onclick="startGame(false, null)" data-tr="menu-solo">Solo
-                Play</button><br>
+            <button class="btn" style="--accent: #00f0f0;" onclick="startGame(false, null)" data-tr="menu-testplay">TEST
+                PLAY</button><br>
 
             <button class="btn" id="btn-load" onclick="openLoadModal()" style="--accent: #55ff55;"
                 data-tr="menu-continue">CONTINUE</button><br>
@@ -1193,9 +1222,6 @@
         </div>
         <div id="template-menu" style="display:none;">
             <div id="tmpl-main-list">
-                <button class="btn" onclick="selectTemplate('dt')" data-tr="tmpl-dt">DT Cannon</button><br>
-                <button class="btn" onclick="selectTemplate('tst')" data-tr="tmpl-tst">TST Tower</button><br>
-                <button class="btn" onclick="selectTemplate('trsn')" data-tr="tmpl-trsn">super spiral</button><br>
                 <button class="btn" style="border-color: #00ff00; color: #00ff00;" onclick="toggleRenMenu(true)"
                     data-tr="tmpl-RS">REN series</button><br>
                 <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="toggleElevatorMenu(true)"
@@ -1204,9 +1230,19 @@
                     data-tr="tmpl-TS">TD series</button><br>
                 <button class="btn" style="border-color: #ff6600; color: #ff6600;" onclick="togglePCMenu(true)"
                     data-tr="tmpl-PCS">PC series</button><br>
+                <button class="btn" style="border-color: #345ce0; color: #345ce0;" onclick="toggleTspinMenu(true)"
+                    data-tr="tmpl-TSPIN">T-spin series</button><br>
 
                 <button class="btn" style="border-color:#888; color:#888; margin-top:20px;" onclick="hideTemplateMenu()"
                     data-tr="tmpl-back">BACK</button>
+            </div>
+
+            <div id="tmpl-tspin-list" style="display:none;">
+                <button class="btn" onclick="selectTemplate('dt')" data-tr="tmpl-dt">DT Cannon</button><br>
+                <button class="btn" onclick="selectTemplate('tst')" data-tr="tmpl-tst">TST Tower</button><br>
+                <button class="btn" onclick="selectTemplate('trsn')" data-tr="tmpl-trsn">super spiral</button><br>
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
+                    onclick="toggleTspinMenu(false)">◀ 戻る</button>
             </div>
 
             <div id="tmpl-ren-list" style="display:none;">
@@ -1215,6 +1251,7 @@
                 <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
                     onclick="toggleRenMenu(false)">◀ 戻る</button>
             </div>
+
 
             <div id="tmpl-elevator-list" style="display:none;">
                 <button class="btn" onclick="selectTemplate('iev')" data-tr="tmpl-iev">I mino elevator</button><br>
@@ -1246,7 +1283,7 @@
         <div id="mode-select-menu" style="display:none;">
             <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 30px;">MODE SELECT</h2>
             <button class="btn" style="--accent: #00f0f0;" onclick="startSelectedTemplate(false)"
-                data-tr="menu-solo">SOLO PLAY</button><br>
+                data-tr="menu-testplay">TEST PLAY</button><br>
             <button class="btn" style="--accent: #ff5555;" onclick="startSelectedTemplate(true)" data-tr="menu-cpu">VS
                 CPU</button><br>
             <button class="btn" style="border-color:#888; color:#888; margin-top:20px;" onclick="cancelTemplateSelect()"
@@ -1300,7 +1337,9 @@
                 </div>
                 <div style="position:relative;">
                     <div id="p-action-layer" class="action-layer"></div>
+                    <div id="p-hint-badge" class="cpu-hint-badge">CPU: HOLD</div>
                     <canvas id="p-canvas" class="main-canvas" width="240" height="480"></canvas>
+                    <canvas id="p-hint-canvas" class="hint-overlay-canvas" width="240" height="480"></canvas>
                 </div>
                 <div class="side-column">
                     <div class="hold-next-box" style="padding-bottom: 5px;">
@@ -1388,6 +1427,13 @@
             "3-0": [[0, 0], [1, 0], [-2, 0], [1, -2], [-2, 1]],
             "0-3": [[0, 0], [-1, 0], [2, 0], [-1, 2], [2, -1]],
         };
+
+        const O_SPIN_OFFSETS = [
+            { x: 0, y: 0 },
+            { x: 0, y: -1 },
+            { x: -1, y: -1 },
+            { x: -1, y: 0 }
+        ];
 
         const TEMPLATES = {
             dt: { board: [".....5....", "..33.55.55", "...3775551", "22.3677441", "2..6661441", "2...551771", "44.5531277", "44.3331222"], hold: null, queue: ["T", "T"] },
@@ -1584,7 +1630,7 @@
 
         const TRANSLATIONS = {
             en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-ui": "UI SETTINGS", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "label-ghost": "GHOST OPACITY", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark", "online-settings": "ROOM SETTINGS", "online-target-wins": "Target Wins", "online-party-mode": "Party Mode (Shared Board)", "online-party-count": "Players (2-4)", "online-create-btn": "CREATE", "tmpl-cancel": "CANCEL", "key-pause": "PAUSE / CANCEL", "key-retry": "RETRY / RESTART", "pause-title": "PAUSED", "pause-msg": "Press PAUSE to Resume. Press RETRY to Restart.", "scale-label": "Screen Size", "btn-screen-scale": "Change Screen Size" },
-            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-gmsr": "ガムシロ砲", "tmpl-hpc": "変なパフェ", "tmpl-trsn": "超螺旋", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク", "online-settings": "部屋設定", "online-target-wins": "目標勝利数", "online-party-mode": "パーティモード (共有盤面)", "online-party-count": "プレイ人数 (2-4)", "online-create-btn": "作成", "tmpl-cancel": "キャンセル", "key-pause": "ポーズ / キャンセル", "key-retry": "リトライ", "pause-title": "ポーズ中", "pause-msg": "ポーズボタンで再開。リトライボタンでやり直し。", "scale-label": "画面サイズ", "btn-screen-scale": "画面の大きさを変える" }
+            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-TSPIN": "T-spin系", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-gmsr": "ガムシロ砲", "tmpl-hpc": "変なパフェ", "tmpl-trsn": "超螺旋", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク", "online-settings": "部屋設定", "online-target-wins": "目標勝利数", "online-party-mode": "パーティモード (共有盤面)", "online-party-count": "プレイ人数 (2-4)", "online-create-btn": "作成", "tmpl-cancel": "キャンセル", "key-pause": "ポーズ / キャンセル", "key-retry": "リトライ", "pause-title": "ポーズ中", "pause-msg": "ポーズボタンで再開。リトライボタンでやり直し。", "scale-label": "画面サイズ", "btn-screen-scale": "画面の大きさを変える" }
         };
 
         const THEMES = {
@@ -2075,6 +2121,7 @@
 
         function returnToMenu() {
             if (isOnline) disconnectOnline(); // Ensures Quick Match disconnection and resets networking variables
+            resetSoloCpuHintState();
 
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('menu').style.display = 'block';
@@ -2617,6 +2664,7 @@
         }
 
         function startOnlineGameExecution(playerCount, myIndex) {
+            resetSoloCpuHintState();
             isOnline = true;
             document.getElementById('online-menu').style.display = 'none';
             document.getElementById('online-lobby').style.display = 'none';
@@ -2717,6 +2765,7 @@
         }
 
         function startPartyModeExecution(playerCount, myIndex) {
+            resetSoloCpuHintState();
             isOnline = true;
             document.getElementById('online-lobby').style.display = 'none';
             document.getElementById('btn-save-menu').style.display = 'none';
@@ -2902,6 +2951,18 @@
             }
         }
 
+        function toggleTspinMenu(showSub) {
+            const mainList = document.getElementById('tmpl-main-list');
+            const subList = document.getElementById('tmpl-tspin-list');
+            if (showSub) {
+                mainList.style.display = 'none';
+                subList.style.display = 'block';
+            } else {
+                mainList.style.display = 'block';
+                subList.style.display = 'none';
+            }
+        }
+
         // --- Tetris Game Class ---
         class Tetris {
             constructor(canvasId, holdId, nextBaseId, scoreId, isAI = false, actionId = null, meterId = null, templateKey = null, isLoad = false) {
@@ -2909,6 +2970,10 @@
                 this.ctx = this.canvas.getContext('2d');
                 this.holdCanvas = document.getElementById(holdId);
                 this.isAI = isAI;
+                this.isPlayerBoard = canvasId === 'p-canvas';
+                this.hintCanvas = this.isPlayerBoard ? document.getElementById('p-hint-canvas') : null;
+                this.hintCtx = this.hintCanvas ? this.hintCanvas.getContext('2d') : null;
+                this.hintBadge = this.isPlayerBoard ? document.getElementById('p-hint-badge') : null;
                 this.nextCount = 5;
                 this.nextCanvases = Array.from({ length: this.nextCount }, (_, i) => document.getElementById(`${nextBaseId}-${i}`));
                 this.scoreElem = document.getElementById(scoreId);
@@ -2929,6 +2994,8 @@
                     while (this.nextQueue.length < 10) this.nextQueue.push(this.pullFromBag());
                     this.reset();
                 }
+
+                this.renderCpuHintOverlay(null);
             }
 
             getState() {
@@ -2968,6 +3035,7 @@
                 this.dropCounter = state.dropCounter || 0;
                 this.updateUI();
                 this.updateMeter();
+                if (!this.isAI) syncSoloCpuHint();
             }
 
             loadTemplate(tmplKey) {
@@ -3012,6 +3080,7 @@
                 if (this.collide()) { this.player.pos.y--; if (this.collide()) this.gameOver(); }
                 if (this.isAI) this.aiPlan();
                 this.updateUI();
+                if (!this.isAI) syncSoloCpuHint();
             }
 
             collide(m = this.player.matrix, o = this.player.pos) {
@@ -3052,19 +3121,32 @@
                         }
                     }
                 } else { this.player.matrix = oldM; this.player.pos = { ...oldP }; }
+                if (!this.isAI) syncSoloCpuHint();
             }
 
             playerMove(dir) {
                 this.player.pos.x += dir;
-                if (this.collide()) { this.player.pos.x -= dir; return false; }
-                this.lastMoveRotate = false; this.lockDelayCounter = 0; return true;
+                if (this.collide()) {
+                    this.player.pos.x -= dir;
+                    if (!this.isAI) syncSoloCpuHint();
+                    return false;
+                }
+                this.lastMoveRotate = false; this.lockDelayCounter = 0;
+                if (!this.isAI) syncSoloCpuHint();
+                return true;
             }
 
             playerDrop(isSoftDrop = false) {
                 this.player.pos.y++;
-                if (this.collide()) { this.player.pos.y--; return false; }
+                if (this.collide()) {
+                    this.player.pos.y--;
+                    if (!this.isAI) syncSoloCpuHint();
+                    return false;
+                }
                 if (isSoftDrop && !this.isAI) { this.player.score += 1; this.updateUI(); }
-                this.lockDelayCounter = 0; this.dropCounter = 0; this.lastMoveRotate = false; return true;
+                this.lockDelayCounter = 0; this.dropCounter = 0; this.lastMoveRotate = false;
+                if (!this.isAI) syncSoloCpuHint();
+                return true;
             }
 
             hardDrop() {
@@ -3198,10 +3280,12 @@
                 this.isOtransformed = false; this.oSpinRotCount = 0;
                 if (this.isAI) this.aiPlan();
                 this.updateUI();
+                if (!this.isAI) syncSoloCpuHint();
             }
 
             gameOver() {
                 if (this.isGameOver) return; this.isGameOver = true;
+                if (!this.isAI) syncSoloCpuHint();
 
                 if (inTutorial) {
                     endTutorial();
@@ -3269,9 +3353,20 @@
                 return placements;
             }
 
-            aiPlan() {
+            getPieceColor(type) {
+                return Object.keys(PIECES).indexOf(type) + 1;
+            }
+
+            getRecommendedMove(options = {}) {
+                const {
+                    level = cfg.lv,
+                    forcePerfect = false,
+                    allowJitter = true
+                } = options;
+                const evalLevel = forcePerfect ? Math.max(30, level) : level;
+                const holdLevel = forcePerfect ? Math.max(50, level) : level;
                 const evalBoard = (type) => {
-                    let best = { s: -Infinity, x: 0, r: 0 };
+                    let best = { s: -Infinity, x: 0, y: 0, r: 0 };
                     let placements = this.getLockablePlacements(type);
 
                     for (let p of placements) {
@@ -3369,7 +3464,7 @@
                             }
                             score += templateScore + (y * 10) - (holes * 200);
                         } else {
-                            if (cfg.lv >= 30) {
+                            if (forcePerfect || evalLevel >= 30) {
                                 // Genetic AI weights (Dellacherie algorithm) - practically unbeatable
                                 score = (landingHeight * -4.500)
                                     + (linesCleared * 3.418)
@@ -3378,7 +3473,7 @@
                                     + (holes * -7.899)
                                     + (wellSums * -3.386);
                             } else {
-                                let intelligence = cfg.lv / 30; // 0 to 1
+                                let intelligence = evalLevel / 30; // 0 to 1
                                 score = (landingHeight * (-10 + intelligence * 5))
                                     + (linesCleared * (1 + intelligence * 2.4))
                                     + (rowTransitions * (-8 + intelligence * 4.8))
@@ -3388,29 +3483,47 @@
                             }
                         }
 
-                        if (score > best.s) { best.s = score; best.x = x; best.r = r; }
+                        if (score > best.s) { best.s = score; best.x = x; best.y = y; best.r = r; }
                     }
-                    if (best.s === -Infinity) { best = { s: -100000, x: 3, r: 0 }; }
+                    if (best.s === -Infinity) { best = { s: -100000, x: 3, y: 0, r: 0 }; }
                     return best;
                 };
 
                 let cur = evalBoard(this.player.type);
                 let holdT = this.player.holdType || this.nextQueue[0];
-                let hld = evalBoard(holdT);
+                let hld = holdT ? evalBoard(holdT) : { s: -Infinity, x: 3, y: 0, r: 0 };
 
                 let willHold = false;
-                if (this.player.canHold) {
+                if (this.player.canHold && holdT) {
                     let holdAdvantage = hld.s - cur.s;
-                    let holdThreshold = Math.max(0, 50 - cfg.lv);
+                    let holdThreshold = Math.max(0, 50 - holdLevel);
                     if (holdAdvantage > holdThreshold) willHold = true;
                 }
 
-                if (willHold) { this.aiNeedHold = true; this.aiTargetX = hld.x; this.aiTargetRot = hld.r; }
-                else { this.aiNeedHold = false; this.aiTargetX = cur.x; this.aiTargetRot = cur.r; }
+                const best = willHold ? hld : cur;
+                const type = willHold ? holdT : this.player.type;
+                const move = {
+                    useHold: willHold,
+                    type,
+                    color: this.getPieceColor(type),
+                    matrix: this.getPrefixMatrix(type, best.r),
+                    x: best.x,
+                    y: best.y,
+                    rotation: best.r,
+                    score: best.s
+                };
 
-                if (cfg.lv < 15 && Math.random() < (15 - cfg.lv) * 0.02) {
-                    this.aiTargetX += (Math.random() < 0.5 ? -1 : 1);
+                if (!forcePerfect && allowJitter && !this.targetBoard && evalLevel < 15 && Math.random() < (15 - evalLevel) * 0.02) {
+                    move.x += (Math.random() < 0.5 ? -1 : 1);
                 }
+                return move;
+            }
+
+            aiPlan() {
+                const move = this.getRecommendedMove();
+                this.aiNeedHold = !!move.useHold;
+                this.aiTargetX = move.x;
+                this.aiTargetRot = move.rotation;
             }
 
             update(dt) {
@@ -3509,16 +3622,30 @@
                     this.ctx.globalAlpha = cfg.ghost; this.drawM(this.player.matrix, { x: gp.x, y: gp.y + off.y }, s, this.player.color); this.ctx.globalAlpha = 1.0;
                 }
                 this.drawM(this.arena, off, s); this.drawM(this.player.matrix, { x: this.player.pos.x, y: this.player.pos.y + off.y }, s, this.player.color);
+                if (this.isPlayerBoard) this.renderCpuHintOverlay();
             }
 
-            drawM(m, o, s, overrideColor = null) {
+            drawM(m, o, s, overrideColor = null, targetCtx = this.ctx) {
                 if (!m) return;
                 m.forEach((row, y) => row.forEach((v, x) => {
                     if (v !== 0 && (y + o.y) >= 0) {
-                        this.ctx.fillStyle = COLORS[overrideColor || v]; this.ctx.fillRect((x + o.x) * s, (y + o.y) * s, s, s);
-                        this.ctx.strokeStyle = 'rgba(0,0,0,0.5)'; this.ctx.strokeRect((x + o.x) * s, (y + o.y) * s, s, s);
+                        targetCtx.fillStyle = COLORS[overrideColor || v]; targetCtx.fillRect((x + o.x) * s, (y + o.y) * s, s, s);
+                        targetCtx.strokeStyle = 'rgba(0,0,0,0.5)'; targetCtx.strokeRect((x + o.x) * s, (y + o.y) * s, s, s);
                     }
                 }));
+            }
+
+            renderCpuHintOverlay(move = soloCpuHintMove) {
+                if (!this.hintCtx || !this.hintCanvas) return;
+                this.hintCtx.clearRect(0, 0, this.hintCanvas.width, this.hintCanvas.height);
+                if (this.hintBadge) this.hintBadge.style.display = 'none';
+                if (!soloCpuHintEnabled || !move || this.isGameOver || cpu || isOnline || isPartyMode || window.partyModeInstance) return;
+                const s = 24;
+                const off = { x: 0, y: -2 };
+                this.hintCtx.globalAlpha = 0.35;
+                this.drawM(move.matrix, { x: move.x, y: move.y + off.y }, s, move.color, this.hintCtx);
+                this.hintCtx.globalAlpha = 1.0;
+                if (this.hintBadge && move.useHold) this.hintBadge.style.display = 'block';
             }
 
             showAction(txt) {
@@ -3894,6 +4021,7 @@
 
         // --- Animation Loop ---
         let p1, cpu, lastTime = 0, keysDown = {}, keysDownTime = {};
+        let soloCpuHintEnabled = false, soloCpuHintMove = null, soloCpuHintNeedsHold = false;
         let isPaused = false;
 
         // --- Gamepad & Touch Controls ---
@@ -4004,6 +4132,7 @@
         });
 
         function resetRound() {
+            resetSoloCpuHintState();
             p1.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
             p1.player.score = 0; p1.player.ren = -1; p1.player.btb = false;
             p1.pendingGarbage = 0; p1.isGameOver = false; p1.player.holdType = null;
@@ -4027,6 +4156,51 @@
             });
         }
 
+        function clearSoloCpuHintOverlay() {
+            if (p1 && typeof p1.renderCpuHintOverlay === 'function') p1.renderCpuHintOverlay(null);
+        }
+
+        function resetSoloCpuHintState() {
+            soloCpuHintEnabled = false;
+            soloCpuHintMove = null;
+            soloCpuHintNeedsHold = false;
+            clearSoloCpuHintOverlay();
+        }
+
+        function isSoloCpuHintContext() {
+            return !!(p1 && !cpu && !isOnline && !isPartyMode && !window.partyModeInstance);
+        }
+
+        function syncSoloCpuHint() {
+            if (!soloCpuHintEnabled || !isSoloCpuHintContext() || !p1 || p1.isGameOver) {
+                soloCpuHintMove = null;
+                soloCpuHintNeedsHold = false;
+                clearSoloCpuHintOverlay();
+                return null;
+            }
+
+            soloCpuHintMove = p1.getRecommendedMove({ forcePerfect: true, level: 50, allowJitter: false });
+            soloCpuHintNeedsHold = !!(soloCpuHintMove && soloCpuHintMove.useHold);
+            p1.renderCpuHintOverlay(soloCpuHintMove);
+            return soloCpuHintMove;
+        }
+
+        function handleSoloCpuHintToggle() {
+            if (!p1 || cpu || isOnline || isPartyMode || window.partyModeInstance || isPaused || inTutorial || p1.isGameOver) return false;
+
+            soloCpuHintEnabled = !soloCpuHintEnabled;
+            if (soloCpuHintEnabled) {
+                syncSoloCpuHint();
+                showToast(cfg.lang === 'ja' ? "CPUおすすめ表示: ON" : "CPU hint: ON");
+            } else {
+                soloCpuHintMove = null;
+                soloCpuHintNeedsHold = false;
+                clearSoloCpuHintOverlay();
+                showToast(cfg.lang === 'ja' ? "CPUおすすめ表示: OFF" : "CPU hint: OFF");
+            }
+            return true;
+        }
+
         function animate(t = 0) {
             pollGamepad();
             const dt = Math.min(t - lastTime, 50);
@@ -4044,6 +4218,7 @@
 
         // --- Start Game ---
         function startGame(isCPU, playerTmpl = null, isLoad = false) {
+            resetSoloCpuHintState();
             document.getElementById('menu').style.display = 'none';
             document.getElementById('mode-select-menu').style.display = 'none';
             document.getElementById('game-view').style.display = 'flex';
@@ -4102,6 +4277,10 @@
             if (document.activeElement.tagName === 'INPUT') return;
 
             let key = e.key;
+            if (key.toLowerCase() === 'p' && handleSoloCpuHintToggle()) {
+                e.preventDefault();
+                return;
+            }
             let matchedKey = key;
             // 設定されたキーと大文字・小文字を無視して一致するものがあれば、設定済みのキー名に変換する
             for (let k in cfg.keys) {
