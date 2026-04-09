@@ -193,6 +193,33 @@
             width: 80px;
         }
 
+        .stats-table {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            width: 80px;
+            font-size: 11px;
+            text-align: left;
+            margin-top: 5px;
+            box-sizing: border-box;
+        }
+
+        .stats-table .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+
+        .stats-table .stat-row .lbl {
+            color: #888;
+        }
+
+        .stats-table .stat-row .val {
+            color: #fff;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
         canvas.mini-canvas {
             background: var(--canvas-bg, #000);
             border: 1px solid var(--border);
@@ -848,7 +875,50 @@
             pointer-events: auto;
             z-index: 2001;
         }
-    </style>
+    
+        .editable-val {
+            background: transparent;
+            border: 1px dashed var(--accent);
+            color: var(--accent);
+            width: 55px;
+            font-size: 14px;
+            text-align: right;
+            margin-right: 5px;
+            outline: none;
+            border-radius: 3px;
+        }
+        .editable-val:focus {
+            background: rgba(0, 240, 240, 0.2);
+            border-style: solid;
+        }
+        .editable-val::-webkit-inner-spin-button, 
+        .editable-val::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        .cool-select {
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-color: #1a1a1a !important;
+            border: 1px solid var(--accent) !important;
+            color: #fff !important;
+            box-shadow: 0 0 10px rgba(0, 240, 240, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+        .cool-select:hover {
+            box-shadow: 0 0 15px rgba(0, 240, 240, 0.3);
+            border-color: #00ffff !important;
+            background-color: #2a2a2a !important;
+        }
+        .slider-group {
+            display: flex;
+            align-items: center;
+        }
+</style>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 
@@ -913,6 +983,7 @@
                 <button class="tab-btn active" onclick="openTab(event, 'tab-general')"
                     data-tr="tab-general">GENERAL</button>
                 <button class="tab-btn" onclick="openTab(event, 'tab-ui')" data-tr="tab-ui">UI SETTINGS</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-play')" data-tr="tab-play">PLAY SETTINGS</button>
                 <button class="tab-btn" onclick="openTab(event, 'tab-handling')"
                     data-tr="tab-handling">HANDLING</button>
                 <button class="tab-btn" onclick="openTab(event, 'tab-keys')" data-tr="tab-keys">KEYS</button>
@@ -932,7 +1003,7 @@
                     </div>
                 </div>
                 <div class="setting-row"><label data-tr="label-level">CPU LEVEL</label>
-                    <div><span id="lv-val">5</span><input type="range" id="lv-range" min="1" max="50"></div>
+                    <div class="slider-group"><input type="number" id="lv-val" class="editable-val" min="1" max="50"><input type="range" id="lv-range" min="1" max="50"></div>
                 </div>
                 <div class="setting-row">
                     <label data-tr="label-config">CONFIG DATA</label>
@@ -956,7 +1027,7 @@
                 </div>
                 <div class="setting-row">
                     <label data-tr="label-theme">THEME COLOR</label>
-                    <select id="theme-select" class="modal-input"
+                    <select id="theme-select" class="modal-input cool-select"
                         style="width:150px; cursor:pointer; background:#222; color:#fff;"
                         onchange="cfg.theme = this.value; updateUIFromCfg(); saveCfg();">
                         <option value="default" data-tr="theme-default">Default</option>
@@ -966,8 +1037,16 @@
                     </select>
                 </div>
                 <div class="setting-row"><label data-tr="label-ghost">GHOST OPACITY</label>
-                    <div><span id="ghost-val">0.15</span><input type="range" id="ghost-range" min="0" max="100"
-                            step="5"></div>
+                    <div class="slider-group"><input type="number" id="ghost-val" class="editable-val" min="0" max="1" step="0.05"><input type="range" id="ghost-range" min="0" max="100" step="5"></div>
+                </div>
+            </div>
+            <div id="tab-play" class="modal-body tab-content" style="display:none;">
+                <div class="setting-row">
+                    <label data-tr="solo-levelup">SOLO LEVEL UP</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="level-toggle" onchange="cfg.enableLevelUp = this.checked; saveCfg();">
+                        <span class="slider"></span>
+                    </label>
                 </div>
                 <div class="setting-row">
                     <label data-tr="ospin-label">O-SPIN ENABLED</label>
@@ -976,20 +1055,26 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                <div class="setting-row">
+                    <label data-tr="ospin-transform">O-SPIN TRANSFORM</label>
+                    <select id="ospin-transform-select" class="modal-input cool-select"
+                        style="width:150px; cursor:pointer; background:#222; color:#fff;"
+                        onchange="cfg.ospinTransform = this.value; saveCfg();">
+                        <option value="fixed" data-tr="ospin-transform-fixed">I-mino (Fixed)</option>
+                        <option value="random" data-tr="ospin-transform-random">Random (No O)</option>
+                    </select>
+                </div>
             </div>
 
             <div id="tab-handling" class="modal-body tab-content" style="display:none;">
                 <div class="setting-row"><label data-tr="label-das">DAS (Delayed Auto Shift)</label>
-                    <div><span id="das-val">150</span>ms<input type="range" id="das-range" min="50" max="300" step="10">
-                    </div>
+                    <div class="slider-group"><input type="number" id="das-val" class="editable-val" min="50" max="300" step="10"><span style="margin-right:5px;">ms</span><input type="range" id="das-range" min="50" max="300" step="10"></div>
                 </div>
                 <div class="setting-row"><label data-tr="label-arr">ARR (Auto Repeat Rate)</label>
-                    <div><span id="arr-val">30</span>ms<input type="range" id="arr-range" min="0" max="100" step="5">
-                    </div>
+                    <div class="slider-group"><input type="number" id="arr-val" class="editable-val" min="0" max="100" step="5"><span style="margin-right:5px;">ms</span><input type="range" id="arr-range" min="0" max="100" step="5"></div>
                 </div>
                 <div class="setting-row"><label data-tr="label-sdf">SDF (Soft Drop Factor)</label>
-                    <div>x<span id="sdf-val">20</span><input type="range" id="sdf-range" min="5" max="50" step="1">
-                    </div>
+                    <div class="slider-group"><span style="margin-right:5px;">x</span><input type="number" id="sdf-val" class="editable-val" min="5" max="50" step="1"><input type="range" id="sdf-range" min="5" max="50" step="1"></div>
                 </div>
             </div>
 
@@ -1350,6 +1435,14 @@
                         <canvas id="p-next-3" class="mini-canvas" width="60" height="60"></canvas>
                         <canvas id="p-next-4" class="mini-canvas" width="60" height="60"></canvas>
                     </div>
+                    <div class="stats-table">
+                        <div class="stat-row"><span class="lbl" data-tr="stats-time">TIME</span><span class="val" id="p-stat-time">0:00</span></div>
+                        <div class="stat-row"><span class="lbl" data-tr="stats-lines">LINES</span><span class="val" id="p-stat-lines">0</span></div>
+                        <div class="stat-row"><span class="lbl" data-tr="stats-level">LEVEL</span><span class="val" id="p-stat-level">1</span></div>
+                        <div class="stat-row"><span class="lbl">PPS</span><span class="val" id="p-stat-pps">0.00</span></div>
+                        <div class="stat-row"><span class="lbl">APM</span><span class="val" id="p-stat-apm">0.00</span></div>
+                        <div class="stat-row"><span class="lbl">LPM</span><span class="val" id="p-stat-lpm">0.00</span></div>
+                    </div>
                 </div>
             </div>
             <button id="btn-save-menu" class="btn"
@@ -1387,6 +1480,14 @@
                         <canvas id="c-next-2" class="mini-canvas" width="60" height="60"></canvas>
                         <canvas id="c-next-3" class="mini-canvas" width="60" height="60"></canvas>
                         <canvas id="c-next-4" class="mini-canvas" width="60" height="60"></canvas>
+                    </div>
+                    <div class="stats-table">
+                        <div class="stat-row"><span class="lbl" data-tr="stats-time">TIME</span><span class="val" id="c-stat-time">0:00</span></div>
+                        <div class="stat-row"><span class="lbl" data-tr="stats-lines">LINES</span><span class="val" id="c-stat-lines">0</span></div>
+                        <div class="stat-row"><span class="lbl" data-tr="stats-level">LEVEL</span><span class="val" id="c-stat-level">1</span></div>
+                        <div class="stat-row"><span class="lbl">PPS</span><span class="val" id="c-stat-pps">0.00</span></div>
+                        <div class="stat-row"><span class="lbl">APM</span><span class="val" id="c-stat-apm">0.00</span></div>
+                        <div class="stat-row"><span class="lbl">LPM</span><span class="val" id="c-stat-lpm">0.00</span></div>
                     </div>
                 </div>
             </div>
@@ -1622,8 +1723,8 @@
         };
 
         const TRANSLATIONS = {
-            en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-ui": "UI SETTINGS", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "label-ghost": "GHOST OPACITY", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark", "online-settings": "ROOM SETTINGS", "online-target-wins": "Target Wins", "online-party-mode": "Party Mode (Shared Board)", "online-party-count": "Players (2-4)", "online-create-btn": "CREATE", "tmpl-cancel": "CANCEL", "key-pause": "PAUSE / CANCEL", "key-retry": "RETRY / RESTART", "pause-title": "PAUSED", "pause-msg": "Press PAUSE to Resume. Press RETRY to Restart.", "scale-label": "Screen Size", "btn-screen-scale": "Change Screen Size" },
-            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-TSPIN": "T-spin系", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-gmsr": "ガムシロ砲", "tmpl-hpc": "変なパフェ", "tmpl-trsn": "超螺旋", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク", "online-settings": "部屋設定", "online-target-wins": "目標勝利数", "online-party-mode": "パーティモード (共有盤面)", "online-party-count": "プレイ人数 (2-4)", "online-create-btn": "作成", "tmpl-cancel": "キャンセル", "key-pause": "ポーズ / キャンセル", "key-retry": "リトライ", "pause-title": "ポーズ中", "pause-msg": "ポーズボタンで再開。リトライボタンでやり直し。", "scale-label": "画面サイズ", "btn-screen-scale": "画面の大きさを変える" }
+            en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-ui": "UI SETTINGS", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "solo-levelup": "SOLO LEVEL UP", "stats-time": "TIME", "stats-lines": "LINES", "stats-level": "LEVEL", "label-ghost": "GHOST OPACITY", "label-particles": "BACKGROUND PARTICLES", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "tab-play": "PLAY SETTINGS", "ospin-transform": "O-SPIN TRANSFORM", "ospin-transform-fixed": "I-mino (Fixed)", "ospin-transform-random": "Random (No O)", "tab-play": "PLAY SETTINGS", "ospin-transform": "O-SPIN TRANSFORM", "ospin-transform-fixed": "I-mino (Fixed)", "ospin-transform-random": "Random (No O)", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark", "online-settings": "ROOM SETTINGS", "online-target-wins": "Target Wins", "online-party-mode": "Party Mode (Shared Board)", "online-party-count": "Players (2-4)", "online-create-btn": "CREATE", "tmpl-cancel": "CANCEL", "key-pause": "PAUSE / CANCEL", "key-retry": "RETRY / RESTART", "pause-title": "PAUSED", "pause-msg": "Press PAUSE to Resume. Press RETRY to Restart.", "scale-label": "Screen Size", "btn-screen-scale": "Change Screen Size" },
+            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "solo-levelup": "ソロでレベル上昇", "stats-time": "タイム", "stats-lines": "ライン", "stats-level": "レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-TSPIN": "T-spin系", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-gmsr": "ガムシロ砲", "tmpl-hpc": "変なパフェ", "tmpl-trsn": "超螺旋", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "tab-play": "プレイ設定", "ospin-transform": "O-SPIN 変形先", "ospin-transform-fixed": "Iミノに変換 (固定)", "ospin-transform-random": "ランダム (O以外)", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク", "online-settings": "部屋設定", "online-target-wins": "目標勝利数", "online-party-mode": "パーティモード (共有盤面)", "online-party-count": "プレイ人数 (2-4)", "online-create-btn": "作成", "tmpl-cancel": "キャンセル", "key-pause": "ポーズ / キャンセル", "key-retry": "リトライ", "pause-title": "ポーズ中", "pause-msg": "ポーズボタンで再開。リトライボタンでやり直し。", "scale-label": "画面サイズ", "btn-screen-scale": "画面の大きさを変える" }
         };
 
         const THEMES = {
@@ -1634,7 +1735,7 @@
         };
 
         let cfg = {
-            lang: 'ja', playerName: '', hasCompletedTutorial: false, theme: 'default', lv: 5, ghost: 0.15, das: 150, arr: 30, sdf: 20, ospin: false,
+            lang: 'ja', playerName: '', hasCompletedTutorial: false, theme: 'default', lv: 5, ghost: 0.15, das: 150, arr: 30, sdf: 20, ospin: false, ospinTransform: 'fixed', particles: 80, enableLevelUp: true,
             keys: { left: 'ArrowLeft', right: 'ArrowRight', soft: 'ArrowDown', hard: ' ', rotR: 'ArrowUp', rotL: 'z', hold: 'c', hold2: 'Shift', pause: 'Escape', retry: 'r' },
             padKeys: { left: 14, right: 15, soft: 13, hard: 12, rotR: 0, rotL: 2, hold: 4, hold2: 5, pause: 9, retry: 8 },
             screenScale: 1.0,
@@ -1790,13 +1891,16 @@
             if (p1NameDisp) p1NameDisp.innerText = cfg.playerName;
 
             // Restoring the lost UI elements here!
-            document.getElementById('lv-range').value = cfg.lv; document.getElementById('lv-val').innerText = cfg.lv;
-            document.getElementById('ghost-range').value = cfg.ghost * 100; document.getElementById('ghost-val').innerText = cfg.ghost;
-            document.getElementById('das-range').value = cfg.das; document.getElementById('das-val').innerText = cfg.das;
-            document.getElementById('arr-range').value = cfg.arr; document.getElementById('arr-val').innerText = cfg.arr;
+            document.getElementById('lv-range').value = cfg.lv; if(document.getElementById('lv-val')) document.getElementById('lv-val').value = cfg.lv;
+            document.getElementById('ghost-range').value = cfg.ghost * 100; if(document.getElementById('ghost-val')) document.getElementById('ghost-val').value = cfg.ghost;
+            document.getElementById('das-range').value = cfg.das; if(document.getElementById('das-val')) document.getElementById('das-val').value = cfg.das;
+            document.getElementById('arr-range').value = cfg.arr; if(document.getElementById('arr-val')) document.getElementById('arr-val').value = cfg.arr;
 
-            document.getElementById('sdf-range').value = cfg.sdf; document.getElementById('sdf-val').innerText = cfg.sdf;
+            document.getElementById('sdf-range').value = cfg.sdf; if(document.getElementById('sdf-val')) document.getElementById('sdf-val').value = cfg.sdf;
             document.getElementById('ospin-toggle').checked = cfg.ospin;
+            if (document.getElementById('ospin-transform-select')) document.getElementById('ospin-transform-select').value = cfg.ospinTransform || 'fixed';
+            document.getElementById('level-toggle').checked = cfg.enableLevelUp !== false;
+            if (document.getElementById('particles-range')) { document.getElementById('particles-range').value = cfg.particles || 80; document.getElementById('particles-val').value = cfg.particles || 80; }
             for (let k in cfg.keys) {
                 const el = document.getElementById('key-' + k);
                 if (el) el.innerText = isGamepadConnected ? getPrettyKey(cfg.padKeys[k]) : getPrettyKey(cfg.keys[k]);
@@ -2166,6 +2270,168 @@
         let targetPartyCount = 4;
         let partyClients = [];
         let opponents = []; // Array to store multiple Opponent Tetris instances
+        let onlinePlayerCount = 0;
+        let onlineMyIndex = 0;
+        let onlineStateCache = {};
+        let onlineDeadPlayers = {};
+
+        function isStandardOnlineMatch() {
+            return isOnline && !isPartyMode;
+        }
+
+        function isHostedOnlineMatch() {
+            return isStandardOnlineMatch() && isHost && !isQuickMatch;
+        }
+
+        function resetOnlineRoundState() {
+            onlineStateCache = {};
+            onlineDeadPlayers = {};
+            for (let i = 0; i < onlinePlayerCount; i++) {
+                onlineDeadPlayers[i] = false;
+            }
+        }
+
+        function getConnectionByNetworkId(id) {
+            return partyClients.find(c => c.networkId === id && c.open);
+        }
+
+        function applyOpponentNetworkState(playerId, state) {
+            if (playerId === onlineMyIndex || !state || opponents.length === 0) return;
+            onlineStateCache[playerId] = state;
+            const opp = opponents.find(o => o.networkId === playerId);
+            if (opp) opp.setState(state);
+        }
+
+        function broadcastMultiState() {
+            if (!isHostedOnlineMatch() || !p1) return;
+            onlineStateCache[p1.networkId] = p1.getState();
+            const states = {};
+            Object.keys(onlineStateCache).forEach(key => {
+                if (onlineStateCache[key]) states[key] = onlineStateCache[key];
+            });
+            partyClients.forEach(c => {
+                if (c && c.open) c.send({ type: 'multi_state', states: states });
+            });
+        }
+
+        function getStandardOnlineTargets(excludeId) {
+            const targets = [];
+            for (let i = 0; i < onlinePlayerCount; i++) {
+                if (i === excludeId || onlineDeadPlayers[i]) continue;
+                targets.push(i);
+            }
+            return targets;
+        }
+
+        function pickStandardOnlineTarget(excludeId) {
+            const targets = getStandardOnlineTargets(excludeId);
+            if (targets.length === 0) return null;
+            return targets[Math.floor(Math.random() * targets.length)];
+        }
+
+        function handleOnlineRoundWin() {
+            p1Wins++;
+            if (p1Wins >= targetWins) {
+                showToast(TRANSLATIONS[cfg.lang].victory + " (Match Winner!)");
+                setTimeout(() => returnToMenu(), 3000);
+            } else {
+                showToast(TRANSLATIONS[cfg.lang].victory + ` (Round Won! Score: ${p1Wins} - ${p2Wins})`);
+                setTimeout(() => resetRound(), 3000);
+            }
+        }
+
+        function handleOnlineRoundLoss() {
+            p2Wins++;
+            if (p2Wins >= targetWins) {
+                showToast(TRANSLATIONS[cfg.lang].defeat + " (Match Lost!)");
+                setTimeout(() => returnToMenu(), 3000);
+            } else {
+                showToast(TRANSLATIONS[cfg.lang].defeat + ` (Round Lost! Score: ${p1Wins} - ${p2Wins})`);
+                setTimeout(() => resetRound(), 3000);
+            }
+        }
+
+        function markStandardOnlinePlayerDead(playerId) {
+            if (typeof playerId !== 'number') return;
+            onlineDeadPlayers[playerId] = true;
+            if (playerId === onlineMyIndex) return;
+            const opp = opponents.find(o => o.networkId === playerId);
+            if (opp) {
+                opp.isGameOver = true;
+                opp.updateUI();
+                opp.updateMeter();
+                opp.draw();
+            }
+        }
+
+        function checkStandardOnlineMatchEnd() {
+            if (!isStandardOnlineMatch() || onlinePlayerCount <= 2) return;
+            const alivePlayers = [];
+            for (let i = 0; i < onlinePlayerCount; i++) {
+                if (!onlineDeadPlayers[i]) alivePlayers.push(i);
+            }
+            if (alivePlayers.length !== 1) return;
+            const winnerId = alivePlayers[0];
+            showToast(winnerId === onlineMyIndex ? TRANSLATIONS[cfg.lang].victory : TRANSLATIONS[cfg.lang].defeat);
+            setTimeout(() => returnToMenu(), 3000);
+        }
+
+        function handleRemoteStandardGameOver(playerId) {
+            if (typeof playerId !== 'number' || onlineDeadPlayers[playerId]) return;
+            markStandardOnlinePlayerDead(playerId);
+            if (onlinePlayerCount <= 2) {
+                if (playerId !== onlineMyIndex) handleOnlineRoundWin();
+            } else {
+                checkStandardOnlineMatchEnd();
+            }
+        }
+
+        function sendStandardOnlineAttack(amount, fromId) {
+            if (!isStandardOnlineMatch() || amount <= 0) return false;
+            const senderId = typeof fromId === 'number' ? fromId : onlineMyIndex;
+
+            if (isQuickMatch) {
+                if (conn && conn.open) {
+                    conn.send({ type: 'attack', amount: amount, fromId: senderId, targetId: senderId === 0 ? 1 : 0 });
+                    return true;
+                }
+                return false;
+            }
+
+            if (isHost) {
+                const targetId = pickStandardOnlineTarget(senderId);
+                if (targetId === null) return false;
+                if (targetId === onlineMyIndex) {
+                    if (p1 && !p1.isGameOver) p1.receiveGarbage(amount);
+                } else {
+                    const targetConn = getConnectionByNetworkId(targetId);
+                    if (targetConn && targetConn.open) {
+                        targetConn.send({ type: 'attack', amount: amount, fromId: senderId, targetId: targetId });
+                    }
+                }
+                return true;
+            }
+
+            if (conn && conn.open) {
+                conn.send({ type: 'attack', amount: amount, fromId: senderId });
+                return true;
+            }
+
+            return false;
+        }
+
+        function sendStandardOnlineGameOver(playerId) {
+            if (!isStandardOnlineMatch() || typeof playerId !== 'number') return;
+            if (isHostedOnlineMatch()) {
+                partyClients.forEach(c => {
+                    if (c && c.open) c.send({ type: 'gameover', fromId: playerId });
+                });
+                return;
+            }
+            if (conn && conn.open) {
+                conn.send({ type: 'gameover', fromId: playerId });
+            }
+        }
 
         function showOnlineMenu() {
             document.getElementById('main-menu-btns').style.display = 'none';
@@ -2974,7 +3240,7 @@
                 this.meterFill = meterId ? document.getElementById(meterId) : null;
 
                 this.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
-                this.player = { pos: { x: 0, y: 0 }, matrix: null, type: null, color: null, score: 0, holdType: null, holdColor: null, canHold: true, ren: -1, btb: false, rotation: 0 };
+                this.player = { pos: { x: 0, y: 0 }, matrix: null, type: null, color: null, score: 0, holdType: null, holdColor: null, canHold: true, ren: -1, btb: false, rotation: 0, time: 0, pieces: 0, lines: 0, attacks: 0, level: 1 };
                 this.bag = []; this.nextQueue = []; this.isGameOver = false; this.dropCounter = 0; this.pendingGarbage = 0;
                 this.lockDelayThreshold = 500; this.lockDelayCounter = 0; this.dasL = 0; this.arrL = 0; this.dasR = 0; this.arrR = 0;
                 this.oSpinRotCount = 0; this.oSpinTimer = 0; this.isOtransformed = false;
@@ -3013,6 +3279,10 @@
                 }
 
                 this.player = state.player;
+                if (typeof this.player.level === 'undefined') this.player.level = 1;
+                if (typeof this.player.time === 'undefined') this.player.time = 0;
+                if (typeof this.player.pieces === 'undefined') this.player.pieces = 0;
+                if (typeof this.player.attacks === 'undefined') this.player.attacks = 0;
                 this.bag = state.bag;
                 this.nextQueue = state.nextQueue;
                 this.pendingGarbage = state.pendingGarbage;
@@ -3108,8 +3378,16 @@
                     if (cfg.ospin && this.player.type === 'O' && !this.isOtransformed) {
                         if (this.oSpinRotCount === 0) this.oSpinTimer = 3000;
                         this.oSpinRotCount++;
-                        if (this.oSpinRotCount >= 15 && this.oSpinTimer > 0) {
-                            this.player.matrix = JSON.parse(JSON.stringify(PIECES['I']));
+                                                if (this.oSpinRotCount >= 15 && this.oSpinTimer > 0) {
+                            if (typeof cfg.ospinTransform === 'undefined' || cfg.ospinTransform === 'fixed') {
+                                this.player.matrix = JSON.parse(JSON.stringify(PIECES['I']));
+                            } else {
+                                const pList = ['I', 'J', 'L', 'S', 'T', 'Z'];
+                                const rType = pList[Math.floor(Math.random() * pList.length)];
+                                this.player.matrix = JSON.parse(JSON.stringify(PIECES[rType]));
+                            }
+                            // Modify matrix internally to use the player's original O-mino color (Yellow)
+                            this.player.matrix = this.player.matrix.map(row => row.map(cell => cell !== 0 ? this.player.color : 0));
                             this.isOtransformed = true; this.showAction("O-SPIN");
                         }
                     }
@@ -3160,6 +3438,7 @@
                 this.player.matrix.forEach((row, y) => row.forEach((v, x) => {
                     if (v !== 0 && this.arena[y + this.player.pos.y]) this.arena[y + this.player.pos.y][x + this.player.pos.x] = this.player.color;
                 }));
+                this.player.pieces++;
                 this.sweep(tSpinInfo); this.reset();
             }
 
@@ -3180,6 +3459,18 @@
                 outer: for (let y = 21; y >= 0; --y) {
                     for (let x = 0; x < 10; ++x) { if (this.arena[y][x] === 0) continue outer; }
                     this.arena.splice(y, 1); this.arena.unshift(new Array(10).fill(0)); ++y; lines++;
+                }
+
+                if (lines > 0) {
+                    this.player.lines += lines;
+                    let isSoloMode = (typeof cpu === 'undefined' || !cpu) && (typeof isOnline === 'undefined' || !isOnline) && (typeof window.partyModeInstance === 'undefined' || !window.partyModeInstance) && !this.targetBoard;
+                    let enableLvLog = true;
+                    if (isSoloMode && typeof cfg !== 'undefined' && cfg.enableLevelUp === false) {
+                        enableLvLog = false;
+                    }
+                    if (enableLvLog) {
+                        this.player.level = Math.floor(this.player.lines / 10) + 1;
+                    }
                 }
                 const isPerfectClear = this.arena.every(row => row.every(cell => cell === 0));
 
@@ -3237,6 +3528,7 @@
                     }
 
                     if (atk > 0) {
+                        this.player.attacks += atk;
                         if (this.pendingGarbage > 0) { const offset = Math.min(atk, this.pendingGarbage); atk -= offset; this.pendingGarbage -= offset; this.updateMeter(); }
                         if (isOnline && conn && conn.open && atk > 0 && !this.isAI) {
                             conn.send({ type: 'attack', amount: atk });
@@ -3529,6 +3821,7 @@
 
                 if (this.oSpinTimer > 0) { this.oSpinTimer -= dt; if (this.oSpinTimer <= 0) this.oSpinRotCount = 0; }
                 this.dropCounter += dt;
+                this.player.time += dt;
 
                 if (this.isAI) {
                     this.aiTimer = (this.aiTimer || 0) + dt;
@@ -3565,7 +3858,11 @@
                         }
                     }
                 } else {
-                    if (this.dropCounter > (keysDown[cfg.keys.soft] ? 1000 / cfg.sdf : 1000)) this.playerDrop(keysDown[cfg.keys.soft]);
+                    let currentLvl = this.player.level || 1;
+                    let fallSpeed = Math.max(10, Math.pow(Math.max(0.1, 0.8 - ((currentLvl - 1) * 0.007)), currentLvl - 1) * 1000);
+                    if (this.dropCounter > (keysDown[cfg.keys.soft] ? fallSpeed / cfg.sdf : fallSpeed)) {
+                        this.playerDrop(keysDown[cfg.keys.soft]);
+                    }
                     this.handleInput(dt);
                     if (this.collide(this.player.matrix, { x: this.player.pos.x, y: this.player.pos.y + 1 })) {
                         this.lockDelayCounter += dt; if (this.lockDelayCounter >= this.lockDelayThreshold) { this.lock(); this.lockDelayCounter = 0; }
@@ -3581,6 +3878,7 @@
                     }
                 }
                 this.draw();
+                this.updateStatsUI();
             }
 
             handleInput(dt) {
@@ -3659,6 +3957,27 @@
                 this.nextQueue.slice(0, this.nextCount).forEach((t, i) => { if (this.nextCanvases[i]) drawMini(this.nextCanvases[i].getContext('2d'), t); });
                 if (this.scoreElem) this.scoreElem.innerText = this.player.score;
                 const renEl = document.getElementById(this.isAI ? 'c-ren' : 'p-ren'); if (renEl) renEl.innerText = this.player.ren > 0 ? this.player.ren : 0;
+                
+                this.updateStatsUI();
+            }
+
+            updateStatsUI() {
+                let pfix = this.isPlayerBoard ? 'p-' : 'c-';
+                let timeSec = Math.floor((this.player.time || 0) / 1000);
+                let mins = Math.floor(timeSec / 60);
+                let secs = ("0" + (timeSec % 60)).slice(-2);
+                let tEl = document.getElementById(pfix + 'stat-time'); if (tEl) tEl.innerText = mins + ":" + secs;
+                let lEl = document.getElementById(pfix + 'stat-lines'); if (lEl) lEl.innerText = this.player.lines || 0;
+                let lvEl = document.getElementById(pfix + 'stat-level'); if (lvEl) lvEl.innerText = this.player.level || 1;
+                
+                let ppsEl = document.getElementById(pfix + 'stat-pps'); 
+                if (ppsEl) ppsEl.innerText = ((this.player.time || 0) > 0 ? ((this.player.pieces || 0) / ((this.player.time || 0) / 1000)).toFixed(2) : "0.00");
+                
+                let apmEl = document.getElementById(pfix + 'stat-apm');
+                if (apmEl) apmEl.innerText = ((this.player.time || 0) > 0 ? ((this.player.attacks || 0) / ((this.player.time || 0) / 60000)).toFixed(2) : "0.00");
+                
+                let lpmEl = document.getElementById(pfix + 'stat-lpm');
+                if (lpmEl) lpmEl.innerText = ((this.player.time || 0) > 0 ? ((this.player.lines || 0) / ((this.player.time || 0) / 60000)).toFixed(2) : "0.00");
             }
         }
 
@@ -4320,6 +4639,42 @@
             keysDown[key] = false;
         });
 
+        
+        function bindSliderGroup(inputId, rangeId, cfgKey, scale, isFloat, parser) {
+            const input = document.getElementById(inputId);
+            const range = document.getElementById(rangeId);
+            if (!input || !range) return;
+            
+            const clampStr = (val, el) => {
+                let v = parser(val);
+                if (isNaN(v)) return parser(el.min);
+                v = Math.max(parser(el.min), Math.min(parser(el.max), v));
+                return v;
+            };
+
+            range.addEventListener('input', e => {
+                let v = parser(e.target.value) / scale;
+                input.value = v;
+                cfg[cfgKey] = v;
+                if (cfgKey !== 'lv' && typeof p1 !== 'undefined' && p1) { p1.updateUI(); }
+                saveCfg();
+            });
+            input.addEventListener('change', e => {
+                let v = clampStr(e.target.value, input);
+                input.value = v;
+                range.value = v * scale;
+                cfg[cfgKey] = v;
+                if (cfgKey !== 'lv' && typeof p1 !== 'undefined' && p1) { p1.updateUI(); }
+                saveCfg();
+            });
+        }
+        bindSliderGroup('lv-val', 'lv-range', 'lv', 1, false, parseInt);
+        bindSliderGroup('ghost-val', 'ghost-range', 'ghost', 100, true, parseFloat);
+        bindSliderGroup('das-val', 'das-range', 'das', 1, false, parseInt);
+        bindSliderGroup('arr-val', 'arr-range', 'arr', 1, false, parseInt);
+        bindSliderGroup('sdf-val', 'sdf-range', 'sdf', 1, false, parseInt);
+        bindSliderGroup('particles-val', 'particles-range', 'particles', 1, false, parseInt);
+
         loadCfg();
         updateMenuLoadButton();
 
@@ -4355,7 +4710,15 @@
             }
         }
         window.onresize = resize; resize();
-        const stars = Array.from({ length: 80 }, () => ({ x: Math.random() * bg.width, y: Math.random() * bg.height, s: Math.random() * 2, o: Math.random() }));
+        let stars = Array.from({ length: 80 }, () => ({ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, s: Math.random() * 2, o: Math.random() }));
+        function updateStarsCount() {
+            let limit = parseInt(cfg.particles);
+            if (isNaN(limit)) limit = 80;
+            while (stars.length < limit) {
+                stars.push({ x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight, s: Math.random() * 2, o: Math.random() });
+            }
+            if (stars.length > limit) stars.length = limit;
+        }
         function drawBg() {
             const t = THEMES[cfg.theme] || THEMES['default'];
             bctx.fillStyle = t.bg; bctx.fillRect(0, 0, bg.width, bg.height);
