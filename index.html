@@ -710,6 +710,10 @@
             box-sizing: border-box;
         }
 
+        #touch-controls.is-hidden {
+            display: none !important;
+        }
+
         @media (hover: none) and (pointer: coarse) {
             #touch-controls {
                 display: flex;
@@ -1139,11 +1143,178 @@
             color: #98adba;
         }
 
+        .party-special-section {
+            display: none;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .party-special-caption {
+            font-size: 11px;
+            color: #8ea6b6;
+            letter-spacing: 0.6px;
+            margin-bottom: 10px;
+        }
+
+        .party-special-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 12px;
+        }
+
+        .party-special-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: left;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .party-special-card input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            margin: 2px 0 0 0;
+            accent-color: #00f0f0;
+            flex: 0 0 auto;
+        }
+
+        .party-special-card.is-selected {
+            border-color: rgba(0, 240, 240, 0.55);
+            background: rgba(0, 240, 240, 0.08);
+            box-shadow: 0 0 0 1px rgba(0, 240, 240, 0.12);
+        }
+
+        .party-special-copy {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .party-special-card .title {
+            font-size: 12px;
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+
+        .party-special-card .desc {
+            font-size: 10px;
+            color: #8ea6b6;
+            line-height: 1.35;
+        }
+
+        .skill-panel {
+            display: none;
+            background: rgba(8, 12, 18, 0.95);
+            border: 1px solid rgba(0, 240, 240, 0.22);
+            border-radius: 12px;
+            box-shadow: 0 0 22px rgba(0, 240, 240, 0.12);
+            padding: 12px;
+            margin-top: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .skill-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .skill-panel-title {
+            font-size: 12px;
+            color: #dff;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .skill-coin-pill {
+            background: linear-gradient(135deg, rgba(255, 198, 52, 0.25), rgba(255, 126, 49, 0.2));
+            border: 1px solid rgba(255, 198, 52, 0.4);
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffd978;
+        }
+
+        .skill-buttons {
+            display: grid;
+            gap: 8px;
+        }
+
+        .skill-btn {
+            background: rgba(255, 255, 255, 0.03);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .skill-btn:hover:not(:disabled) {
+            border-color: rgba(0, 240, 240, 0.45);
+            box-shadow: 0 0 14px rgba(0, 240, 240, 0.14);
+            transform: translateY(-1px);
+        }
+
+        .skill-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .skill-btn .name {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            margin-bottom: 2px;
+        }
+
+        .skill-btn .meta {
+            font-size: 10px;
+            color: #8ea6b6;
+            line-height: 1.4;
+        }
+
         @media (max-width: 980px) {
             .rule-grid,
             .summary-kpi-grid,
             .summary-split {
                 grid-template-columns: 1fr;
+            }
+
+            .party-special-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .party-special-section {
+                margin-top: 10px;
+                padding-top: 10px;
+            }
+
+            .party-special-card {
+                padding: 8px 10px;
+                gap: 8px;
+            }
+
+            .party-special-card .title {
+                font-size: 11px;
+            }
+
+            .party-special-card .desc {
+                font-size: 9px;
             }
 
             .hud-panel {
@@ -1212,6 +1383,7 @@
                     </div>
                 </div>
                 <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:18px;">
+                    <button class="btn" id="match-summary-replay-btn" style="--accent:#55ff55; width:220px; margin:0;" onclick="startReplayPlayback()">WATCH REPLAY / リプレイ</button>
                     <button class="btn" style="--accent:#00f0f0; width:220px; margin:0;" onclick="closeMatchSummary()">CLOSE / 閉じる</button>
                 </div>
             </div>
@@ -1524,9 +1696,9 @@
                 </div>
                 <div style="margin-bottom: 20px;">
                     <label style="color: #ccc; font-size: 14px; margin-bottom: 10px; display: block;"
-                        data-tr="online-party-mode">Party Mode (Shared Board)</label>
+                        data-tr="online-party-mode">Party Mode</label>
                     <label class="toggle-switch" style="margin-top: 5px; transform: scale(1.2);">
-                        <input type="checkbox" id="room-party-mode">
+                        <input type="checkbox" id="room-party-mode" onchange="syncPartyRuleSelectionUI()">
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -1556,6 +1728,46 @@
                         <label class="toggle-switch" style="margin-top: 5px; transform: scale(1.2);">
                             <input type="checkbox" id="room-allow-hold" checked>
                             <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div id="party-special-settings" class="party-special-section">
+                    <div class="party-special-caption">PARTY RULE / パーティールールは1つだけ選択</div>
+                    <div class="party-special-grid">
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-shared" value="shared" checked onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title">SHARED BOARD / 盤面共有</div>
+                                <div class="desc">全員で同じ盤面を操作する共有モードです。</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-giant" value="giant" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title">GIANT BLOCKS / 巨大ミノ</div>
+                                <div class="desc">通常盤面のまま 2x2 拡張ミノで戦います。</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-tall" value="tall" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title">40 LINES / 40ライン盤面</div>
+                                <div class="desc">縦に長い 40 ライン表示の盤面で対戦します。</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-bomb" value="bomb" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title">BOMB MINO / 爆弾ミノ</div>
+                                <div class="desc">爆弾ミノを置くと周囲 3x3 を吹き飛ばします。</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-skills" value="skills" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title">SKILL PARTY / スキル制</div>
+                                <div class="desc">コインを貯めて加速、壁生成、セルフスローを使えます。</div>
+                            </div>
                         </label>
                     </div>
                 </div>
@@ -1733,6 +1945,13 @@
         </div>
     </div>
 
+    <div id="replay-controls"
+        style="display:none; position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:1200; background:rgba(10,10,10,0.92); border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:10px 14px; align-items:center; gap:10px; box-shadow:0 0 20px rgba(0,0,0,0.35);">
+        <span id="replay-status-label" style="font-size:12px; color:#9fb2c0; letter-spacing:1px;">REPLAY / リプレイ</span>
+        <button class="menu-btn" id="replay-pause-btn" style="margin:0; min-width:96px;" onclick="toggleReplayPause()">PAUSE</button>
+        <button class="menu-btn" style="margin:0; min-width:120px;" onclick="stopReplayPlayback()">EXIT REPLAY</button>
+    </div>
+
     <div id="game-view">
         <div class="field-wrap">
             <div id="online-self-indicator" class="rainbow-text" style="display:none; margin-top: -30px;">自分⇩</div>
@@ -1780,6 +1999,26 @@
                         <div class="stat-row"><span class="lbl">APM</span><span class="val" id="p-stat-apm">0.00</span></div>
                         <div class="stat-row"><span class="lbl">LPM</span><span class="val" id="p-stat-lpm">0.00</span></div>
                     </div>
+                </div>
+            </div>
+            <div id="party-skill-panel" class="skill-panel">
+                <div class="skill-panel-header">
+                    <div class="skill-panel-title">PARTY SKILLS</div>
+                    <div class="skill-coin-pill">COIN <span id="party-skill-coins">0</span></div>
+                </div>
+                <div class="skill-buttons">
+                    <button class="skill-btn" id="skill-btn-speed" onclick="usePartySkill('speed')">
+                        <div class="name">OVERCLOCK JAM</div>
+                        <div class="meta">Cost 4: target speed x2 for 8s</div>
+                    </button>
+                    <button class="skill-btn" id="skill-btn-wall" onclick="usePartySkill('wall')">
+                        <div class="name">WALL DROP</div>
+                        <div class="meta">Cost 5: generate a wall on a random opponent board</div>
+                    </button>
+                    <button class="skill-btn" id="skill-btn-slow" onclick="usePartySkill('slow')">
+                        <div class="name">FOCUS SLOW</div>
+                        <div class="meta">Cost 3: only your board slows down for 6s</div>
+                    </button>
                 </div>
             </div>
             <button id="btn-save-menu" class="btn"
@@ -1840,9 +2079,10 @@
             'O': [[4, 4], [4, 4]],
             'S': [[0, 5, 5], [5, 5, 0], [0, 0, 0]],
             'T': [[0, 6, 0], [6, 6, 6], [0, 0, 0]],
-            'Z': [[7, 7, 0], [0, 7, 7], [0, 0, 0]]
+            'Z': [[7, 7, 0], [0, 7, 7], [0, 0, 0]],
+            'B': [[9]]
         };
-        const COLORS = [null, '#00f0f0', '#0000f0', '#f0a000', '#f0f000', '#00f000', '#a000f0', '#f00000', '#444'];
+        const COLORS = [null, '#00f0f0', '#0000f0', '#f0a000', '#f0f000', '#00f000', '#a000f0', '#f00000', '#444', '#ff7a00'];
 
         const KICKS = {
             "0-1": [[0, 0], [-1, 0], [-1, 1], [0, -2], [-1, -2]],
@@ -2060,8 +2300,8 @@
         };
 
         const TRANSLATIONS = {
-            en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-ui": "UI SETTINGS", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "solo-levelup": "SOLO LEVEL UP", "stats-time": "TIME", "stats-lines": "LINES", "stats-level": "LEVEL", "label-ghost": "GHOST OPACITY", "label-particles": "BACKGROUND PARTICLES", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "tab-play": "PLAY SETTINGS", "ospin-transform": "O-SPIN TRANSFORM", "ospin-transform-fixed": "I-mino (Fixed)", "ospin-transform-random": "Random (No O)", "tab-play": "PLAY SETTINGS", "ospin-transform": "O-SPIN TRANSFORM", "ospin-transform-fixed": "I-mino (Fixed)", "ospin-transform-random": "Random (No O)", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark", "online-settings": "ROOM SETTINGS", "online-target-wins": "Target Wins", "online-party-mode": "Party Mode (Shared Board)", "online-party-count": "Players (2-4)", "online-create-btn": "CREATE", "tmpl-cancel": "CANCEL", "key-pause": "PAUSE / CANCEL", "key-retry": "RETRY / RESTART", "pause-title": "PAUSED", "pause-msg": "Press PAUSE to Resume. Press RETRY to Restart.", "scale-label": "Screen Size", "btn-screen-scale": "Change Screen Size" },
-            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "solo-levelup": "ソロでレベル上昇", "stats-time": "タイム", "stats-lines": "ライン", "stats-level": "レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-TSPIN": "T-spin系", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-gmsr": "ガムシロ砲", "tmpl-hpc": "変なパフェ", "tmpl-trsn": "超螺旋", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "tab-play": "プレイ設定", "ospin-transform": "O-SPIN 変形先", "ospin-transform-fixed": "Iミノに変換 (固定)", "ospin-transform-random": "ランダム (O以外)", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク", "online-settings": "部屋設定", "online-target-wins": "目標勝利数", "online-party-mode": "パーティモード (共有盤面)", "online-party-count": "プレイ人数 (2-4)", "online-create-btn": "作成", "tmpl-cancel": "キャンセル", "key-pause": "ポーズ / キャンセル", "key-retry": "リトライ", "pause-title": "ポーズ中", "pause-msg": "ポーズボタンで再開。リトライボタンでやり直し。", "scale-label": "画面サイズ", "btn-screen-scale": "画面の大きさを変える" }
+            en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-ui": "UI SETTINGS", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "solo-levelup": "SOLO LEVEL UP", "stats-time": "TIME", "stats-lines": "LINES", "stats-level": "LEVEL", "label-ghost": "GHOST OPACITY", "label-particles": "BACKGROUND PARTICLES", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "tab-play": "PLAY SETTINGS", "ospin-transform": "O-SPIN TRANSFORM", "ospin-transform-fixed": "I-mino (Fixed)", "ospin-transform-random": "Random (No O)", "tab-play": "PLAY SETTINGS", "ospin-transform": "O-SPIN TRANSFORM", "ospin-transform-fixed": "I-mino (Fixed)", "ospin-transform-random": "Random (No O)", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark", "online-settings": "ROOM SETTINGS", "online-target-wins": "Target Wins", "online-party-mode": "Party Mode", "online-party-count": "Players (2-4)", "online-create-btn": "CREATE", "tmpl-cancel": "CANCEL", "key-pause": "PAUSE / CANCEL", "key-retry": "RETRY / RESTART", "pause-title": "PAUSED", "pause-msg": "Press PAUSE to Resume. Press RETRY to Restart.", "scale-label": "Screen Size", "btn-screen-scale": "Change Screen Size" },
+            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "solo-levelup": "ソロでレベル上昇", "stats-time": "タイム", "stats-lines": "ライン", "stats-level": "レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-TSPIN": "T-spin系", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-gmsr": "ガムシロ砲", "tmpl-hpc": "変なパフェ", "tmpl-trsn": "超螺旋", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "tab-play": "プレイ設定", "ospin-transform": "O-SPIN 変形先", "ospin-transform-fixed": "Iミノに変換 (固定)", "ospin-transform-random": "ランダム (O以外)", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク", "online-settings": "部屋設定", "online-target-wins": "目標勝利数", "online-party-mode": "パーティーモード", "online-party-count": "プレイ人数 (2-4)", "online-create-btn": "作成", "tmpl-cancel": "キャンセル", "key-pause": "ポーズ / キャンセル", "key-retry": "リトライ", "pause-title": "ポーズ中", "pause-msg": "ポーズボタンで再開。リトライボタンでやり直し。", "scale-label": "画面サイズ", "btn-screen-scale": "画面の大きさを変える" }
         };
 
         const THEMES = {
@@ -2071,7 +2311,22 @@
             'dark': { accent: '#ff4444', bg: '#000000', panel: 'rgba(5, 5, 5, 0.95)', text: '#dddddd', border: '#444444', star: '255, 68, 68', canvasBg: '#0a0a0a' }
         };
 
-        const DEFAULT_ROOM_RULES = { garbageMultiplier: 1, startLevel: 1, allowHold: true };
+        const DEFAULT_ROOM_RULES = {
+            garbageMultiplier: 1,
+            startLevel: 1,
+            allowHold: true,
+            partyVariant: 'shared',
+            sharedBoard: false,
+            giantBlocks: false,
+            tallBoard: false,
+            bombMino: false,
+            skillMode: false
+        };
+        const PARTY_SKILLS = {
+            speed: { cost: 4, label: 'OVERCLOCK JAM', duration: 8000 },
+            wall: { cost: 5, label: 'WALL DROP', duration: 0 },
+            slow: { cost: 3, label: 'FOCUS SLOW', duration: 6000 }
+        };
         const KEY_PRESETS = {
             guideline: { left: 'ArrowLeft', right: 'ArrowRight', soft: 'ArrowDown', hard: ' ', rotR: 'ArrowUp', rotL: 'z', hold: 'c', hold2: 'Shift', pause: 'Escape', retry: 'r' },
             wasd: { left: 'a', right: 'd', soft: 's', hard: 'w', rotR: 'ArrowUp', rotL: 'Shift', hold: ' ', hold2: 'c', pause: 'Escape', retry: 'r' },
@@ -2083,6 +2338,24 @@
             southpaw: { left: 14, right: 15, soft: 13, hard: 12, rotR: 2, rotL: 0, hold: 5, hold2: 4, pause: 9, retry: 8 }
         };
         const DEFAULT_PROFILE = { rating: 1200, peakRating: 1200, seasonId: '', seasonBest: 1200, seasonWins: 0, seasonLosses: 0, totalWins: 0, totalLosses: 0 };
+        const PEER_BASE_OPTIONS = {
+            host: '0.peerjs.com',
+            port: 443,
+            path: '/',
+            secure: true,
+            key: 'peerjs',
+            pingInterval: 2500,
+            debug: 2,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' }
+                ],
+                sdpSemantics: 'unified-plan'
+            }
+        };
 
         let cfg = {
             lang: 'ja', playerName: '', hasCompletedTutorial: false, theme: 'default', lv: 5, ghost: 0.15, das: 150, arr: 30, sdf: 20, ospin: false, ospinTransform: 'fixed', particles: 80, enableLevelUp: true,
@@ -2096,15 +2369,22 @@
         let playerProfile = JSON.parse(localStorage.getItem('tetrisProUltProfile_v1')) || { ...DEFAULT_PROFILE };
         let activeMatchSession = null;
         let pendingMatchSummary = null;
+        let lastReplayData = null;
+        let replayPlayback = null;
+        let isReplayPlayback = false;
         let onlineRoomRules = { ...DEFAULT_ROOM_RULES };
         let lobbyChatMessages = [];
         let connectionQuality = { ping: null, syncDelay: null, packetLoss: 0, missedStates: 0, receivedStates: 0, lastRemoteStateAt: 0 };
         let connectionMonitorInterval = null;
         let onlineStateSequence = 0;
         let pingSerial = 0;
+        const REPLAY_FRAME_INTERVAL = 120;
 
         let firstTimeNameTemp = "Player1";
         let identityPeer = null;
+        let peerGeneration = 0;
+        let quickMatchSearchToken = 0;
+        let quickMatchRetryTimeout = null;
         let inTutorial = false;
         let tutorialTimeout = null;
 
@@ -2125,6 +2405,60 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;');
+        }
+
+        function clearQuickMatchRetryTimeout() {
+            if (quickMatchRetryTimeout) {
+                clearTimeout(quickMatchRetryTimeout);
+                quickMatchRetryTimeout = null;
+            }
+        }
+
+        function generateClientPeerId(prefix = 'TETRIS-CLIENT') {
+            const stamp = Date.now().toString(36);
+            const rand = Math.random().toString(36).slice(2, 12);
+            return `${prefix}-${stamp}-${rand}`.replace(/[^a-zA-Z0-9_-]/g, '0');
+        }
+
+        function createPeerInstance(id = undefined, overrides = {}) {
+            const options = {
+                ...PEER_BASE_OPTIONS,
+                ...overrides,
+                config: {
+                    ...PEER_BASE_OPTIONS.config,
+                    ...(overrides.config || {})
+                }
+            };
+            return id !== undefined ? new Peer(id, options) : new Peer(options);
+        }
+
+        function suspendIdentityReservation() {
+            if (!identityPeer) return;
+            const reservedPeer = identityPeer;
+            identityPeer = null;
+            try {
+                reservedPeer.destroy();
+            } catch (err) {
+                console.warn('Failed to release identity peer:', err);
+            }
+        }
+
+        function resumeIdentityReservation() {
+            if (!cfg.hasCompletedTutorial || !cfg.playerName || identityPeer || peer || isOnline || isQuickMatch) return;
+            try {
+                const reservedPeer = createPeerInstance('TETRIS-ID-' + cfg.playerName, { debug: 0 });
+                identityPeer = reservedPeer;
+                reservedPeer.on('close', () => {
+                    if (identityPeer === reservedPeer) identityPeer = null;
+                });
+                reservedPeer.on('error', (err) => {
+                    console.warn('Identity peer error:', err);
+                    if (identityPeer === reservedPeer) identityPeer = null;
+                });
+            } catch (err) {
+                console.warn('Failed to reserve identity peer:', err);
+                identityPeer = null;
+            }
         }
 
         function setLang(l) {
@@ -2188,6 +2522,106 @@
             return labels[mode] || mode;
         }
 
+        function cloneReplayValue(value) {
+            return value == null ? value : JSON.parse(JSON.stringify(value));
+        }
+
+        function getReplayNameList(count, myIndex = 0) {
+            return Array.from({ length: count }, (_, i) => i === myIndex ? (cfg.playerName || `PLAYER ${i + 1}`) : `PLAYER ${i + 1}`);
+        }
+
+        function captureReplayFrame(timestamp = performance.now(), force = false) {
+            if (!activeMatchSession) return;
+            const isPartyReplay = activeMatchSession.mode === 'party';
+            if (isPartyReplay && !window.partyModeInstance) return;
+            if (!isPartyReplay && !p1) return;
+
+            if (!activeMatchSession.replay) {
+                activeMatchSession.replay = {
+                    startedAt: timestamp,
+                    lastCapturedAt: -Infinity,
+                    frames: []
+                };
+            }
+
+            const replay = activeMatchSession.replay;
+            if (!force && (timestamp - replay.lastCapturedAt) < REPLAY_FRAME_INTERVAL) return;
+            if (typeof replay.startedAt !== 'number') replay.startedAt = timestamp;
+
+            const frame = isPartyReplay ? {
+                kind: 'party',
+                party: window.partyModeInstance.getReplayState()
+            } : {
+                kind: 'standard',
+                p1: p1 ? p1.getState() : null,
+                cpu: cpu ? cpu.getState() : null,
+                opponents: opponents.map((opp, index) => ({
+                    networkId: typeof opp.networkId === 'number' ? opp.networkId : index + 1,
+                    state: opp.getState()
+                }))
+            };
+
+            replay.frames.push({
+                at: Math.max(0, Math.round(timestamp - replay.startedAt)),
+                ...frame
+            });
+            replay.lastCapturedAt = timestamp;
+        }
+
+        function buildReplayDataFromSession() {
+            if (!activeMatchSession || !activeMatchSession.replay || !activeMatchSession.replay.frames.length) return null;
+
+            const meta = {
+                mode: activeMatchSession.mode,
+                ruleSet: cloneReplayValue(activeMatchSession.ruleSet || DEFAULT_ROOM_RULES)
+            };
+
+            if (activeMatchSession.mode === 'party' && window.partyModeInstance) {
+                meta.playerCount = window.partyModeInstance.playerCount;
+                meta.myIndex = window.partyModeInstance.myIndex;
+                meta.playerNames = getReplayNameList(meta.playerCount, meta.myIndex);
+            } else if (activeMatchSession.mode === 'online') {
+                meta.playerName = cfg.playerName || 'PLAYER 1';
+                meta.opponents = opponents.map((opp, index) => ({
+                    networkId: typeof opp.networkId === 'number' ? opp.networkId : index + 1,
+                    name: `PLAYER ${(typeof opp.networkId === 'number' ? opp.networkId : index + 1) + 1}`
+                }));
+            } else if (activeMatchSession.mode === 'cpu') {
+                meta.cpuLabel = `CPU LV.${cfg.lv}`;
+            }
+
+            return {
+                meta,
+                frames: cloneReplayValue(activeMatchSession.replay.frames)
+            };
+        }
+
+        function setReplayControlsVisible(visible) {
+            const controls = document.getElementById('replay-controls');
+            if (controls) controls.style.display = visible ? 'flex' : 'none';
+        }
+
+        function updateReplayStatusLabel() {
+            const label = document.getElementById('replay-status-label');
+            const pauseBtn = document.getElementById('replay-pause-btn');
+            if (!label || !pauseBtn) return;
+            if (!replayPlayback || !replayPlayback.data || !replayPlayback.data.frames.length) {
+                label.innerText = 'REPLAY / リプレイ';
+                pauseBtn.innerText = 'PAUSE';
+                return;
+            }
+            const currentMs = Math.min(replayPlayback.elapsedMs || 0, replayPlayback.durationMs || 0);
+            const totalMs = replayPlayback.durationMs || 0;
+            const fmt = (ms) => {
+                const totalSec = Math.max(0, Math.floor(ms / 1000));
+                const mins = Math.floor(totalSec / 60);
+                const secs = String(totalSec % 60).padStart(2, '0');
+                return `${mins}:${secs}`;
+            };
+            label.innerText = `REPLAY ${fmt(currentMs)} / ${fmt(totalMs)}`;
+            pauseBtn.innerText = replayPlayback.paused ? 'RESUME' : 'PAUSE';
+        }
+
         function beginMatchSession(mode, ruleSet = DEFAULT_ROOM_RULES) {
             activeMatchSession = {
                 mode,
@@ -2195,21 +2629,50 @@
                 ruleSet: { ...ruleSet },
                 timeline: [],
                 lastSampleSecond: -1,
-                summaryQueued: false
+                summaryQueued: false,
+                replay: null
+            };
+        }
+
+        function getCurrentMatchStats() {
+            if (activeMatchSession && activeMatchSession.mode === 'party' && window.partyModeInstance) {
+                const me = window.partyModeInstance.me || {};
+                return {
+                    time: me.time || 0,
+                    pieces: me.pieces || 0,
+                    lines: me.lines || 0,
+                    attacks: me.attacks || 0,
+                    tSpins: 0,
+                    maxRen: me.maxRen || 0,
+                    garbageReceived: me.garbageReceived || 0,
+                    isGameOver: !!window.partyModeInstance.isGameOver
+                };
+            }
+            if (!p1) return null;
+            return {
+                time: p1.player.time || 0,
+                pieces: p1.player.pieces || 0,
+                lines: p1.player.lines || 0,
+                attacks: p1.player.attacks || 0,
+                tSpins: p1.player.tSpins || 0,
+                maxRen: p1.player.maxRen || 0,
+                garbageReceived: p1.player.garbageReceived || 0,
+                isGameOver: !!p1.isGameOver
             };
         }
 
         function sampleMatchTimeline() {
-            if (!activeMatchSession || !p1 || p1.isGameOver) return;
-            const elapsedSeconds = Math.floor((p1.player.time || 0) / 1000);
+            const stats = getCurrentMatchStats();
+            if (!activeMatchSession || !stats || stats.isGameOver) return;
+            const elapsedSeconds = Math.floor((stats.time || 0) / 1000);
             if (elapsedSeconds <= activeMatchSession.lastSampleSecond) return;
             activeMatchSession.lastSampleSecond = elapsedSeconds;
-            const minutes = Math.max((p1.player.time || 0) / 60000, 1 / 60);
+            const minutes = Math.max((stats.time || 0) / 60000, 1 / 60);
             activeMatchSession.timeline.push({
                 second: elapsedSeconds,
-                pps: Number((((p1.player.pieces || 0) / Math.max((p1.player.time || 0) / 1000, 1)).toFixed(2))),
-                apm: Number((((p1.player.attacks || 0) / minutes).toFixed(2))),
-                lpm: Number((((p1.player.lines || 0) / minutes).toFixed(2)))
+                pps: Number((((stats.pieces || 0) / Math.max((stats.time || 0) / 1000, 1)).toFixed(2))),
+                apm: Number((((stats.attacks || 0) / minutes).toFixed(2))),
+                lpm: Number((((stats.lines || 0) / minutes).toFixed(2)))
             });
         }
 
@@ -2241,6 +2704,8 @@
             document.getElementById('summary-apm').innerText = summary.apm;
             document.getElementById('summary-lpm').innerText = summary.lpm;
             document.getElementById('match-summary-title').innerText = cfg.lang === 'ja' ? '試合結果 / MATCH SUMMARY' : 'MATCH SUMMARY / 試合結果';
+            const replayBtn = document.getElementById('match-summary-replay-btn');
+            if (replayBtn) replayBtn.disabled = !(lastReplayData && lastReplayData.frames && lastReplayData.frames.length > 1);
 
             const rows = [
                 ['TIME', summary.timeText],
@@ -2290,9 +2755,12 @@
         }
 
         function queueMatchSummary(result, reason) {
-            if (!activeMatchSession || activeMatchSession.summaryQueued || !p1) return;
+            const stats = getCurrentMatchStats();
+            if (!activeMatchSession || activeMatchSession.summaryQueued || !stats) return;
             activeMatchSession.summaryQueued = true;
-            const minutes = Math.max((p1.player.time || 0) / 60000, 1 / 60);
+            captureReplayFrame(performance.now(), true);
+            lastReplayData = buildReplayDataFromSession();
+            const minutes = Math.max((stats.time || 0) / 60000, 1 / 60);
             const resultTextMap = {
                 victory: TRANSLATIONS[cfg.lang].victory,
                 defeat: TRANSLATIONS[cfg.lang].defeat,
@@ -2302,6 +2770,7 @@
                 solo: cfg.lang === 'ja' ? 'ソロ結果' : 'Solo result',
                 cpu: cfg.lang === 'ja' ? 'CPU戦結果' : 'CPU match',
                 online: cfg.lang === 'ja' ? '対人戦結果' : 'Online result',
+                party: cfg.lang === 'ja' ? 'パーティ結果' : 'Party result',
                 disconnect: cfg.lang === 'ja' ? '通信切断' : 'Disconnected'
             };
             const ratingDelta = updateRatingFromSummary(result);
@@ -2309,15 +2778,15 @@
                 resultText: resultTextMap[result] || result,
                 reasonText: reasonTextMap[reason] || reason,
                 modeLabel: getMatchModeLabel(activeMatchSession.mode),
-                pps: (((p1.player.pieces || 0) / Math.max((p1.player.time || 0) / 1000, 1)).toFixed(2)),
-                apm: (((p1.player.attacks || 0) / minutes).toFixed(2)),
-                lpm: (((p1.player.lines || 0) / minutes).toFixed(2)),
-                timeText: `${Math.floor((p1.player.time || 0) / 60000)}:${String(Math.floor(((p1.player.time || 0) / 1000) % 60)).padStart(2, '0')}`,
-                lines: p1.player.lines || 0,
-                attacks: p1.player.attacks || 0,
-                tSpins: p1.player.tSpins || 0,
-                maxRen: p1.player.maxRen || 0,
-                garbageReceived: p1.player.garbageReceived || 0,
+                pps: (((stats.pieces || 0) / Math.max((stats.time || 0) / 1000, 1)).toFixed(2)),
+                apm: (((stats.attacks || 0) / minutes).toFixed(2)),
+                lpm: (((stats.lines || 0) / minutes).toFixed(2)),
+                timeText: `${Math.floor((stats.time || 0) / 60000)}:${String(Math.floor(((stats.time || 0) / 1000) % 60)).padStart(2, '0')}`,
+                lines: stats.lines || 0,
+                attacks: stats.attacks || 0,
+                tSpins: stats.tSpins || 0,
+                maxRen: stats.maxRen || 0,
+                garbageReceived: stats.garbageReceived || 0,
                 timeline: [...activeMatchSession.timeline],
                 ruleText: `LV${activeMatchSession.ruleSet.startLevel} / x${activeMatchSession.ruleSet.garbageMultiplier.toFixed(1)} / HOLD ${activeMatchSession.ruleSet.allowHold ? 'ON' : 'OFF'}`,
                 ratingText: ratingDelta === 0 ? `${playerProfile.rating}` : `${playerProfile.rating} (${ratingDelta > 0 ? '+' : ''}${ratingDelta})`
@@ -2328,6 +2797,288 @@
             document.getElementById('match-summary-overlay').style.display = 'none';
             pendingMatchSummary = null;
             activeMatchSession = null;
+        }
+
+        function clearReplaySceneArtifacts() {
+            const opponentsContainer = document.getElementById('opponents-container');
+            if (opponentsContainer) opponentsContainer.remove();
+            const partyView = document.getElementById('party-view');
+            if (partyView) partyView.remove();
+            p1 = null;
+            cpu = null;
+            opponents = [];
+            window.partyModeInstance = null;
+            restoreGameViewLayout();
+            refreshSkillPanel(null);
+        }
+
+        function buildReplayOpponentBoard(container, oppId, name, playerCount) {
+            const scaleStr = playerCount > 2 ? 'transform: scale(0.85); transform-origin: top;' : '';
+            container.insertAdjacentHTML('beforeend', `
+                <div style="display:flex; gap:10px; ${scaleStr}">
+                    <div class="field-wrap" id="${oppId}-field">
+                        <div style="font-size:12px; color:#ff5555; font-weight:bold; letter-spacing:2px; text-align:center;">
+                            <span style="color:#00f0f0;">${escapeHtml(name)}</span>
+                        </div>
+                        <div class="board-area">
+                            <div id="${oppId}-meter-container" class="meter-container" style="display:block;">
+                                <div id="${oppId}-meter" class="meter-fill" style="height:0%;"></div>
+                            </div>
+                            <div class="side-column">
+                                <div class="hold-next-box">
+                                    <div class="stat-label">HOLD</div>
+                                    <canvas id="${oppId}-hold" class="mini-canvas" width="60" height="60"></canvas>
+                                </div>
+                                <div class="stat-box"><div class="stat-label">SCORE</div><div id="${oppId}-score" class="stat-val">0</div></div>
+                            </div>
+                            <div style="position:relative;">
+                                <div id="${oppId}-action-layer" class="action-layer"></div>
+                                <canvas id="${oppId}-canvas" class="main-canvas" width="240" height="480"></canvas>
+                            </div>
+                            <div class="side-column">
+                                <div class="hold-next-box" style="padding-bottom:5px;">
+                                    <div class="stat-label">NEXT</div>
+                                    <canvas id="${oppId}-next-0" class="mini-canvas" width="60" height="60"></canvas>
+                                    <canvas id="${oppId}-next-1" class="mini-canvas" width="60" height="60"></canvas>
+                                    <canvas id="${oppId}-next-2" class="mini-canvas" width="60" height="60"></canvas>
+                                    <canvas id="${oppId}-next-3" class="mini-canvas" width="60" height="60"></canvas>
+                                    <canvas id="${oppId}-next-4" class="mini-canvas" width="60" height="60"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+
+        function prepareStandardReplayScene(replayData) {
+            clearReplaySceneArtifacts();
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game-view').style.display = 'flex';
+            document.getElementById('btn-save-menu').style.display = 'none';
+            document.getElementById('online-self-indicator').style.display = 'none';
+            document.getElementById('p1-name-display').innerText = replayData.meta.playerName || cfg.playerName || 'PLAYER 1';
+
+            const meters = document.querySelectorAll('.meter-container');
+            if (replayData.meta.mode === 'solo') {
+                meters.forEach(m => m.style.display = 'none');
+                document.getElementById('cpu-field').style.display = 'none';
+                p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', null, true);
+            } else if (replayData.meta.mode === 'cpu') {
+                meters.forEach(m => m.style.display = 'block');
+                document.getElementById('cpu-field').style.display = 'flex';
+                document.getElementById('current-lv').innerText = cfg.lv;
+                p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', null, true);
+                cpu = new Tetris('c-canvas', 'c-hold', 'c-next', 'c-score', true, 'c-action-layer', 'c-meter', null, true);
+            } else {
+                meters.forEach(m => m.style.display = 'block');
+                document.getElementById('cpu-field').style.display = 'none';
+                const gameView = document.getElementById('game-view');
+                const opponentsContainer = document.createElement('div');
+                opponentsContainer.id = 'opponents-container';
+                opponentsContainer.style.display = 'flex';
+                opponentsContainer.style.gap = '20px';
+                gameView.appendChild(opponentsContainer);
+
+                p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', null, true);
+                cpu = null;
+                opponents = [];
+                (replayData.meta.opponents || []).forEach((oppMeta, index) => {
+                    const oppId = 'opp-' + index;
+                    buildReplayOpponentBoard(opponentsContainer, oppId, oppMeta.name || `PLAYER ${index + 2}`, (replayData.meta.opponents || []).length + 1);
+                    const newOpp = new Tetris(oppId + '-canvas', oppId + '-hold', oppId + '-next', oppId + '-score', true, oppId + '-action-layer', oppId + '-meter', null, true);
+                    newOpp.isNetworkPlayer = true;
+                    newOpp.isAI = true;
+                    newOpp.networkId = oppMeta.networkId;
+                    opponents.push(newOpp);
+                });
+                p1.opponents = opponents;
+            }
+
+            applyRuleSetToActiveBoards(replayData.meta.ruleSet || DEFAULT_ROOM_RULES);
+        }
+
+        function preparePartyReplayScene(replayData) {
+            clearReplaySceneArtifacts();
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('game-view').style.display = 'flex';
+            document.getElementById('btn-save-menu').style.display = 'none';
+            document.getElementById('online-self-indicator').style.display = 'none';
+
+            Array.from(document.getElementById('game-view').children).forEach(el => {
+                if (el.id !== 'party-view') el.style.display = 'none';
+            });
+
+            let partyView = document.getElementById('party-view');
+            if (!partyView) {
+                partyView = document.createElement('div');
+                partyView.id = 'party-view';
+                document.getElementById('game-view').appendChild(partyView);
+            }
+            partyView.style.display = 'flex';
+            partyView.style.gap = '20px';
+            partyView.style.alignItems = 'flex-start';
+            partyView.style.width = '100%';
+            partyView.style.justifyContent = 'center';
+            partyView.innerHTML = '';
+
+            const playerCount = replayData.meta.playerCount || 2;
+            const myIndex = replayData.meta.myIndex || 0;
+            const playerNames = replayData.meta.playerNames || getReplayNameList(playerCount, myIndex);
+
+            let leftUI = document.createElement('div'); leftUI.className = 'field-wrap'; leftUI.style.gap = '20px';
+            let centerUI = document.createElement('div');
+            let rightUI = document.createElement('div'); rightUI.className = 'field-wrap'; rightUI.style.gap = '20px';
+
+            let canvasWrap = document.createElement('div');
+            canvasWrap.style.position = 'relative';
+
+            let actionLayer = document.createElement('div');
+            actionLayer.id = 'party-action-layer';
+            actionLayer.className = 'action-layer';
+            canvasWrap.appendChild(actionLayer);
+
+            let partyCanvas = document.createElement('canvas');
+            partyCanvas.id = 'party-canvas';
+            partyCanvas.className = 'main-canvas';
+            partyCanvas.width = 30 * 24;
+            partyCanvas.height = 30 * 24;
+            canvasWrap.appendChild(partyCanvas);
+            centerUI.appendChild(canvasWrap);
+
+            for (let i = 0; i < playerCount; i++) {
+                let pUI = document.createElement('div');
+                pUI.className = 'board-area';
+                pUI.innerHTML = `
+                    <div class="side-column">
+                        <div style="font-size:12px; color:${COLORS[(i % 7) + 1]}; font-weight:bold; letter-spacing:2px; text-align:center;">${escapeHtml(playerNames[i] || `PLAYER ${i + 1}`)}</div>
+                        <div class="hold-next-box" ${i !== myIndex ? 'style="visibility:hidden;"' : ''}>
+                            <div class="stat-label">HOLD</div>
+                            <canvas id="party-hold-${i}" class="mini-canvas" width="60" height="60"></canvas>
+                        </div>
+                        <div class="stat-box"><div class="stat-label">SCORE</div><div id="party-score-${i}" class="stat-val">0</div></div>
+                    </div>
+                `;
+                let nextCol = document.createElement('div');
+                nextCol.className = 'side-column';
+                nextCol.innerHTML = `
+                    <div class="hold-next-box" style="padding-bottom:5px; ${i !== myIndex ? 'visibility:hidden;' : ''}">
+                        <div class="stat-label">NEXT</div>
+                        <canvas id="party-next-${i}-0" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="party-next-${i}-1" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="party-next-${i}-2" class="mini-canvas" width="60" height="60"></canvas>
+                    </div>
+                `;
+                pUI.appendChild(nextCol);
+                if (i % 2 === 0) leftUI.appendChild(pUI);
+                else rightUI.appendChild(pUI);
+            }
+
+            partyView.appendChild(leftUI);
+            partyView.appendChild(centerUI);
+            partyView.appendChild(rightUI);
+
+            window.partyModeInstance = new PartyTetris('party-canvas', playerCount, myIndex);
+            p1 = null;
+            cpu = null;
+            opponents = [];
+        }
+
+        function applyReplayFrame(frame) {
+            if (!frame) return;
+            if (frame.kind === 'party') {
+                if (window.partyModeInstance) window.partyModeInstance.applyReplayState(frame.party);
+                return;
+            }
+
+            if (p1 && frame.p1) p1.setState(cloneReplayValue(frame.p1));
+            if (cpu) {
+                if (frame.cpu) cpu.setState(cloneReplayValue(frame.cpu));
+                cpu.draw();
+            }
+
+            const frameOpps = frame.opponents || [];
+            frameOpps.forEach(frameOpp => {
+                const target = opponents.find(opp => opp.networkId === frameOpp.networkId);
+                if (target) target.setState(cloneReplayValue(frameOpp.state));
+            });
+            opponents.forEach(opp => opp.draw());
+            if (p1) p1.draw();
+        }
+
+        function stepReplayPlayback(timestamp) {
+            if (!isReplayPlayback || !replayPlayback) return;
+            if (replayPlayback.paused) {
+                replayPlayback.lastTick = timestamp;
+                updateReplayStatusLabel();
+                requestAnimationFrame(stepReplayPlayback);
+                return;
+            }
+
+            if (replayPlayback.startedAt === null) replayPlayback.startedAt = timestamp;
+            replayPlayback.elapsedMs = timestamp - replayPlayback.startedAt;
+
+            while (replayPlayback.frameIndex + 1 < replayPlayback.data.frames.length &&
+                replayPlayback.data.frames[replayPlayback.frameIndex + 1].at <= replayPlayback.elapsedMs) {
+                replayPlayback.frameIndex++;
+                applyReplayFrame(replayPlayback.data.frames[replayPlayback.frameIndex]);
+            }
+
+            updateReplayStatusLabel();
+
+            if (replayPlayback.elapsedMs >= replayPlayback.durationMs) {
+                stopReplayPlayback();
+                return;
+            }
+
+            requestAnimationFrame(stepReplayPlayback);
+        }
+
+        function startReplayPlayback() {
+            if (!lastReplayData || !lastReplayData.frames || lastReplayData.frames.length < 2) {
+                showToast(cfg.lang === 'ja' ? "リプレイできるデータがありません" : "No replay data available.");
+                return;
+            }
+
+            isReplayPlayback = true;
+            isPaused = true;
+            replayPlayback = {
+                data: lastReplayData,
+                frameIndex: 0,
+                startedAt: null,
+                elapsedMs: 0,
+                durationMs: lastReplayData.frames[lastReplayData.frames.length - 1].at || 0,
+                paused: false,
+                lastTick: 0
+            };
+
+            document.getElementById('match-summary-overlay').style.display = 'none';
+            if (lastReplayData.meta.mode === 'party') preparePartyReplayScene(lastReplayData);
+            else prepareStandardReplayScene(lastReplayData);
+            applyReplayFrame(lastReplayData.frames[0]);
+            setReplayControlsVisible(true);
+            updateTouchControlsVisibility();
+            updateReplayStatusLabel();
+            requestAnimationFrame(stepReplayPlayback);
+        }
+
+        function stopReplayPlayback() {
+            if (!isReplayPlayback) return;
+            isReplayPlayback = false;
+            replayPlayback = null;
+            setReplayControlsVisible(false);
+            returnToMenu();
+        }
+
+        function toggleReplayPause() {
+            if (!isReplayPlayback || !replayPlayback) return;
+            if (replayPlayback.paused) {
+                replayPlayback.paused = false;
+                replayPlayback.startedAt = performance.now() - (replayPlayback.elapsedMs || 0);
+            } else {
+                replayPlayback.paused = true;
+            }
+            updateReplayStatusLabel();
         }
 
         function loadCfg() {
@@ -2355,7 +3106,7 @@
 
             // Check uniqueness using PeerJS
             showToast(cfg.lang === 'ja' ? "名前をチェック中..." : "Checking name availability...");
-            let testPeer = new Peer('TETRIS-ID-' + newName, { debug: 0 });
+            let testPeer = createPeerInstance('TETRIS-ID-' + newName, { debug: 0 });
 
             testPeer.on('open', (id) => {
                 // Name is available! We can claim it.
@@ -2510,11 +3261,13 @@
 
         // --- Pause & UI scale ---
         function handlePauseToggle() {
+            if (isReplayPlayback) return;
             if ((window.isPartyMode && window.partyModeInstance) || !p1 || p1.isGameOver || inTutorial) return;
             isPaused = !isPaused;
             document.getElementById('pause-overlay').style.display = isPaused ? 'flex' : 'none';
         }
         function handleRetry() {
+            if (isReplayPlayback) return;
             if ((window.isPartyMode && window.partyModeInstance) || !p1 || inTutorial) return;
             isPaused = false;
             document.getElementById('pause-overlay').style.display = 'none';
@@ -2806,12 +3559,16 @@
         }
 
         function returnToMenu() {
+            isReplayPlayback = false;
+            replayPlayback = null;
+            setReplayControlsVisible(false);
             if (isOnline) disconnectOnline(); // Ensures Quick Match disconnection and resets networking variables
             resetSoloCpuHintState();
             restoreGameViewLayout();
 
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('menu').style.display = 'block';
+            updateTouchControlsVisibility();
 
             const resetDisp = (id, disp) => { const el = document.getElementById(id); if (el) el.style.display = disp; };
             resetDisp('main-menu-btns', 'block');
@@ -2823,6 +3580,8 @@
             resetDisp('mode-select-menu', 'none');
 
             p1 = null; cpu = null;
+            keysDown = {};
+            keysDownTime = {};
             if (window.partyModeInstance) {
                 window.partyModeInstance = null; // Clean up party mode
                 const partyView = document.getElementById('party-view');
@@ -2845,6 +3604,7 @@
             document.getElementById('online-self-indicator').style.display = 'none';
             suppressConnectionCloseHandler = false;
             resetConnectionQuality();
+            refreshSkillPanel(null);
             if (pendingMatchSummary) renderMatchSummary(pendingMatchSummary);
             else activeMatchSession = null;
         }
@@ -2922,7 +3682,7 @@
             const log = document.getElementById('lobby-chat-log');
             if (!log) return;
             log.innerHTML = lobbyChatMessages.map(message =>
-                `<div class="chat-line"><span class="name">${message.name}</span><span>${message.text}</span></div>`
+                `<div class="chat-line"><span class="name">${escapeHtml(message.name)}</span><span>${escapeHtml(message.text)}</span></div>`
             ).join('');
             log.scrollTop = log.scrollHeight;
         }
@@ -2995,12 +3755,108 @@
             }, 2000);
         }
 
+        function getSelectedPartyVariant() {
+            const selected = document.querySelector('input[name="room-party-variant"]:checked');
+            return selected ? selected.value : 'shared';
+        }
+
+        function syncPartyRuleSelectionUI() {
+            const partyToggle = document.getElementById('room-party-mode');
+            const section = document.getElementById('party-special-settings');
+            const enabled = !!(partyToggle && partyToggle.checked);
+            if (section) section.style.display = enabled ? 'block' : 'none';
+
+            document.querySelectorAll('.party-special-card').forEach(card => {
+                const input = card.querySelector('input[name="room-party-variant"]');
+                if (input) input.disabled = !enabled;
+                card.classList.toggle('is-selected', !!(enabled && input && input.checked));
+            });
+        }
+
+        function selectPartyVariant(value) {
+            const input = document.querySelector(`input[name="room-party-variant"][value="${value}"]`);
+            if (!input || input.disabled) return false;
+            if (!input.checked) input.checked = true;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+        }
+
+        function bindPartyRuleCardInteractions() {
+            document.querySelectorAll('.party-special-card').forEach(card => {
+                if (card.dataset.partyTapBound === '1') return;
+                const input = card.querySelector('input[name="room-party-variant"]');
+                if (!input) return;
+
+                const activateCard = (event) => {
+                    if (input.disabled) return;
+
+                    if (event.type === 'click' && event.target === input) {
+                        syncPartyRuleSelectionUI();
+                        return;
+                    }
+
+                    event.preventDefault();
+                    selectPartyVariant(input.value);
+                };
+
+                card.addEventListener('click', activateCard);
+                card.addEventListener('touchend', activateCard, { passive: false });
+                card.dataset.partyTapBound = '1';
+            });
+        }
+
+        function updateTouchControlsVisibility() {
+            const touchControls = document.getElementById('touch-controls');
+            const gameView = document.getElementById('game-view');
+            if (!touchControls || !gameView) return;
+            const gameVisible = getComputedStyle(gameView).display !== 'none' && !isReplayPlayback;
+            touchControls.classList.toggle('is-hidden', !gameVisible);
+        }
+
         function applyRoomRulesFromSettings() {
+            const partyEnabled = !!document.getElementById('room-party-mode').checked;
+            const partyVariant = partyEnabled ? getSelectedPartyVariant() : 'shared';
             onlineRoomRules = {
                 garbageMultiplier: Math.max(0.5, Math.min(3, parseFloat(document.getElementById('room-garbage-multiplier').value) || 1)),
                 startLevel: Math.max(1, Math.min(20, parseInt(document.getElementById('room-start-level').value) || 1)),
-                allowHold: document.getElementById('room-allow-hold').checked
+                allowHold: document.getElementById('room-allow-hold').checked,
+                partyVariant: partyVariant,
+                sharedBoard: partyEnabled && partyVariant === 'shared',
+                giantBlocks: partyEnabled && partyVariant === 'giant',
+                tallBoard: partyEnabled && partyVariant === 'tall',
+                bombMino: partyEnabled && partyVariant === 'bomb',
+                skillMode: partyEnabled && partyVariant === 'skills'
             };
+        }
+
+        function hasPartySpecialRules(ruleSet = onlineRoomRules) {
+            if (!ruleSet) return false;
+            return !!(ruleSet.giantBlocks || ruleSet.tallBoard || ruleSet.bombMino || ruleSet.skillMode);
+        }
+
+        function getSkillCoinAmount(board) {
+            return board && board.player ? (board.player.skillCoins || 0) : 0;
+        }
+
+        function refreshSkillPanel(board = p1) {
+            const panel = document.getElementById('party-skill-panel');
+            if (!panel) return;
+            if (board && !board.isPlayerBoard) return;
+            const enabled = !!(board && board.isPlayerBoard && board.ruleSet && board.ruleSet.skillMode && isOnline && !isPartyMode);
+            panel.style.display = enabled ? 'block' : 'none';
+            if (!enabled) return;
+            const coins = getSkillCoinAmount(board);
+            document.getElementById('party-skill-coins').innerText = coins;
+            Object.keys(PARTY_SKILLS).forEach(key => {
+                const btn = document.getElementById(`skill-btn-${key}`);
+                if (!btn) return;
+                btn.disabled = coins < PARTY_SKILLS[key].cost || !!board.isGameOver;
+            });
+        }
+
+        function usePartySkill(skillKey) {
+            if (!p1 || typeof p1.useSkill !== 'function') return;
+            p1.useSkill(skillKey);
         }
 
         function getConnectionByNetworkId(id) {
@@ -3150,6 +4006,65 @@
             }
         }
 
+        function routeStandardOnlineSkill(skillKey, fromId) {
+            if (!isStandardOnlineMatch() || !PARTY_SKILLS[skillKey]) return false;
+            const senderId = normalizeNetworkId(fromId);
+            if (senderId === null) return false;
+
+            if (skillKey === 'slow') {
+                if (senderId === onlineMyIndex) {
+                    if (p1 && typeof p1.applySkillEffect === 'function') {
+                        p1.applySkillEffect(skillKey, senderId);
+                        syncCurrentStandardOnlineState();
+                    }
+                } else {
+                    const senderConn = isQuickMatch ? conn : getConnectionByNetworkId(senderId);
+                    if (senderConn && senderConn.open) senderConn.send({ type: 'skill_effect', skill: skillKey, fromId: senderId });
+                }
+                return true;
+            }
+
+            const targetId = pickStandardOnlineTarget(senderId);
+            if (targetId === null) return false;
+            if (targetId === onlineMyIndex) {
+                if (p1 && typeof p1.applySkillEffect === 'function') {
+                    p1.applySkillEffect(skillKey, senderId);
+                    syncCurrentStandardOnlineState();
+                }
+                return true;
+            }
+
+            const targetConn = isQuickMatch ? conn : getConnectionByNetworkId(targetId);
+            if (targetConn && targetConn.open) {
+                targetConn.send({ type: 'skill_effect', skill: skillKey, fromId: senderId });
+                return true;
+            }
+            return false;
+        }
+
+        function sendStandardOnlineSkillRequest(skillKey, fromId = onlineMyIndex) {
+            if (!isStandardOnlineMatch() || !PARTY_SKILLS[skillKey]) return false;
+            const senderId = normalizeNetworkId(fromId);
+            if (senderId === null) return false;
+
+            if (isQuickMatch) {
+                if (isHost) return routeStandardOnlineSkill(skillKey, senderId);
+                if (conn && conn.open) {
+                    conn.send({ type: 'skill_use', skill: skillKey, fromId: senderId });
+                    return true;
+                }
+                return false;
+            }
+
+            if (isHost) return routeStandardOnlineSkill(skillKey, senderId);
+
+            if (conn && conn.open) {
+                conn.send({ type: 'skill_use', skill: skillKey, fromId: senderId });
+                return true;
+            }
+            return false;
+        }
+
         function showOnlineMenu() {
             document.getElementById('main-menu-btns').style.display = 'none';
             document.getElementById('online-menu').style.display = 'block';
@@ -3179,30 +4094,38 @@
 
         function initPeer(id, onSuccess) {
             suppressConnectionCloseHandler = false;
-            if (peer) peer.destroy();
-
-            // PeerJS Cloudサーバーに確実に接続するためのオプション
-            const peerOptions = {
-                debug: 2
-            };
+            clearQuickMatchRetryTimeout();
+            suspendIdentityReservation();
+            const oldPeer = peer;
+            peer = null;
+            peerGeneration++;
+            if (oldPeer) oldPeer.destroy();
+            const currentGeneration = peerGeneration;
 
             if (id) {
-                peer = new Peer(id, peerOptions);
+                peer = createPeerInstance(id);
             } else {
-                peer = new Peer(peerOptions);
+                peer = createPeerInstance(generateClientPeerId());
             }
+            const localPeer = peer;
 
-            peer.on('open', (assignedId) => {
+            localPeer.on('open', (assignedId) => {
+                if (peer !== localPeer || currentGeneration !== peerGeneration) return;
                 onSuccess(assignedId);
             });
 
-            peer.on('error', (err) => {
+            localPeer.on('error', (err) => {
+                if (peer !== localPeer || currentGeneration !== peerGeneration) return;
                 console.error("PeerJS Error:", err);
                 let errorMsg = "通信エラーが発生しました";
                 if (err.type === 'peer-unavailable') {
                     errorMsg = TRANSLATIONS[cfg.lang]["online-err-notfound"] || (cfg.lang === 'ja' ? "コードが間違っているか、無効です。" : "Invalid or missing room code.");
                 } else if (err.type === 'unavailable-id') {
                     errorMsg = TRANSLATIONS[cfg.lang]["online-err-idinuse"] || (cfg.lang === 'ja' ? "その部屋番号はすでに使われています。" : "Room code is already in use.");
+                } else if (err.type === 'network' || err.type === 'server-error' || err.type === 'socket-error' || err.type === 'socket-closed') {
+                    errorMsg = cfg.lang === 'ja' ? "通信サーバーに接続できませんでした" : "Could not reach the signalling server.";
+                } else if (err.type === 'webrtc') {
+                    errorMsg = cfg.lang === 'ja' ? "WebRTC接続に失敗しました。別の回線やブラウザでもお試しください。" : "WebRTC connection failed. Please try another network or browser.";
                 }
                 showToast(errorMsg);
                 resetOnlineLobby();
@@ -3217,6 +4140,7 @@
             }
 
             const onOpen = () => {
+                clearQuickMatchRetryTimeout();
                 let currentConn = isHost && !isQuickMatch ? connection : conn;
                 if (isQuickMatch) {
                     let statusEl = document.getElementById('qm-status');
@@ -3230,7 +4154,14 @@
                 } else {
                     document.getElementById('lobby-status').innerText = TRANSLATIONS[cfg.lang]["online-connected"];
                     document.getElementById('lobby-status').style.color = '#00ff00';
-                    currentConn.send({ type: 'hello', name: cfg.playerName, targetWins: targetWins, isPartyMode: isPartyMode, partyCount: targetPartyCount, roomRules: onlineRoomRules });
+                    currentConn.send({
+                        type: 'hello',
+                        name: cfg.playerName,
+                        targetWins: targetWins,
+                        isPartyMode: isPartyMode && !hasPartySpecialRules(onlineRoomRules),
+                        partyCount: targetPartyCount,
+                        roomRules: onlineRoomRules
+                    });
                 }
             };
 
@@ -3423,13 +4354,27 @@
                         window.partyModeInstance.checkHostGameOver();
                     }
                 }
+                else if (data.type === 'skill_use') {
+                    if (isHost && isStandardOnlineMatch()) {
+                        routeStandardOnlineSkill(data.skill, data.fromId !== undefined ? data.fromId : connection.networkId);
+                    }
+                }
+                else if (data.type === 'skill_effect') {
+                    if (p1 && typeof p1.applySkillEffect === 'function') {
+                        p1.applySkillEffect(data.skill, data.fromId !== undefined ? normalizeNetworkId(data.fromId) : null);
+                        syncCurrentStandardOnlineState();
+                    }
+                }
                 else if (data.type === 'attack') {
                     if (p1 && !p1.isGameOver) {
                         p1.receiveGarbage(data.amount);
                     }
                 }
                 else if (data.type === 'gameover') {
-                    if (cpu && !cpu.isGameOver) {
+                    if (isStandardOnlineMatch()) {
+                        const defeatedId = data.fromId !== undefined ? normalizeNetworkId(data.fromId) : normalizeNetworkId(connection.networkId);
+                        handleRemoteStandardGameOver(defeatedId);
+                    } else if (cpu && !cpu.isGameOver) {
                         cpu.isGameOver = true;
                         if (p1 && !p1.isGameOver) {
                             p1.isGameOver = true;
@@ -3449,6 +4394,22 @@
                     if (window.partyModeInstance && !window.partyModeInstance.isGameOver) {
                         window.partyModeInstance.gameOver(data.winner);
                     }
+                }
+            });
+
+            connection.on('error', (err) => {
+                const trackedConnection = connection === conn || partyClients.includes(connection);
+                if (!trackedConnection) return;
+                console.error("Connection Error:", err);
+                clearQuickMatchRetryTimeout();
+                if (isQuickMatch && !isOnline) {
+                    qmIndex++;
+                    searchQuickMatch();
+                    return;
+                }
+                if (!isOnline) {
+                    showToast(cfg.lang === 'ja' ? "接続に失敗しました" : "Connection failed.");
+                    disconnectOnline();
                 }
             });
 
@@ -3476,6 +4437,7 @@
                         }
                     }
                 } else {
+                    if (activeMatchSession && activeMatchSession.summaryQueued) return;
                     if (p1 && p1.isGameOver) return;
                     if (window.partyModeInstance && window.partyModeInstance.isGameOver) return;
                     showToast(cfg.lang === 'ja' ? "対戦相手との通信が切断されました" : "Opponent disconnected.");
@@ -3490,7 +4452,7 @@
             // Updated hostRoom behavior
             document.getElementById('btn-create-room').innerText = "...";
             targetWins = parseInt(document.getElementById('room-target-wins').value) || 1;
-            isPartyMode = document.getElementById('room-party-mode').checked;
+            isPartyMode = !!document.getElementById('room-party-mode').checked && getSelectedPartyVariant() === 'shared';
             targetPartyCount = parseInt(document.getElementById('room-party-count').value) || 4;
             applyRoomRulesFromSettings();
             clearLobbyChat();
@@ -3554,16 +4516,33 @@
 
                 try {
                     const connection = peer.connect(targetId, { reliable: true });
+                    let connectionHandled = false;
+                    const failJoin = () => {
+                        if (connectionHandled) return;
+                        connectionHandled = true;
+                        try {
+                            connection.close();
+                        } catch (err) {
+                            console.warn('Failed to close join connection:', err);
+                        }
+                        showToast(TRANSLATIONS[cfg.lang]["online-err-notfound"] || (cfg.lang === 'ja' ? "コードが間違っているか、無効です。" : "Invalid or missing room code."));
+                        disconnectOnline();
+                    };
 
                     // Connection validation timeout
                     const connTimeout = setTimeout(() => {
-                        if (conn && conn.open) return;
-                        showToast(TRANSLATIONS[cfg.lang]["online-err-notfound"] || (cfg.lang === 'ja' ? "コードが間違っているか、無効です。" : "Invalid or missing room code."));
-                        disconnectOnline();
-                    }, 5000);
+                        if (connection.open) return;
+                        failJoin();
+                    }, 10000);
 
                     connection.on('open', () => {
+                        connectionHandled = true;
                         clearTimeout(connTimeout);
+                    });
+
+                    connection.on('error', () => {
+                        clearTimeout(connTimeout);
+                        failJoin();
                     });
 
                     setupConnectionEvents(connection);
@@ -3578,9 +4557,12 @@
             suppressConnectionCloseHandler = false;
             isQuickMatch = true;
             qmIndex = 1;
+            quickMatchSearchToken++;
             onlineRoomRules = { ...DEFAULT_ROOM_RULES };
             clearLobbyChat();
             resetConnectionQuality();
+            clearQuickMatchRetryTimeout();
+            suspendIdentityReservation();
 
             document.getElementById('online-menu').style.display = 'none';
             document.getElementById('quick-match-lobby').style.display = 'block';
@@ -3595,10 +4577,13 @@
 
         function cancelQuickMatch() {
             isQuickMatch = false;
+            clearQuickMatchRetryTimeout();
+            peerGeneration++;
             if (peer) { peer.destroy(); peer = null; }
             if (conn) { conn.close(); conn = null; }
             document.getElementById('quick-match-lobby').style.display = 'none';
             document.getElementById('online-menu').style.display = 'block';
+            resumeIdentityReservation();
         }
 
         function searchQuickMatch() {
@@ -3608,16 +4593,32 @@
                 return;
             }
 
-            if (peer) peer.destroy();
+            clearQuickMatchRetryTimeout();
+            suspendIdentityReservation();
+            const searchToken = ++quickMatchSearchToken;
+            const oldPeer = peer;
+            peer = null;
+            peerGeneration++;
+            if (oldPeer) oldPeer.destroy();
             const targetId = "TETRIS-QM-" + qmIndex;
 
             // Try to become the host for this QM slot
-            peer = new Peer(targetId, { debug: 2 });
+            peer = createPeerInstance(targetId);
+            const hostPeer = peer;
 
-            peer.on('open', (id) => {
+            hostPeer.on('open', (id) => {
+                if (peer !== hostPeer || searchToken !== quickMatchSearchToken || !isQuickMatch) return;
                 // Successfully hosted
                 isHost = true;
-                peer.on('connection', (connection) => {
+                hostPeer.on('connection', (connection) => {
+                    if (peer !== hostPeer || searchToken !== quickMatchSearchToken || !isQuickMatch) {
+                        try {
+                            connection.close();
+                        } catch (err) {
+                            console.warn('Failed to close stale quick match connection:', err);
+                        }
+                        return;
+                    }
                     if (conn && conn.open || isOnline) {
                         connection.on('open', () => {
                             connection.send({ type: 'reject' });
@@ -3629,26 +4630,41 @@
                 });
             });
 
-            peer.on('error', (err) => {
+            hostPeer.on('error', (err) => {
+                if (peer !== hostPeer || searchToken !== quickMatchSearchToken || !isQuickMatch) return;
                 // If ID is already taken, someone is hosting it. Try to join them.
                 if (err.type === 'unavailable-id') {
-                    peer.destroy();
-                    peer = new Peer({ debug: 2 });
-                    peer.on('open', () => {
+                    hostPeer.destroy();
+                    peerGeneration++;
+                    peer = createPeerInstance(generateClientPeerId('TETRIS-QMC'));
+                    const joinPeer = peer;
+                    joinPeer.on('open', () => {
+                        if (peer !== joinPeer || searchToken !== quickMatchSearchToken || !isQuickMatch) return;
                         isHost = false;
                         document.getElementById('lobby-p1-name').innerText = "---";
                         document.getElementById('lobby-p2-name').innerText = cfg.playerName;
 
-                        const connection = peer.connect(targetId, { reliable: true });
+                        const connection = joinPeer.connect(targetId, { reliable: true });
                         setupConnectionEvents(connection);
 
                         // Fallback timeout in case the connection hangs
-                        setTimeout(() => {
-                            if (!conn || !conn.open) {
-                                qmIndex++;
-                                searchQuickMatch();
+                        clearQuickMatchRetryTimeout();
+                        quickMatchRetryTimeout = setTimeout(() => {
+                            if (searchToken !== quickMatchSearchToken || !isQuickMatch || connection.open) return;
+                            try {
+                                connection.close();
+                            } catch (closeErr) {
+                                console.warn('Failed to close timed out quick match connection:', closeErr);
                             }
-                        }, 3000);
+                            qmIndex++;
+                            searchQuickMatch();
+                        }, 6000);
+                    });
+                    joinPeer.on('error', (joinErr) => {
+                        if (peer !== joinPeer || searchToken !== quickMatchSearchToken || !isQuickMatch) return;
+                        console.error("Quick Match Join Error:", joinErr);
+                        qmIndex++;
+                        searchQuickMatch();
                     });
                 } else {
                     console.error("Quick Match Error:", err);
@@ -3665,6 +4681,9 @@
 
         function disconnectOnline(showMenu = true) {
             suppressConnectionCloseHandler = true;
+            clearQuickMatchRetryTimeout();
+            peerGeneration++;
+            quickMatchSearchToken++;
             const activeConn = conn;
             const activeClients = [...partyClients];
             const activePeer = peer;
@@ -3687,11 +4706,14 @@
             resetOnlineLobby();
             clearLobbyChat();
             resetConnectionQuality();
+            resumeIdentityReservation();
         }
 
         function startOnlineGame() {
             if (!isHost) return;
-            if (isPartyMode) {
+            const useSharedPartyMode = isPartyMode && !hasPartySpecialRules(onlineRoomRules);
+            if (!useSharedPartyMode) isPartyMode = false;
+            if (useSharedPartyMode) {
                 partyClients.forEach((c, idx) => c.send({ type: 'start_party', playerCount: partyClients.length + 1, myIndex: idx + 1 }));
                 startPartyModeExecution(partyClients.length + 1, 0);
             } else {
@@ -3710,7 +4732,9 @@
             const normalizedRuleSet = { ...DEFAULT_ROOM_RULES, ...ruleSet };
             const applyToBoard = (board) => {
                 if (!board) return;
-                board.ruleSet = { ...normalizedRuleSet };
+                const hasLiveState = !!(typeof board.networkId === 'number' && onlineStateCache[board.networkId]);
+                if (typeof board.setRuleSet === 'function') board.setRuleSet(normalizedRuleSet, !hasLiveState);
+                else board.ruleSet = { ...normalizedRuleSet };
                 if ((board.player.time || 0) === 0 && (board.player.pieces || 0) === 0) {
                     board.player.level = normalizedRuleSet.startLevel;
                     if (!normalizedRuleSet.allowHold) board.player.canHold = false;
@@ -3738,6 +4762,7 @@
             document.getElementById('menu').style.display = 'none';
             document.getElementById('mode-select-menu').style.display = 'none';
             document.getElementById('game-view').style.display = 'flex';
+            updateTouchControlsVisibility();
             const meters = document.querySelectorAll('.meter-container');
             meters.forEach(m => m.style.display = 'block');
             document.getElementById('cpu-field').style.display = 'none'; // Hide default CPU field
@@ -3833,6 +4858,8 @@
             p1.opponents = opponents;
             applyRuleSetToActiveBoards(onlineRoomRules);
             beginMatchSession('online', onlineRoomRules);
+            captureReplayFrame(performance.now(), true);
+            refreshSkillPanel(p1);
             syncCurrentStandardOnlineState();
             setTimeout(() => {
                 if (isStandardOnlineMatch()) syncCurrentStandardOnlineState();
@@ -3848,6 +4875,7 @@
             isOnline = true;
             beginMatchSession('party', DEFAULT_ROOM_RULES);
             startConnectionMonitor();
+            refreshSkillPanel(null);
             document.getElementById('online-lobby').style.display = 'none';
             document.getElementById('btn-save-menu').style.display = 'none';
             document.getElementById('online-self-indicator').style.display = 'none';
@@ -3855,6 +4883,7 @@
             document.getElementById('menu').style.display = 'none';
             document.getElementById('mode-select-menu').style.display = 'none';
             document.getElementById('game-view').style.display = 'flex'; // Ensured parent is visible
+            updateTouchControlsVisibility();
 
             // Hide normal game-view elements
             Array.from(document.getElementById('game-view').children).forEach(el => {
@@ -3946,6 +4975,7 @@
             p1 = null; cpu = null;
 
             window.partyModeInstance = new PartyTetris('party-canvas', playerCount, myIndex);
+            captureReplayFrame(performance.now(), true);
 
             if (!lastTime) animate();
         }
@@ -4049,6 +5079,8 @@
             constructor(canvasId, holdId, nextBaseId, scoreId, isAI = false, actionId = null, meterId = null, templateKey = null, isLoad = false) {
                 this.canvas = document.getElementById(canvasId);
                 this.ctx = this.canvas.getContext('2d');
+                this.baseCanvasWidth = this.canvas.width;
+                this.baseCanvasHeight = this.canvas.height;
                 this.holdCanvas = document.getElementById(holdId);
                 this.isAI = isAI;
                 this.isPlayerBoard = canvasId === 'p-canvas';
@@ -4061,15 +5093,26 @@
                 this.actionLayer = actionId ? document.getElementById(actionId) : null;
                 this.meterFill = meterId ? document.getElementById(meterId) : null;
 
-                this.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
-                this.player = { pos: { x: 0, y: 0 }, matrix: null, type: null, color: null, score: 0, holdType: null, holdColor: null, canHold: true, ren: -1, btb: false, rotation: 0, time: 0, pieces: 0, lines: 0, attacks: 0, level: 1, tSpins: 0, garbageReceived: 0, maxRen: 0, perfectClears: 0 };
+                this.boardWidth = 10;
+                this.hiddenRows = 2;
+                this.ruleSet = { ...DEFAULT_ROOM_RULES };
+                this.visibleRows = 20;
+                this.arenaHeight = 22;
+                this.effects = { speedUpUntil: 0, slowUntil: 0 };
+                this.bombCountdown = 14;
+                this.arena = Array.from({ length: this.arenaHeight }, () => new Array(this.boardWidth).fill(0));
+                this.player = {
+                    pos: { x: 0, y: 0 }, matrix: null, type: null, color: null, score: 0, holdType: null, holdColor: null,
+                    canHold: true, ren: -1, btb: false, rotation: 0, time: 0, pieces: 0, lines: 0, attacks: 0, level: 1,
+                    tSpins: 0, garbageReceived: 0, maxRen: 0, perfectClears: 0, skillCoins: 0
+                };
                 this.bag = []; this.nextQueue = []; this.isGameOver = false; this.dropCounter = 0; this.pendingGarbage = 0;
                 this.lockDelayThreshold = 500; this.lockDelayCounter = 0; this.dasL = 0; this.arrL = 0; this.dasR = 0; this.arrR = 0;
                 this.oSpinRotCount = 0; this.oSpinTimer = 0; this.isOtransformed = false;
 
                 this.templateKey = templateKey;
                 this.targetBoard = null;
-                this.ruleSet = { ...DEFAULT_ROOM_RULES };
+                this.applyRuleGeometry(true);
 
                 if (!isLoad) {
                     if (this.templateKey) this.loadTemplate(this.templateKey);
@@ -4078,6 +5121,177 @@
                 }
 
                 this.renderCpuHintOverlay(null);
+            }
+
+            getBoardWidth() {
+                return this.boardWidth;
+            }
+
+            getVisibleRows() {
+                return this.visibleRows;
+            }
+
+            getArenaHeight() {
+                return this.arenaHeight;
+            }
+
+            getCellSize() {
+                return Math.max(8, Math.floor(Math.min(this.canvas.width / this.getBoardWidth(), this.canvas.height / this.getVisibleRows())));
+            }
+
+            getDisplayOffsetY() {
+                return -this.hiddenRows;
+            }
+
+            cloneMatrix(matrix) {
+                return JSON.parse(JSON.stringify(matrix));
+            }
+
+            scaleMatrix(matrix, factor) {
+                if (!matrix || factor <= 1) return this.cloneMatrix(matrix);
+                const result = [];
+                matrix.forEach(row => {
+                    const expandedRow = [];
+                    row.forEach(cell => {
+                        for (let i = 0; i < factor; i++) expandedRow.push(cell !== 0 ? 1 : 0);
+                    });
+                    for (let i = 0; i < factor; i++) result.push([...expandedRow]);
+                });
+                return result;
+            }
+
+            createPieceMatrix(type) {
+                const base = PIECES[type] || [[1]];
+                if (this.ruleSet.giantBlocks && type !== 'B') return this.scaleMatrix(base, 2);
+                return this.cloneMatrix(base);
+            }
+
+            getPreviewMatrix(type) {
+                const base = PIECES[type] || [[1]];
+                return this.cloneMatrix(base);
+            }
+
+            getBombSpawnInterval() {
+                return 12 + Math.floor(Math.random() * 5);
+            }
+
+            applyRuleGeometry(resetArena = false) {
+                this.visibleRows = this.ruleSet.tallBoard ? 40 : 20;
+                this.arenaHeight = this.visibleRows + this.hiddenRows;
+                if (resetArena || !this.arena || this.arena.length !== this.arenaHeight || this.arena[0].length !== this.boardWidth) {
+                    this.arena = Array.from({ length: this.arenaHeight }, () => new Array(this.boardWidth).fill(0));
+                }
+                if (this.targetBoard && (this.targetBoard.length !== this.arenaHeight || this.targetBoard[0].length !== this.boardWidth)) {
+                    this.targetBoard = Array.from({ length: this.arenaHeight }, () => new Array(this.boardWidth).fill(-1));
+                }
+                if (this.hintCanvas) {
+                    this.hintCanvas.width = this.canvas.width;
+                    this.hintCanvas.height = this.canvas.height;
+                }
+                const grid = `${this.getCellSize()}px ${this.getCellSize()}px`;
+                this.canvas.style.backgroundSize = grid;
+            }
+
+            setRuleSet(ruleSet, resetArena = false) {
+                this.ruleSet = { ...DEFAULT_ROOM_RULES, ...ruleSet };
+                this.applyRuleGeometry(resetArena);
+                if (resetArena) {
+                    this.effects = { speedUpUntil: 0, slowUntil: 0 };
+                    this.bombCountdown = this.getBombSpawnInterval();
+                    this.player.holdType = null;
+                    this.player.holdColor = null;
+                    this.player.skillCoins = 0;
+                    this.bag = [];
+                    this.nextQueue = [];
+                    while (this.nextQueue.length < 10) this.nextQueue.push(this.pullFromBag());
+                    if (!this.isGameOver) this.reset();
+                }
+                this.updateUI();
+                this.draw();
+            }
+
+            getSpawnPosition(matrix = this.player.matrix) {
+                return {
+                    x: Math.floor((this.getBoardWidth() - (matrix ? matrix[0].length : 1)) / 2),
+                    y: this.hiddenRows
+                };
+            }
+
+            getPieceColor(type) {
+                return type === 'B' ? 9 : Object.keys(PIECES).indexOf(type) + 1;
+            }
+
+            addSkillCoins(amount) {
+                if (!this.ruleSet.skillMode || !amount) return;
+                this.player.skillCoins = Math.max(0, Math.min(99, (this.player.skillCoins || 0) + amount));
+                refreshSkillPanel(this);
+            }
+
+            getTimeScale() {
+                let scale = 1;
+                const now = performance.now();
+                if (this.effects.speedUpUntil > now) scale *= 2;
+                if (this.effects.slowUntil > now) scale *= 0.55;
+                return scale;
+            }
+
+            applyWallObstacle() {
+                const wallHeight = Math.min(8, this.getVisibleRows());
+                const wallColumn = Math.max(0, Math.min(this.getBoardWidth() - 1, Math.floor(Math.random() * this.getBoardWidth())));
+                for (let i = 0; i < wallHeight; i++) {
+                    const y = this.getArenaHeight() - 1 - i;
+                    this.arena[y][wallColumn] = 8;
+                }
+                let lift = 0;
+                while (this.collide() && lift < this.getArenaHeight()) {
+                    this.player.pos.y--;
+                    lift++;
+                }
+                if (this.player.pos.y < 0) this.gameOver();
+            }
+
+            applySkillEffect(skillKey, fromId = null) {
+                const skill = PARTY_SKILLS[skillKey];
+                if (!skill || this.isGameOver) return false;
+                const now = performance.now();
+                if (skillKey === 'speed') {
+                    this.effects.speedUpUntil = Math.max(this.effects.speedUpUntil, now + skill.duration);
+                    this.showAction(`JAMMED${fromId !== null ? `\nP${fromId + 1}` : ''}`);
+                } else if (skillKey === 'wall') {
+                    this.applyWallObstacle();
+                    this.showAction(`WALL${fromId !== null ? `\nP${fromId + 1}` : ''}`);
+                } else if (skillKey === 'slow') {
+                    this.effects.slowUntil = Math.max(this.effects.slowUntil, now + skill.duration);
+                    this.showAction("FOCUS");
+                }
+                this.updateUI();
+                return true;
+            }
+
+            useSkill(skillKey) {
+                const skill = PARTY_SKILLS[skillKey];
+                if (!skill || !this.ruleSet.skillMode || this.isGameOver) return false;
+                if ((this.player.skillCoins || 0) < skill.cost) {
+                    showToast(cfg.lang === 'ja' ? "コインが足りません" : "Not enough coins.");
+                    return false;
+                }
+                this.player.skillCoins -= skill.cost;
+                refreshSkillPanel(this);
+                if (skillKey === 'slow') {
+                    this.applySkillEffect(skillKey, this.networkId);
+                    syncCurrentStandardOnlineState();
+                    return true;
+                }
+                const sent = sendStandardOnlineSkillRequest(skillKey, this.networkId);
+                if (!sent) {
+                    this.player.skillCoins += skill.cost;
+                    refreshSkillPanel(this);
+                    showToast(cfg.lang === 'ja' ? "スキル送信に失敗しました" : "Failed to send skill.");
+                    return false;
+                }
+                this.showAction(skill.label);
+                syncCurrentStandardOnlineState();
+                return true;
             }
 
             getState() {
@@ -4089,6 +5303,7 @@
                     pendingGarbage: this.pendingGarbage,
                     isGameOver: this.isGameOver,
                     targetBoard: this.targetBoard ? this.targetBoard.map(row => row.map(v => v === -1 ? '.' : v).join('')) : null,
+                    bombCountdown: this.bombCountdown,
                     lockDelayCounter: this.lockDelayCounter,
                     dropCounter: this.dropCounter
                 };
@@ -4110,6 +5325,7 @@
                 if (typeof this.player.garbageReceived === 'undefined') this.player.garbageReceived = 0;
                 if (typeof this.player.maxRen === 'undefined') this.player.maxRen = 0;
                 if (typeof this.player.perfectClears === 'undefined') this.player.perfectClears = 0;
+                if (typeof this.player.skillCoins === 'undefined') this.player.skillCoins = 0;
                 this.bag = state.bag;
                 this.nextQueue = state.nextQueue;
                 this.pendingGarbage = state.pendingGarbage;
@@ -4123,8 +5339,10 @@
 
                 this.lockDelayCounter = state.lockDelayCounter || 0;
                 this.dropCounter = state.dropCounter || 0;
+                this.bombCountdown = typeof state.bombCountdown === 'number' ? state.bombCountdown : this.getBombSpawnInterval();
                 this.updateUI();
                 this.updateMeter();
+                refreshSkillPanel(this);
                 if (!this.isAI) syncSoloCpuHint();
             }
 
@@ -4132,24 +5350,34 @@
                 const t = TEMPLATES[tmplKey]; if (!t) return;
 
                 if (this.isAI) {
-                    this.targetBoard = Array.from({ length: 22 }, () => new Array(10).fill(-1));
-                    let startY = 22 - t.board.length;
+                    this.targetBoard = Array.from({ length: this.getArenaHeight() }, () => new Array(this.getBoardWidth()).fill(-1));
+                    let startY = this.getArenaHeight() - t.board.length;
                     for (let i = 0; i < t.board.length; i++) {
-                        for (let j = 0; j < 10; j++) {
+                        for (let j = 0; j < this.getBoardWidth(); j++) {
                             this.targetBoard[startY + i][j] = t.board[i][j] === '.' ? 0 : 1;
                         }
                     }
                 } else {
-                    let startY = 22 - t.board.length;
+                    let startY = this.getArenaHeight() - t.board.length;
                     for (let i = 0; i < t.board.length; i++) {
-                        for (let j = 0; j < 10; j++) { this.arena[startY + i][j] = t.board[i][j] === '.' ? 0 : parseInt(t.board[i][j]); }
+                        for (let j = 0; j < this.getBoardWidth(); j++) { this.arena[startY + i][j] = t.board[i][j] === '.' ? 0 : parseInt(t.board[i][j]); }
                     }
                     this.nextQueue = [...t.queue];
-                    if (t.hold) { this.player.holdType = t.hold; this.player.holdColor = Object.keys(PIECES).indexOf(t.hold) + 1; }
+                    if (t.hold) { this.player.holdType = t.hold; this.player.holdColor = this.getPieceColor(t.hold); }
                 }
             }
 
             pullFromBag() {
+                if (this.ruleSet.bombMino) {
+                    if (typeof this.bombCountdown !== 'number' || this.bombCountdown <= 0) {
+                        this.bombCountdown = this.getBombSpawnInterval();
+                    }
+                    this.bombCountdown--;
+                    if (this.bombCountdown <= 0) {
+                        this.bombCountdown = this.getBombSpawnInterval();
+                        return 'B';
+                    }
+                }
                 if (this.bag.length === 0) {
                     this.bag = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
                     for (let i = this.bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[this.bag[i], this.bag[j]] = [this.bag[j], this.bag[i]]; }
@@ -4162,15 +5390,16 @@
                 if (this.pendingGarbage > 0) { this.pushGarbageToArena(this.pendingGarbage); this.pendingGarbage = 0; this.updateMeter(); }
                 this.player.type = this.nextQueue.shift();
                 this.nextQueue.push(this.pullFromBag());
-                this.player.matrix = JSON.parse(JSON.stringify(PIECES[this.player.type]));
-                this.player.color = Object.keys(PIECES).indexOf(this.player.type) + 1;
-                this.player.pos = { x: 3, y: 2 };
+                this.player.matrix = this.createPieceMatrix(this.player.type);
+                this.player.color = this.getPieceColor(this.player.type);
+                this.player.pos = this.getSpawnPosition(this.player.matrix);
                 if ((this.player.time || 0) === 0 && (this.player.pieces || 0) === 0) this.player.level = (this.ruleSet && this.ruleSet.startLevel) || 1;
                 this.player.rotation = 0; this.player.canHold = true; this.lockDelayCounter = 0;
                 this.isOtransformed = false; this.oSpinRotCount = 0; this.oSpinTimer = 0; this.lastMoveRotate = false;
                 if (this.collide()) { this.player.pos.y--; if (this.collide()) this.gameOver(); }
                 if (this.isAI) this.aiPlan();
                 this.updateUI();
+                refreshSkillPanel(this);
                 if (!this.isAI) syncSoloCpuHint();
             }
 
@@ -4179,7 +5408,7 @@
                     for (let x = 0; x < m[y].length; ++x) {
                         if (m[y][x] !== 0) {
                             const ay = y + o.y, ax = x + o.x;
-                            if (ay >= 22 || ax < 0 || ax >= 10 || (ay >= 0 && this.arena[ay][ax] !== 0)) return true;
+                            if (ay >= this.getArenaHeight() || ax < 0 || ax >= this.getBoardWidth() || (ay >= 0 && this.arena[ay][ax] !== 0)) return true;
                         }
                     }
                 }
@@ -4195,28 +5424,29 @@
                 this.player.matrix = dir > 0 ? rotated.map(row => row.reverse()) : rotated.reverse();
                 const kickTable = (this.player.type === 'I') ? KICKS_I : KICKS;
                 const kickSet = kickTable[`${oldR}-${newR}`] || [[0, 0]];
+                const kickScale = (this.ruleSet.giantBlocks && this.player.type !== 'B') ? 2 : 1;
                 let success = false;
                 for (let [kx, ky] of kickSet) {
-                    this.player.pos.x += kx; this.player.pos.y -= ky;
+                    this.player.pos.x += kx * kickScale; this.player.pos.y -= ky * kickScale;
                     if (!this.collide()) { success = true; break; }
                     this.player.pos = { ...oldP };
                 }
                 if (success) {
                     this.player.rotation = newR; this.lastMoveRotate = true; this.lockDelayCounter = 0;
-                    if (cfg.ospin && this.player.type === 'O' && !this.isOtransformed) {
-                        if (this.oSpinRotCount === 0) this.oSpinTimer = 3000;
-                        this.oSpinRotCount++;
-                                                if (this.oSpinRotCount >= 15 && this.oSpinTimer > 0) {
-                            if (typeof cfg.ospinTransform === 'undefined' || cfg.ospinTransform === 'fixed') {
-                                this.player.matrix = JSON.parse(JSON.stringify(PIECES['I']));
-                            } else {
-                                const pList = ['I', 'J', 'L', 'S', 'T', 'Z'];
-                                const rType = pList[Math.floor(Math.random() * pList.length)];
-                                this.player.matrix = JSON.parse(JSON.stringify(PIECES[rType]));
-                            }
-                            // Modify matrix internally to use the player's original O-mino color (Yellow)
-                            this.player.matrix = this.player.matrix.map(row => row.map(cell => cell !== 0 ? this.player.color : 0));
-                            this.isOtransformed = true; this.showAction("O-SPIN");
+                        if (cfg.ospin && this.player.type === 'O' && !this.isOtransformed) {
+                            if (this.oSpinRotCount === 0) this.oSpinTimer = 3000;
+                            this.oSpinRotCount++;
+                            if (this.oSpinRotCount >= 15 && this.oSpinTimer > 0) {
+                                if (typeof cfg.ospinTransform === 'undefined' || cfg.ospinTransform === 'fixed') {
+                                    this.player.matrix = this.createPieceMatrix('I');
+                                } else {
+                                    const pList = ['I', 'J', 'L', 'S', 'T', 'Z'];
+                                    const rType = pList[Math.floor(Math.random() * pList.length)];
+                                    this.player.matrix = this.createPieceMatrix(rType);
+                                }
+                                // Modify matrix internally to use the player's original O-mino color (Yellow)
+                                this.player.matrix = this.player.matrix.map(row => row.map(cell => cell !== 0 ? this.player.color : 0));
+                                this.isOtransformed = true; this.showAction("O-SPIN");
                         }
                     }
                 } else { this.player.matrix = oldM; this.player.pos = { ...oldP }; }
@@ -4260,12 +5490,29 @@
                 this.lock();
             }
 
+            detonateBomb() {
+                const cx = this.player.pos.x;
+                const cy = this.player.pos.y;
+                for (let y = cy - 1; y <= cy + 1; y++) {
+                    for (let x = cx - 1; x <= cx + 1; x++) {
+                        if (y >= 0 && y < this.getArenaHeight() && x >= 0 && x < this.getBoardWidth()) {
+                            this.arena[y][x] = 0;
+                        }
+                    }
+                }
+                this.showAction("BOMB!");
+            }
+
             lock() {
                 let tSpinInfo = { isTSpin: false, isMini: false };
-                if (this.player.type === 'T' && this.lastMoveRotate) tSpinInfo = this.checkTSpin();
-                this.player.matrix.forEach((row, y) => row.forEach((v, x) => {
-                    if (v !== 0 && this.arena[y + this.player.pos.y]) this.arena[y + this.player.pos.y][x + this.player.pos.x] = this.player.color;
-                }));
+                if (!this.ruleSet.giantBlocks && this.player.type === 'T' && this.lastMoveRotate) tSpinInfo = this.checkTSpin();
+                if (this.player.type === 'B') {
+                    this.detonateBomb();
+                } else {
+                    this.player.matrix.forEach((row, y) => row.forEach((v, x) => {
+                        if (v !== 0 && this.arena[y + this.player.pos.y]) this.arena[y + this.player.pos.y][x + this.player.pos.x] = this.player.color;
+                    }));
+                }
                 this.player.pieces++;
                 this.sweep(tSpinInfo); this.reset();
             }
@@ -4277,16 +5524,16 @@
                 const myFronts = frontMap[this.player.rotation];
                 cornerCoords.forEach((c, i) => {
                     const ay = y + c.y, ax = x + c.x;
-                    if (ax < 0 || ax >= 10 || ay >= 22 || (ay >= 0 && this.arena[ay][ax] !== 0)) { corners++; if (myFronts.includes(i)) frontCorners++; }
+                    if (ax < 0 || ax >= this.getBoardWidth() || ay >= this.getArenaHeight() || (ay >= 0 && this.arena[ay][ax] !== 0)) { corners++; if (myFronts.includes(i)) frontCorners++; }
                 });
                 return corners >= 3 ? { isTSpin: true, isMini: frontCorners < 2 } : { isTSpin: false, isMini: false };
             }
 
             sweep(tSpinInfo) {
                 let lines = 0;
-                outer: for (let y = 21; y >= 0; --y) {
-                    for (let x = 0; x < 10; ++x) { if (this.arena[y][x] === 0) continue outer; }
-                    this.arena.splice(y, 1); this.arena.unshift(new Array(10).fill(0)); ++y; lines++;
+                outer: for (let y = this.getArenaHeight() - 1; y >= 0; --y) {
+                    for (let x = 0; x < this.getBoardWidth(); ++x) { if (this.arena[y][x] === 0) continue outer; }
+                    this.arena.splice(y, 1); this.arena.unshift(new Array(this.getBoardWidth()).fill(0)); ++y; lines++;
                 }
 
                 if (lines > 0) {
@@ -4306,26 +5553,28 @@
                     let actionText = ""; let atk = 0;
                     let lineScore = 0;
                     const level = cfg.lv || 1;
+                    const cappedLines = Math.min(lines, 4);
+                    const overflowLines = Math.max(0, lines - 4);
 
                     if (tSpinInfo.isTSpin) {
                         const mini = tSpinInfo.isMini ? "MINI " : "";
                         const lineNames = ["", "SINGLE", "DOUBLE", "TRIPLE"];
-                        actionText = `T-SPIN ${mini}${lineNames[lines] || "NON-LINE"}`;
-                        atk = tSpinInfo.isMini ? [0, 1, 2, 3][lines] : [0, 2, 4, 6][lines];
+                        actionText = `T-SPIN ${mini}${lineNames[Math.min(lines, 3)] || "NON-LINE"}`;
+                        atk = tSpinInfo.isMini ? [0, 1, 2, 3][Math.min(lines, 3)] : [0, 2, 4, 6][Math.min(lines, 3)];
 
                         if (tSpinInfo.isMini) {
-                            lineScore = [100, 200, 400][lines] * level;
+                            lineScore = ([100, 200, 400][Math.min(lines, 2)] || 0) * level;
                         } else {
-                            lineScore = [400, 800, 1200, 1600][lines] * level;
+                            lineScore = ([400, 800, 1200, 1600][Math.min(lines, 3)] || 0) * level;
                         }
                     }
 
                     if (lines > 0) {
                         if (!tSpinInfo.isTSpin) {
                             const lineNames = ["", "SINGLE", "DOUBLE", "TRIPLE", "TETRIS"];
-                            actionText = lineNames[lines];
-                            atk = [0, 0, 1, 2, 4][lines];
-                            lineScore = [0, 100, 300, 500, 800][lines] * level;
+                            actionText = lineNames[cappedLines] + (overflowLines > 0 ? `+${overflowLines}` : "");
+                            atk = [0, 0, 1, 2, 4][cappedLines] + overflowLines * 2;
+                            lineScore = ([0, 100, 300, 500, 800][cappedLines] + overflowLines * 300) * level;
                         }
                         this.player.ren++;
                         this.player.maxRen = Math.max(this.player.maxRen || 0, this.player.ren);
@@ -4353,7 +5602,7 @@
                     if (isPerfectClear) {
                         actionText = "PERFECT CLEAR";
                         atk += 10;
-                        lineScore += [0, 800, 1200, 1800, 2000][lines] * level;
+                        lineScore += ([0, 800, 1200, 1800, 2000][cappedLines] + overflowLines * 400) * level;
                         this.player.perfectClears = (this.player.perfectClears || 0) + 1;
                     }
 
@@ -4361,11 +5610,16 @@
                         this.player.tSpins = (this.player.tSpins || 0) + 1;
                     }
 
+                    const coinGain = Math.max(0, lines + (tSpinInfo.isTSpin ? 2 : 0) + (lines === 4 ? 2 : 0) + (isPerfectClear ? 3 : 0));
+                    this.addSkillCoins(coinGain);
+
                     if (atk > 0) {
                         atk = Math.max(0, Math.round(atk * ((this.ruleSet && this.ruleSet.garbageMultiplier) || 1)));
                         this.player.attacks += atk;
                         if (this.pendingGarbage > 0) { const offset = Math.min(atk, this.pendingGarbage); atk -= offset; this.pendingGarbage -= offset; this.updateMeter(); }
-                        if (isOnline && conn && conn.open && atk > 0 && !this.isAI) {
+                        if (atk > 0 && !this.isAI && isStandardOnlineMatch()) {
+                            sendStandardOnlineAttack(atk, this.networkId);
+                        } else if (isOnline && conn && conn.open && atk > 0 && !this.isAI) {
                             conn.send({ type: 'attack', amount: atk });
                         } else if (this.opponent && atk > 0) {
                             this.opponent.receiveGarbage(atk);
@@ -4381,8 +5635,13 @@
 
             receiveGarbage(n) { this.pendingGarbage += n; this.player.garbageReceived = (this.player.garbageReceived || 0) + n; this.updateMeter(); }
             pushGarbageToArena(n) {
-                for (let i = 0; i < n; i++) { const r = new Array(10).fill(8); r[Math.floor(Math.random() * 10)] = 0; this.arena.shift(); this.arena.push(r); }
-                let limit = 0; while (this.collide() && limit < 22) { this.player.pos.y--; limit++; }
+                for (let i = 0; i < n; i++) {
+                    const r = new Array(this.getBoardWidth()).fill(8);
+                    r[Math.floor(Math.random() * this.getBoardWidth())] = 0;
+                    this.arena.shift();
+                    this.arena.push(r);
+                }
+                let limit = 0; while (this.collide() && limit < this.getArenaHeight()) { this.player.pos.y--; limit++; }
                 if (this.player.pos.y < 0) this.gameOver();
             }
 
@@ -4394,26 +5653,30 @@
                 const curType = this.player.type, curColor = this.player.color;
                 if (this.player.holdType) {
                     this.player.type = this.player.holdType; this.player.color = this.player.holdColor;
-                    this.player.matrix = JSON.parse(JSON.stringify(PIECES[this.player.type]));
-                    this.player.pos = { x: 3, y: 0 }; this.player.rotation = 0;
+                    this.player.matrix = this.createPieceMatrix(this.player.type);
+                    this.player.pos = this.getSpawnPosition(this.player.matrix); this.player.rotation = 0;
                 } else this.reset();
                 this.player.holdType = curType; this.player.holdColor = curColor; this.player.canHold = false;
                 this.isOtransformed = false; this.oSpinRotCount = 0;
                 if (this.isAI) this.aiPlan();
                 this.updateUI();
+                refreshSkillPanel(this);
                 if (!this.isAI) syncSoloCpuHint();
             }
 
             gameOver() {
                 if (this.isGameOver) return; this.isGameOver = true;
                 if (!this.isAI) syncSoloCpuHint();
+                refreshSkillPanel(this);
 
                 if (inTutorial) {
                     endTutorial();
                     return;
                 }
 
-                if (isOnline && (conn && conn.open)) {
+                if (isStandardOnlineMatch() && !this.isAI) {
+                    sendStandardOnlineGameOver(typeof this.networkId === 'number' ? this.networkId : onlineMyIndex);
+                } else if (isOnline && (conn && conn.open)) {
                     conn.send({ type: 'gameover' });
                 }
 
@@ -4477,7 +5740,7 @@
             }
 
             getPieceColor(type) {
-                return Object.keys(PIECES).indexOf(type) + 1;
+                return type === 'B' ? 9 : Object.keys(PIECES).indexOf(type) + 1;
             }
 
             getRecommendedMove(options = {}) {
@@ -4658,11 +5921,12 @@
                 }
 
                 if (this.oSpinTimer > 0) { this.oSpinTimer -= dt; if (this.oSpinTimer <= 0) this.oSpinRotCount = 0; }
-                this.dropCounter += dt;
+                const scaledDt = dt * this.getTimeScale();
+                this.dropCounter += scaledDt;
                 this.player.time += dt;
 
                 if (this.isAI) {
-                    this.aiTimer = (this.aiTimer || 0) + dt;
+                    this.aiTimer = (this.aiTimer || 0) + scaledDt;
                     let speed = Math.max(0, 500 - cfg.lv * 10);
 
                     if (cfg.lv >= 40) {
@@ -4701,9 +5965,9 @@
                     if (this.dropCounter > (keysDown[cfg.keys.soft] ? fallSpeed / cfg.sdf : fallSpeed)) {
                         this.playerDrop(keysDown[cfg.keys.soft]);
                     }
-                    this.handleInput(dt);
+                    this.handleInput(scaledDt);
                     if (this.collide(this.player.matrix, { x: this.player.pos.x, y: this.player.pos.y + 1 })) {
-                        this.lockDelayCounter += dt; if (this.lockDelayCounter >= this.lockDelayThreshold) { this.lock(); this.lockDelayCounter = 0; }
+                        this.lockDelayCounter += scaledDt; if (this.lockDelayCounter >= this.lockDelayThreshold) { this.lock(); this.lockDelayCounter = 0; }
                     } else this.lockDelayCounter = 0;
 
                     // Sync state if online
@@ -4745,7 +6009,9 @@
             }
 
             draw() {
-                this.ctx.clearRect(0, 0, 240, 480); const s = 24; const off = { x: 0, y: -2 };
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                const s = this.getCellSize();
+                const off = { x: 0, y: this.getDisplayOffsetY() };
                 if (!this.isAI) {
                     const gp = { ...this.player.pos }; while (!this.collide(this.player.matrix, { x: gp.x, y: gp.y + 1 })) gp.y++;
                     this.ctx.globalAlpha = cfg.ghost; this.drawM(this.player.matrix, { x: gp.x, y: gp.y + off.y }, s, this.player.color); this.ctx.globalAlpha = 1.0;
@@ -4769,8 +6035,8 @@
                 this.hintCtx.clearRect(0, 0, this.hintCanvas.width, this.hintCanvas.height);
                 if (this.hintBadge) this.hintBadge.style.display = 'none';
                 if (!soloCpuHintEnabled || !move || this.isGameOver || cpu || isOnline || isPartyMode || window.partyModeInstance) return;
-                const s = 24;
-                const off = { x: 0, y: -2 };
+                const s = this.getCellSize();
+                const off = { x: 0, y: this.getDisplayOffsetY() };
                 this.hintCtx.globalAlpha = 0.35;
                 this.drawM(move.matrix, { x: move.x, y: move.y + off.y }, s, move.color, this.hintCtx);
                 this.hintCtx.globalAlpha = 1.0;
@@ -4787,7 +6053,10 @@
                 const drawMini = (ctx, type, overrideColor = null) => {
                     const t = THEMES[cfg.theme] || THEMES['default'];
                     if (!ctx) return; ctx.fillStyle = t.canvasBg; ctx.fillRect(0, 0, 60, 60);
-                    if (!type) return; const m = PIECES[type], s = 10; ctx.fillStyle = COLORS[overrideColor || (Object.keys(PIECES).indexOf(type) + 1)];
+                    if (!type) return;
+                    const m = this.getPreviewMatrix(type);
+                    const s = Math.max(8, Math.floor(40 / Math.max(4, m.length, m[0].length)));
+                    ctx.fillStyle = COLORS[overrideColor || this.getPieceColor(type)];
                     const ox = (60 - m[0].length * s) / 2, oy = (60 - m.length * s) / 2;
                     m.forEach((row, y) => row.forEach((v, x) => { if (v) ctx.fillRect(x * s + ox, y * s + oy, s - 1, s - 1); }));
                 };
@@ -4797,6 +6066,7 @@
                 const renEl = document.getElementById(this.isAI ? 'c-ren' : 'p-ren'); if (renEl) renEl.innerText = this.player.ren > 0 ? this.player.ren : 0;
                 
                 this.updateStatsUI();
+                refreshSkillPanel(this);
             }
 
             updateStatsUI() {
@@ -4840,6 +6110,7 @@
                     lockDelayCounter: 0, dropCounter: 0,
                     dasL: 0, arrL: 0, dasR: 0, arrR: 0,
                     rotation: 0,
+                    time: 0, pieces: 0, lines: 0, attacks: 0, garbageReceived: 0, maxRen: 0,
                     isDead: false
                 };
 
@@ -4959,6 +6230,7 @@
 
             lock() {
                 if (this.me.isDead) return;
+                this.me.pieces++;
                 // Send lock event to Host
                 let packet = { type: 'party_lock', id: this.myIndex, matrix: this.me.matrix, pos: this.me.pos, color: this.me.color };
                 if (isHost) {
@@ -4986,6 +6258,11 @@
 
                     // Simple Attack sending to a random surviving player (that is not me)
                     let attack = lines === 2 ? 1 : (lines === 3 ? 2 : (lines === 4 ? 4 : 0));
+                    if (data.id === this.myIndex) {
+                        this.me.lines += lines;
+                        this.me.attacks += attack;
+                        this.me.score += lines * 100;
+                    }
                     if (attack > 0) {
                         // Find potential targets: indices 0..playerCount-1 excluding this attacker
                         let targets = [];
@@ -5019,6 +6296,7 @@
 
             receiveGarbage(amount) {
                 if (this.isGameOver || this.me.isDead) return;
+                this.me.garbageReceived += amount;
                 let holeX = Math.floor(Math.random() * 30);
                 for (let i = 0; i < amount; i++) {
                     this.arena.shift();
@@ -5036,6 +6314,27 @@
                 if (state.arena) this.arena = state.arena;
             }
 
+            getReplayState() {
+                return {
+                    arena: cloneReplayValue(this.arena),
+                    me: cloneReplayValue(this.me),
+                    others: cloneReplayValue(this.others),
+                    playersDead: cloneReplayValue(this.playersDead),
+                    isGameOver: this.isGameOver
+                };
+            }
+
+            applyReplayState(state) {
+                if (!state) return;
+                this.arena = cloneReplayValue(state.arena || this.arena);
+                this.me = cloneReplayValue(state.me || this.me);
+                this.others = cloneReplayValue(state.others || this.others);
+                this.playersDead = cloneReplayValue(state.playersDead || this.playersDead || {});
+                this.isGameOver = !!state.isGameOver;
+                this.updateUI();
+                this.draw();
+            }
+
             showAction(txt) {
                 if (!this.actionLayer) return;
                 const el = document.createElement('div'); el.className = 'action-text'; el.innerText = txt;
@@ -5046,6 +6345,7 @@
 
             update(dt) {
                 if (this.isGameOver) return;
+                this.me.time += dt;
 
                 if (!this.me.isDead) {
                     this.me.dropCounter += dt;
@@ -5094,8 +6394,26 @@
             }
 
             checkHostGameOver() {
-                // Not fully implemented: requires tracking all clients' death states.
-                // For now, Party mode ends manually or when everyone drops.
+                if (!isHost || this.isGameOver) return;
+                const alivePlayers = [];
+                for (let i = 0; i < this.playerCount; i++) {
+                    if (!this.playersDead[i]) alivePlayers.push(i);
+                }
+                if (alivePlayers.length > 1) return;
+                const winner = alivePlayers.length === 1 ? alivePlayers[0] : -1;
+                partyClients.forEach(c => {
+                    if (c && c.open) c.send({ type: 'party_gameover', winner: winner });
+                });
+                this.gameOver(winner);
+            }
+
+            gameOver(winner = -1) {
+                if (this.isGameOver) return;
+                this.isGameOver = true;
+                const didWin = winner === this.myIndex;
+                queueMatchSummary(didWin ? 'victory' : 'defeat', 'party');
+                showToast(didWin ? TRANSLATIONS[cfg.lang].victory : TRANSLATIONS[cfg.lang].defeat);
+                setTimeout(() => returnToMenu(), 3000);
             }
 
             draw() {
@@ -5177,6 +6495,7 @@
         // --- Gamepad & Touch Controls ---
         let prevGamepadState = [];
         function pollGamepad() {
+            if (isReplayPlayback) return;
             const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
             for (let i = 0; i < gamepads.length; i++) {
                 const gp = gamepads[i];
@@ -5254,6 +6573,7 @@
 
                 btn.addEventListener('touchstart', (e) => {
                     e.preventDefault();
+                    if (isReplayPlayback) return;
                     if (action === 'left' || action === 'right' || action === 'soft') {
                         if (!keysDown[cfg.keys[action]]) keysDownTime[cfg.keys[action]] = performance.now();
                         keysDown[cfg.keys[action]] = true;
@@ -5272,6 +6592,7 @@
 
                 const endTouch = (e) => {
                     e.preventDefault();
+                    if (isReplayPlayback) return;
                     if (action === 'left' || action === 'right' || action === 'soft') {
                         keysDown[cfg.keys[action]] = false;
                     }
@@ -5284,27 +6605,33 @@
 
         function resetRound() {
             resetSoloCpuHintState();
-            p1.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
+            p1.applyRuleGeometry(true);
             p1.player.score = 0; p1.player.ren = -1; p1.player.btb = false;
-            p1.pendingGarbage = 0; p1.isGameOver = false; p1.player.holdType = null;
+            p1.pendingGarbage = 0; p1.isGameOver = false; p1.player.holdType = null; p1.player.skillCoins = 0;
+            p1.effects = { speedUpUntil: 0, slowUntil: 0 };
             p1.player.level = (p1.ruleSet && p1.ruleSet.startLevel) || p1.player.level || 1;
+            p1.bag = []; p1.nextQueue = [];
             while (p1.nextQueue.length < 10) p1.nextQueue.push(p1.pullFromBag());
             p1.reset(); p1.updateMeter(); p1.updateUI();
 
             if (cpu) {
-                cpu.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
+                cpu.applyRuleGeometry(true);
                 cpu.player.score = 0; cpu.player.ren = -1; cpu.player.btb = false;
-                cpu.pendingGarbage = 0; cpu.isGameOver = false; cpu.player.holdType = null;
+                cpu.pendingGarbage = 0; cpu.isGameOver = false; cpu.player.holdType = null; cpu.player.skillCoins = 0;
+                cpu.effects = { speedUpUntil: 0, slowUntil: 0 };
                 cpu.player.level = (cpu.ruleSet && cpu.ruleSet.startLevel) || cpu.player.level || 1;
+                cpu.bag = []; cpu.nextQueue = [];
                 while (cpu.nextQueue.length < 10) cpu.nextQueue.push(cpu.pullFromBag());
                 cpu.reset(); cpu.updateMeter(); cpu.updateUI();
             }
 
             opponents.forEach(opp => {
-                opp.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
+                opp.applyRuleGeometry(true);
                 opp.player.score = 0; opp.player.ren = -1; opp.player.btb = false;
-                opp.pendingGarbage = 0; opp.isGameOver = false; opp.player.holdType = null;
+                opp.pendingGarbage = 0; opp.isGameOver = false; opp.player.holdType = null; opp.player.skillCoins = 0;
+                opp.effects = { speedUpUntil: 0, slowUntil: 0 };
                 opp.player.level = (opp.ruleSet && opp.ruleSet.startLevel) || opp.player.level || 1;
+                opp.bag = []; opp.nextQueue = [];
                 while (opp.nextQueue.length < 10) opp.nextQueue.push(opp.pullFromBag());
                 opp.reset(); opp.updateMeter(); opp.updateUI();
             });
@@ -5356,6 +6683,11 @@
         }
 
         function animate(t = 0) {
+            if (isReplayPlayback) {
+                lastTime = t;
+                requestAnimationFrame(animate);
+                return;
+            }
             pollGamepad();
             const dt = Math.min(t - lastTime, 50);
             lastTime = t;
@@ -5366,6 +6698,7 @@
                 if (isPartyMode && window.partyModeInstance) {
                     window.partyModeInstance.update(dt);
                 }
+                captureReplayFrame(t);
                 sampleMatchTimeline();
             }
             requestAnimationFrame(animate);
@@ -5378,6 +6711,7 @@
             document.getElementById('menu').style.display = 'none';
             document.getElementById('mode-select-menu').style.display = 'none';
             document.getElementById('game-view').style.display = 'flex';
+            updateTouchControlsVisibility();
             const meters = document.querySelectorAll('.meter-container');
 
             if (isCPU) {
@@ -5386,6 +6720,7 @@
                 cpu = new Tetris('c-canvas', 'c-hold', 'c-next', 'c-score', true, 'c-action-layer', 'c-meter', null, isLoad);
                 applyRuleSetToActiveBoards(DEFAULT_ROOM_RULES);
                 beginMatchSession('cpu', DEFAULT_ROOM_RULES);
+                captureReplayFrame(performance.now(), true);
                 p1.opponent = cpu; cpu.opponent = p1; document.getElementById('current-lv').innerText = cfg.lv;
             } else {
                 meters.forEach(m => m.style.display = 'none'); document.getElementById('cpu-field').style.display = 'none';
@@ -5393,7 +6728,9 @@
                 cpu = null;
                 applyRuleSetToActiveBoards(DEFAULT_ROOM_RULES);
                 beginMatchSession('solo', DEFAULT_ROOM_RULES);
+                captureReplayFrame(performance.now(), true);
             }
+            refreshSkillPanel(p1);
             isPaused = false;
             resetConnectionQuality();
 
@@ -5431,6 +6768,11 @@
         window.addEventListener('keydown', e => {
             if (capturingKey) {
                 cfg.keys[capturingKey] = e.key; capturingKey = null; updateUIFromCfg(); saveCfg(); e.preventDefault();
+                return;
+            }
+
+            if (isReplayPlayback) {
+                if (e.key === 'Escape') stopReplayPlayback();
                 return;
             }
 
@@ -5476,6 +6818,7 @@
         });
 
         window.addEventListener('keyup', e => {
+            if (isReplayPlayback) return;
             let key = e.key;
             let matchedKey = key;
             for (let k in cfg.keys) {
@@ -5528,15 +6871,16 @@
         loadCfg();
         updateProfileUI();
         updateMenuLoadButton();
+        bindPartyRuleCardInteractions();
+        syncPartyRuleSelectionUI();
+        updateTouchControlsVisibility();
 
         // Start tutorial if first time
         if (!cfg.hasCompletedTutorial) {
             setTimeout(startTutorial, 500);
         } else {
             // Reserve my name globally
-            if (cfg.playerName && !identityPeer) {
-                identityPeer = new Peer('TETRIS-ID-' + cfg.playerName, { debug: 0 });
-            }
+            resumeIdentityReservation();
         }
 
         const bg = document.getElementById('bg-canvas'); const bctx = bg.getContext('2d');
