@@ -2219,6 +2219,7 @@
         function returnToMenu() {
             if (isOnline) disconnectOnline(); // Ensures Quick Match disconnection and resets networking variables
             resetSoloCpuHintState();
+            restoreGameViewLayout();
 
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('menu').style.display = 'block';
@@ -2253,6 +2254,7 @@
             updateMenuLoadButton();
             document.getElementById('btn-save-menu').style.display = 'block';
             document.getElementById('online-self-indicator').style.display = 'none';
+            suppressConnectionCloseHandler = false;
         }
 
         // --- Online Multiplayer (PeerJS) ---
@@ -2274,6 +2276,7 @@
         let onlineMyIndex = 0;
         let onlineStateCache = {};
         let onlineDeadPlayers = {};
+        let suppressConnectionCloseHandler = false;
 
         function isStandardOnlineMatch() {
             return isOnline && !isPartyMode;
@@ -2291,14 +2294,42 @@
             }
         }
 
+        function normalizeNetworkId(id) {
+            const parsed = Number(id);
+            return Number.isInteger(parsed) ? parsed : null;
+        }
+
+        function restoreGameViewLayout() {
+            const gameView = document.getElementById('game-view');
+            if (!gameView) return;
+            Array.from(gameView.children).forEach(el => {
+                if (el.id === 'party-view' || el.id === 'opponents-container') return;
+                if (el.id === 'cpu-field') el.style.display = 'none';
+                else el.style.display = '';
+            });
+        }
+
+        function syncCurrentStandardOnlineState() {
+            if (!isStandardOnlineMatch() || !p1) return;
+            const snapshot = p1.getState();
+            onlineStateCache[onlineMyIndex] = snapshot;
+            if (conn && conn.open) {
+                conn.send({ type: 'state', id: onlineMyIndex, state: snapshot });
+            } else if (isHostedOnlineMatch()) {
+                broadcastMultiState();
+            }
+        }
+
         function getConnectionByNetworkId(id) {
             return partyClients.find(c => c.networkId === id && c.open);
         }
 
         function applyOpponentNetworkState(playerId, state) {
-            if (playerId === onlineMyIndex || !state || opponents.length === 0) return;
-            onlineStateCache[playerId] = state;
-            const opp = opponents.find(o => o.networkId === playerId);
+            const normalizedId = normalizeNetworkId(playerId);
+            if (normalizedId === null || normalizedId === onlineMyIndex || !state) return;
+            onlineStateCache[normalizedId] = state;
+            if (opponents.length === 0) return;
+            const opp = opponents.find(o => o.networkId === normalizedId);
             if (opp) opp.setState(state);
         }
 
@@ -2461,6 +2492,7 @@
         }
 
         function initPeer(id, onSuccess) {
+            suppressConnectionCloseHandler = false;
             if (peer) peer.destroy();
 
             // PeerJS Cloudサーバーに確実に接続するためのオプション
@@ -2537,6 +2569,7 @@
                     if (isHost && !isQuickMatch) {
                         let clientIndex = partyClients.indexOf(connection);
                         let slotNum = clientIndex + 2;
+                        connection.networkId = clientIndex + 1;
                         let displayOpponentName = data.name;
 
                         if (displayOpponentName === cfg.playerName) {
@@ -2560,6 +2593,20 @@
                             displayOpponentName = opponentName + " (2)";
                             opponentName = displayOpponentName;
                             connection.send({ type: 'name_override', newName: opponentName });
+                        }
+
+                        if (isQuickMatch) {
+                            connection.networkId = isHost ? 1 : 0;
+                        }
+                        connection.peerName = displayOpponentName;
+                        if (isQuickMatch) {
+                            if (isHost) {
+                                document.getElementById('lobby-p1-name').innerText = cfg.playerName;
+                                document.getElementById('lobby-p2-name').innerText = displayOpponentName;
+                            } else {
+                                document.getElementById('lobby-p1-name').innerText = displayOpponentName;
+                                document.getElementById('lobby-p2-name').innerText = cfg.playerName;
+                            }
                         }
 
                         if (isHost) {
@@ -2606,19 +2653,17 @@
                     startPartyModeExecution(data.playerCount, data.myIndex);
                 }
                 else if (data.type === 'state') {
+                    const senderId = normalizeNetworkId(data.id !== undefined ? data.id : connection.networkId);
+                    if (senderId !== null) onlineStateCache[senderId] = data.state;
                     if (cpu && (cpu.isNetworkPlayer || !cpu.isAI)) {
                         cpu.setState(data.state);
                     }
-                    if (opponents.length > 0) {
-                        let opp = opponents.find(o => o.networkId === data.id);
-                        if (opp) opp.setState(data.state);
-                    }
+                    applyOpponentNetworkState(senderId, data.state);
                 }
                 else if (data.type === 'multi_state') {
                     if (opponents.length > 0) {
                         for (let key in data.states) {
-                            let opp = opponents.find(o => o.networkId == key);
-                            if (opp) opp.setState(data.states[key]);
+                            applyOpponentNetworkState(key, data.states[key]);
                         }
                     }
                 }
@@ -2687,6 +2732,7 @@
             });
 
             connection.on('close', () => {
+                if (suppressConnectionCloseHandler) return;
                 if (isHost && !isQuickMatch) {
                     const idx = partyClients.indexOf(connection);
                     if (idx > -1) {
@@ -2712,13 +2758,9 @@
                     if (p1 && p1.isGameOver) return;
                     if (window.partyModeInstance && window.partyModeInstance.isGameOver) return;
                     showToast(cfg.lang === 'ja' ? "対戦相手との通信が切断されました" : "Opponent disconnected.");
-
-                    // Fixed proper return layout logic on peer close.
                     isPaused = true;
-                    disconnectOnline();
-                    if (isOnline) {
-                        setTimeout(() => returnToMenu(), 1500);
-                    }
+                    disconnectOnline(false);
+                    setTimeout(() => returnToMenu(), 1000);
                 }
             });
         }
@@ -2808,6 +2850,7 @@
         }
 
         function startQuickMatch() {
+            suppressConnectionCloseHandler = false;
             isQuickMatch = true;
             qmIndex = 1;
 
@@ -2892,16 +2935,27 @@
             document.getElementById('btn-join-room').innerText = TRANSLATIONS[cfg.lang]["online-join"];
         }
 
-        function disconnectOnline() {
-            if (conn) conn.close();
-            partyClients.forEach(c => c.close());
-            if (peer) peer.destroy();
-            conn = null; peer = null; isOnline = false; isHost = false; isQuickMatch = false;
-            partyClients = []; p1Wins = 0; p2Wins = 0;
+        function disconnectOnline(showMenu = true) {
+            suppressConnectionCloseHandler = true;
+            const activeConn = conn;
+            const activeClients = [...partyClients];
+            const activePeer = peer;
+            conn = null;
+            peer = null;
+            isOnline = false;
+            isHost = false;
+            isQuickMatch = false;
+            partyClients = [];
+            p1Wins = 0;
+            p2Wins = 0;
+            if (activeConn) activeConn.close();
+            activeClients.forEach(c => c.close());
+            if (activePeer) activePeer.destroy();
             document.getElementById('online-lobby').style.display = 'none';
             document.getElementById('quick-match-lobby').style.display = 'none';
             document.getElementById('room-settings-menu').style.display = 'none';
-            document.getElementById('online-menu').style.display = 'block';
+            if (showMenu) document.getElementById('online-menu').style.display = 'block';
+            restoreGameViewLayout();
             resetOnlineLobby();
         }
 
@@ -2925,8 +2979,13 @@
         function startOnlineGameExecution(playerCount, myIndex) {
             resetSoloCpuHintState();
             isOnline = true;
+            onlinePlayerCount = playerCount;
+            onlineMyIndex = myIndex;
+            resetOnlineRoundState();
+            restoreGameViewLayout();
             document.getElementById('online-menu').style.display = 'none';
             document.getElementById('online-lobby').style.display = 'none';
+            document.getElementById('quick-match-lobby').style.display = 'none';
             document.getElementById('btn-save-menu').style.display = 'none';
             document.getElementById('online-self-indicator').style.display = 'block';
 
@@ -2963,9 +3022,11 @@
                 let name = "---";
                 if (isHost) {
                     if (i === 0) name = cfg.playerName;
+                    else if (isQuickMatch && conn && conn.peerName) name = conn.peerName;
                     else if (partyClients[i - 1]) name = partyClients[i - 1].peerName || `PLAYER ${i + 1}`;
                 } else {
-                    if (i === 0) name = document.getElementById('lobby-p1-name').innerText;
+                    if (i === 0 && isQuickMatch && conn && conn.peerName) name = conn.peerName;
+                    else if (i === 0) name = document.getElementById('lobby-p1-name').innerText;
                     else name = document.getElementById(`lobby-p${i + 1}-name`).innerText;
                 }
 
@@ -3009,15 +3070,25 @@
                     </div>
                 `);
 
-                let newOpp = new Tetris(oppId + '-canvas', oppId + '-hold', oppId + '-next', oppId + '-score', true, oppId + '-action-layer', oppId + '-meter');
+                let newOpp = new Tetris(oppId + '-canvas', oppId + '-hold', oppId + '-next', oppId + '-score', true, oppId + '-action-layer', oppId + '-meter', null, true);
                 newOpp.isNetworkPlayer = true;
                 newOpp.isAI = true; // Just passive
                 newOpp.networkId = i;
+                if (onlineStateCache[i]) newOpp.setState(onlineStateCache[i]);
+                else {
+                    newOpp.updateUI();
+                    newOpp.updateMeter();
+                    newOpp.draw();
+                }
                 opponents.push(newOpp);
                 oppIndex++;
             }
 
             p1.opponents = opponents;
+            syncCurrentStandardOnlineState();
+            setTimeout(() => {
+                if (isStandardOnlineMatch()) syncCurrentStandardOnlineState();
+            }, 120);
 
             if (!lastTime) animate();
             else lastTime = performance.now();
@@ -3869,10 +3940,10 @@
                     } else this.lockDelayCounter = 0;
 
                     // Sync state if online
-                    if (isOnline && conn && conn.open) {
+                    if (isOnline) {
                         this.syncTimer = (this.syncTimer || 0) + dt;
                         if (this.syncTimer > 30) { // Sync fast (approx 33fps) for real-time responsiveness
-                            conn.send({ type: 'state', state: this.getState() });
+                            syncCurrentStandardOnlineState();
                             this.syncTimer = 0;
                         }
                     }
@@ -4531,6 +4602,7 @@
         // --- Start Game ---
         function startGame(isCPU, playerTmpl = null, isLoad = false) {
             resetSoloCpuHintState();
+            restoreGameViewLayout();
             document.getElementById('menu').style.display = 'none';
             document.getElementById('mode-select-menu').style.display = 'none';
             document.getElementById('game-view').style.display = 'flex';
