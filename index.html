@@ -918,6 +918,241 @@
             display: flex;
             align-items: center;
         }
+
+        .hud-panel {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 90;
+            min-width: 220px;
+            padding: 14px 16px;
+            border: 1px solid rgba(0, 240, 240, 0.35);
+            border-radius: 14px;
+            background: rgba(4, 10, 16, 0.88);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 24px rgba(0, 240, 240, 0.08);
+        }
+
+        .hud-title {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #7fe7ff;
+            margin-bottom: 10px;
+        }
+
+        .hud-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .hud-metric {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 8px 10px;
+            text-align: center;
+        }
+
+        .hud-metric .label {
+            display: block;
+            font-size: 10px;
+            color: #94a7b6;
+            margin-bottom: 4px;
+        }
+
+        .hud-metric .value {
+            font-size: 16px;
+            font-weight: bold;
+            font-family: monospace;
+            color: #ffffff;
+        }
+
+        .profile-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            min-width: 170px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            font-family: monospace;
+            gap: 10px;
+        }
+
+        .profile-badge .hint {
+            color: #8ea6b6;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .rule-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .lobby-chat-panel {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #2b3f48;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .lobby-chat-log {
+            height: 150px;
+            overflow-y: auto;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .chat-line {
+            font-size: 13px;
+            line-height: 1.45;
+            margin-bottom: 6px;
+            word-break: break-word;
+        }
+
+        .chat-line .name {
+            color: var(--accent);
+            font-weight: bold;
+            margin-right: 6px;
+        }
+
+        .chat-stamps,
+        .chat-input-row,
+        .preset-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stamp-btn,
+        .preset-btn {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .stamp-btn:hover,
+        .preset-btn:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 12px rgba(0, 240, 240, 0.14);
+        }
+
+        .chat-input-row {
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .chat-input-row .modal-input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .summary-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .summary-kpi {
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 14px 12px;
+            text-align: center;
+        }
+
+        .summary-kpi .label {
+            display: block;
+            font-size: 11px;
+            color: #90a6b8;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+
+        .summary-kpi .value {
+            font-size: 21px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .summary-split {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .summary-panel {
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 14px;
+        }
+
+        .summary-panel h3 {
+            margin: 0 0 12px 0;
+            font-size: 13px;
+            letter-spacing: 1px;
+            color: #90f7ff;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 13px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .summary-row:last-child {
+            border-bottom: 0;
+        }
+
+        .summary-chart {
+            width: 100%;
+            height: 180px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .summary-note {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #98adba;
+        }
+
+        @media (max-width: 980px) {
+            .rule-grid,
+            .summary-kpi-grid,
+            .summary-split {
+                grid-template-columns: 1fr;
+            }
+
+            .hud-panel {
+                top: 12px;
+                left: 12px;
+                right: 12px;
+                min-width: 0;
+            }
+        }
 </style>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
@@ -926,6 +1161,14 @@
     <canvas id="bg-canvas"></canvas>
     <div id="settings-trigger" onclick="toggleSettings()">⚙️</div>
     <div id="toast-container"></div>
+    <div id="connection-quality-panel" class="hud-panel" style="display:none;">
+        <div class="hud-title">CONNECTION / 通信品質</div>
+        <div class="hud-metrics">
+            <div class="hud-metric"><span class="label">PING</span><span id="quality-ping" class="value">--</span></div>
+            <div class="hud-metric"><span class="label">SYNC</span><span id="quality-sync" class="value">--</span></div>
+            <div class="hud-metric"><span class="label">LOSS</span><span id="quality-loss" class="value">0%</span></div>
+        </div>
+    </div>
 
     <div id="pause-overlay">
         <h1 data-tr="pause-title" style="margin-bottom: 30px;">PAUSED</h1>
@@ -940,6 +1183,38 @@
                 / 戻る</button>
             <button class="btn" style="--accent: #ff5555; width: 300px; margin: 0; padding: 15px;"
                 onclick="handleRetry()">RETRY / リトライ</button>
+        </div>
+    </div>
+
+    <div id="match-summary-overlay" class="modal-overlay">
+        <div class="modal-card" style="width:min(900px, 94vw);">
+            <div class="modal-header">
+                <span id="match-summary-title">MATCH SUMMARY / 試合結果</span>
+                <span style="cursor:pointer; color:#888;" onclick="closeMatchSummary()">✕</span>
+            </div>
+            <div class="modal-body" style="display:block;">
+                <div id="match-summary-result" class="rainbow-text" style="font-size:30px; margin-bottom:10px;"></div>
+                <div id="match-summary-subtitle" style="text-align:center; color:#9fb2c0; font-size:13px;"></div>
+                <div class="summary-kpi-grid">
+                    <div class="summary-kpi"><span class="label">PPS</span><span id="summary-pps" class="value">0.00</span></div>
+                    <div class="summary-kpi"><span class="label">APM</span><span id="summary-apm" class="value">0.00</span></div>
+                    <div class="summary-kpi"><span class="label">LPM</span><span id="summary-lpm" class="value">0.00</span></div>
+                </div>
+                <div class="summary-split">
+                    <div class="summary-panel">
+                        <h3>GRAPH / 推移</h3>
+                        <canvas id="match-summary-chart" class="summary-chart" width="420" height="180"></canvas>
+                        <div class="summary-note">PPS / APM / LPM の時間推移を表示します。</div>
+                    </div>
+                    <div class="summary-panel">
+                        <h3>DETAIL / 詳細</h3>
+                        <div id="match-summary-rows"></div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:18px;">
+                    <button class="btn" style="--accent:#00f0f0; width:220px; margin:0;" onclick="closeMatchSummary()">CLOSE / 閉じる</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -994,6 +1269,14 @@
                     <label data-tr="label-name">PLAYER NAME</label>
                     <input type="text" id="player-name-input" class="modal-input" style="width:150px;" maxlength="15"
                         onchange="checkNameUniqueAndSave(this.value, false)">
+                </div>
+                <div class="setting-row">
+                    <label>LOCAL RANK / ローカルレート</label>
+                    <div id="profile-rating-display" class="profile-badge"><span class="hint">RATING</span><span>1200</span></div>
+                </div>
+                <div class="setting-row">
+                    <label>SEASON / シーズン記録</label>
+                    <div id="profile-season-display" class="profile-badge"><span class="hint">SEASON</span><span>--</span></div>
                 </div>
                 <div class="setting-row">
                     <label data-tr="label-lang">LANGUAGE</label>
@@ -1076,9 +1359,28 @@
                 <div class="setting-row"><label data-tr="label-sdf">SDF (Soft Drop Factor)</label>
                     <div class="slider-group"><span style="margin-right:5px;">x</span><input type="number" id="sdf-val" class="editable-val" min="5" max="50" step="1"><input type="range" id="sdf-range" min="5" max="50" step="1"></div>
                 </div>
+                <div class="setting-row"><label>GAMEPAD DEADZONE / デッドゾーン</label>
+                    <div class="slider-group"><input type="number" id="pad-deadzone-val" class="editable-val" min="0.15" max="0.85" step="0.01"><input type="range" id="pad-deadzone-range" min="15" max="85" step="1"></div>
+                </div>
             </div>
 
             <div id="tab-keys" class="modal-body tab-content" style="display:none;">
+                <div class="setting-row">
+                    <label>KEY PRESET / キープリセット</label>
+                    <div class="preset-row">
+                        <button class="preset-btn" onclick="applyKeyPreset('guideline')">GUIDELINE</button>
+                        <button class="preset-btn" onclick="applyKeyPreset('wasd')">WASD</button>
+                        <button class="preset-btn" onclick="applyKeyPreset('classic')">CLASSIC</button>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <label>PAD PRESET / パッドプリセット</label>
+                    <div class="preset-row">
+                        <button class="preset-btn" onclick="applyPadPreset('standard')">STANDARD</button>
+                        <button class="preset-btn" onclick="applyPadPreset('arcade')">ARCADE</button>
+                        <button class="preset-btn" onclick="applyPadPreset('southpaw')">SOUTHPAW</button>
+                    </div>
+                </div>
                 <div class="setting-row"><label data-tr="key-left">MOVE LEFT</label>
                     <div class="key-box" id="key-left" onclick="captureKey('left')"></div>
                 </div>
@@ -1238,6 +1540,25 @@
                         <option value="4" selected>4</option>
                     </select>
                 </div>
+                <div class="rule-grid">
+                    <div style="margin-bottom: 10px;">
+                        <label style="color:#ccc; font-size:14px; margin-bottom:10px; display:block;">START LEVEL / 開始レベル</label>
+                        <input type="number" id="room-start-level" class="modal-input" min="1" max="20" value="1"
+                            style="width:100px; text-align:center; font-size:18px;">
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="color:#ccc; font-size:14px; margin-bottom:10px; display:block;">GARBAGE x / 火力倍率</label>
+                        <input type="number" id="room-garbage-multiplier" class="modal-input" min="0.5" max="3" step="0.1" value="1"
+                            style="width:100px; text-align:center; font-size:18px;">
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="color:#ccc; font-size:14px; margin-bottom:10px; display:block;">HOLD / ホールド</label>
+                        <label class="toggle-switch" style="margin-top: 5px; transform: scale(1.2);">
+                            <input type="checkbox" id="room-allow-hold" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
             </div>
             <button class="btn" style="--accent: #00ff00; width: 100%; margin-bottom: 10px;" onclick="hostRoom()"
                 data-tr="online-create-btn">CREATE</button>
@@ -1276,6 +1597,22 @@
                 <div id="lobby-slot-4" class="lobby-player-slot" style="margin: 5px 15px; display: none;">
                     <div style="font-size: 12px; color: #888;">PLAYER 4</div>
                     <div id="lobby-p4-name" style="font-size: 18px; color: #ffff55; font-weight: bold;">---</div>
+                </div>
+            </div>
+
+            <div class="lobby-chat-panel">
+                <div style="font-size:12px; color:#8ea6b6; margin-bottom:8px;">ROOM CHAT / ルームチャット</div>
+                <div id="lobby-chat-log" class="lobby-chat-log"></div>
+                <div class="chat-stamps">
+                    <button class="stamp-btn" onclick="sendLobbyStamp('GLHF!')">GLHF</button>
+                    <button class="stamp-btn" onclick="sendLobbyStamp('GG!')">GG</button>
+                    <button class="stamp-btn" onclick="sendLobbyStamp('READY!')">READY</button>
+                    <button class="stamp-btn" onclick="sendLobbyStamp('NICE!')">NICE</button>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" id="lobby-chat-input" class="modal-input" maxlength="120" placeholder="Message / メッセージ"
+                        onkeydown="if(event.key === 'Enter') sendLobbyChatFromInput()">
+                    <button class="menu-btn" style="margin:0; min-width:96px;" onclick="sendLobbyChatFromInput()">SEND</button>
                 </div>
             </div>
 
@@ -1734,14 +2071,37 @@
             'dark': { accent: '#ff4444', bg: '#000000', panel: 'rgba(5, 5, 5, 0.95)', text: '#dddddd', border: '#444444', star: '255, 68, 68', canvasBg: '#0a0a0a' }
         };
 
+        const DEFAULT_ROOM_RULES = { garbageMultiplier: 1, startLevel: 1, allowHold: true };
+        const KEY_PRESETS = {
+            guideline: { left: 'ArrowLeft', right: 'ArrowRight', soft: 'ArrowDown', hard: ' ', rotR: 'ArrowUp', rotL: 'z', hold: 'c', hold2: 'Shift', pause: 'Escape', retry: 'r' },
+            wasd: { left: 'a', right: 'd', soft: 's', hard: 'w', rotR: 'ArrowUp', rotL: 'Shift', hold: ' ', hold2: 'c', pause: 'Escape', retry: 'r' },
+            classic: { left: 'ArrowLeft', right: 'ArrowRight', soft: 'ArrowDown', hard: 'Enter', rotR: 'x', rotL: 'z', hold: 'Shift', hold2: 'c', pause: 'Escape', retry: 'r' }
+        };
+        const PAD_PRESETS = {
+            standard: { left: 14, right: 15, soft: 13, hard: 12, rotR: 0, rotL: 2, hold: 4, hold2: 5, pause: 9, retry: 8 },
+            arcade: { left: 14, right: 15, soft: 13, hard: 1, rotR: 0, rotL: 2, hold: 3, hold2: 4, pause: 9, retry: 8 },
+            southpaw: { left: 14, right: 15, soft: 13, hard: 12, rotR: 2, rotL: 0, hold: 5, hold2: 4, pause: 9, retry: 8 }
+        };
+        const DEFAULT_PROFILE = { rating: 1200, peakRating: 1200, seasonId: '', seasonBest: 1200, seasonWins: 0, seasonLosses: 0, totalWins: 0, totalLosses: 0 };
+
         let cfg = {
             lang: 'ja', playerName: '', hasCompletedTutorial: false, theme: 'default', lv: 5, ghost: 0.15, das: 150, arr: 30, sdf: 20, ospin: false, ospinTransform: 'fixed', particles: 80, enableLevelUp: true,
             keys: { left: 'ArrowLeft', right: 'ArrowRight', soft: 'ArrowDown', hard: ' ', rotR: 'ArrowUp', rotL: 'z', hold: 'c', hold2: 'Shift', pause: 'Escape', retry: 'r' },
             padKeys: { left: 14, right: 15, soft: 13, hard: 12, rotR: 0, rotL: 2, hold: 4, hold2: 5, pause: 9, retry: 8 },
+            gamepadDeadzone: 0.5,
             screenScale: 1.0,
             touchPos: { dpad: { x: null, y: null }, actions: { x: null, y: null } }
         };
         let isGamepadConnected = false;
+        let playerProfile = JSON.parse(localStorage.getItem('tetrisProUltProfile_v1')) || { ...DEFAULT_PROFILE };
+        let activeMatchSession = null;
+        let pendingMatchSummary = null;
+        let onlineRoomRules = { ...DEFAULT_ROOM_RULES };
+        let lobbyChatMessages = [];
+        let connectionQuality = { ping: null, syncDelay: null, packetLoss: 0, missedStates: 0, receivedStates: 0, lastRemoteStateAt: 0 };
+        let connectionMonitorInterval = null;
+        let onlineStateSequence = 0;
+        let pingSerial = 0;
 
         let firstTimeNameTemp = "Player1";
         let identityPeer = null;
@@ -1756,6 +2116,15 @@
                 return map[key] || key.toUpperCase();
             }
             return key === " " ? "SPACE" : key.toUpperCase();
+        }
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         function setLang(l) {
@@ -1776,9 +2145,203 @@
             evt.currentTarget.className += " active";
         }
 
+        function getCurrentSeasonId() {
+            const now = new Date();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            return `${now.getFullYear()}-${month}`;
+        }
+
+        function syncPlayerProfileSeason() {
+            const seasonId = getCurrentSeasonId();
+            if (playerProfile.seasonId === seasonId) return;
+            playerProfile.seasonId = seasonId;
+            playerProfile.seasonBest = playerProfile.rating;
+            playerProfile.seasonWins = 0;
+            playerProfile.seasonLosses = 0;
+            localStorage.setItem('tetrisProUltProfile_v1', JSON.stringify(playerProfile));
+        }
+
+        function savePlayerProfile() {
+            syncPlayerProfileSeason();
+            localStorage.setItem('tetrisProUltProfile_v1', JSON.stringify(playerProfile));
+        }
+
+        function updateProfileUI() {
+            syncPlayerProfileSeason();
+            const ratingEl = document.getElementById('profile-rating-display');
+            if (ratingEl) {
+                ratingEl.innerHTML = `<span class="hint">PEAK ${playerProfile.peakRating}</span><span>${playerProfile.rating}</span>`;
+            }
+            const seasonEl = document.getElementById('profile-season-display');
+            if (seasonEl) {
+                seasonEl.innerHTML = `<span class="hint">${playerProfile.seasonId}</span><span>${playerProfile.seasonBest} / ${playerProfile.seasonWins}W-${playerProfile.seasonLosses}L</span>`;
+            }
+        }
+
+        function getMatchModeLabel(mode) {
+            const labels = {
+                solo: cfg.lang === 'ja' ? 'ソロプレイ' : 'SOLO PLAY',
+                cpu: cfg.lang === 'ja' ? 'CPU対戦' : 'VS CPU',
+                online: cfg.lang === 'ja' ? '対人戦' : 'ONLINE MATCH',
+                party: cfg.lang === 'ja' ? 'パーティ対戦' : 'PARTY MATCH'
+            };
+            return labels[mode] || mode;
+        }
+
+        function beginMatchSession(mode, ruleSet = DEFAULT_ROOM_RULES) {
+            activeMatchSession = {
+                mode,
+                startedAt: Date.now(),
+                ruleSet: { ...ruleSet },
+                timeline: [],
+                lastSampleSecond: -1,
+                summaryQueued: false
+            };
+        }
+
+        function sampleMatchTimeline() {
+            if (!activeMatchSession || !p1 || p1.isGameOver) return;
+            const elapsedSeconds = Math.floor((p1.player.time || 0) / 1000);
+            if (elapsedSeconds <= activeMatchSession.lastSampleSecond) return;
+            activeMatchSession.lastSampleSecond = elapsedSeconds;
+            const minutes = Math.max((p1.player.time || 0) / 60000, 1 / 60);
+            activeMatchSession.timeline.push({
+                second: elapsedSeconds,
+                pps: Number((((p1.player.pieces || 0) / Math.max((p1.player.time || 0) / 1000, 1)).toFixed(2))),
+                apm: Number((((p1.player.attacks || 0) / minutes).toFixed(2))),
+                lpm: Number((((p1.player.lines || 0) / minutes).toFixed(2)))
+            });
+        }
+
+        function updateRatingFromSummary(result) {
+            if (!activeMatchSession || activeMatchSession.mode !== 'online' || onlinePlayerCount !== 2) return 0;
+            if (result !== 'victory' && result !== 'defeat') return 0;
+            const actual = result === 'victory' ? 1 : 0;
+            const expected = 0.5;
+            const delta = Math.round(24 * (actual - expected));
+            playerProfile.rating = Math.max(100, playerProfile.rating + delta);
+            playerProfile.peakRating = Math.max(playerProfile.peakRating, playerProfile.rating);
+            playerProfile.seasonBest = Math.max(playerProfile.seasonBest, playerProfile.rating);
+            if (actual === 1) {
+                playerProfile.totalWins++;
+                playerProfile.seasonWins++;
+            } else {
+                playerProfile.totalLosses++;
+                playerProfile.seasonLosses++;
+            }
+            savePlayerProfile();
+            updateProfileUI();
+            return delta;
+        }
+
+        function renderMatchSummary(summary) {
+            document.getElementById('match-summary-result').innerText = summary.resultText;
+            document.getElementById('match-summary-subtitle').innerText = `${summary.modeLabel} / ${summary.reasonText}`;
+            document.getElementById('summary-pps').innerText = summary.pps;
+            document.getElementById('summary-apm').innerText = summary.apm;
+            document.getElementById('summary-lpm').innerText = summary.lpm;
+            document.getElementById('match-summary-title').innerText = cfg.lang === 'ja' ? '試合結果 / MATCH SUMMARY' : 'MATCH SUMMARY / 試合結果';
+
+            const rows = [
+                ['TIME', summary.timeText],
+                ['LINES', String(summary.lines)],
+                ['ATTACK', String(summary.attacks)],
+                ['T-SPIN', String(summary.tSpins)],
+                ['MAX REN', String(summary.maxRen)],
+                ['RECV', String(summary.garbageReceived)],
+                ['RULE', summary.ruleText],
+                ['RATING', summary.ratingText]
+            ];
+            document.getElementById('match-summary-rows').innerHTML = rows.map(([label, value]) =>
+                `<div class="summary-row"><span>${label}</span><strong>${value}</strong></div>`
+            ).join('');
+
+            const chart = document.getElementById('match-summary-chart');
+            const ctx = chart.getContext('2d');
+            ctx.clearRect(0, 0, chart.width, chart.height);
+            ctx.fillStyle = 'rgba(5,12,18,0.95)';
+            ctx.fillRect(0, 0, chart.width, chart.height);
+            const timeline = summary.timeline.length ? summary.timeline : [{ second: 0, pps: 0, apm: 0, lpm: 0 }];
+            const maxSecond = Math.max(timeline[timeline.length - 1].second, 1);
+            const maxValue = Math.max(1, ...timeline.flatMap(point => [point.pps, point.apm / 20, point.lpm / 4]));
+            const drawLine = (key, color, scaleDivisor = 1) => {
+                ctx.beginPath();
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                timeline.forEach((point, index) => {
+                    const x = 20 + ((chart.width - 40) * point.second / maxSecond);
+                    const normalized = (point[key] / scaleDivisor) / maxValue;
+                    const y = chart.height - 20 - ((chart.height - 40) * normalized);
+                    if (index === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            };
+            drawLine('pps', '#00f0f0', 1);
+            drawLine('apm', '#ffaa33', 20);
+            drawLine('lpm', '#66ff99', 4);
+            ctx.fillStyle = '#7fa4b8';
+            ctx.font = '12px monospace';
+            ctx.fillText('PPS', 20, 18);
+            ctx.fillText('APM/20', 72, 18);
+            ctx.fillText('LPM/4', 160, 18);
+
+            document.getElementById('match-summary-overlay').style.display = 'flex';
+        }
+
+        function queueMatchSummary(result, reason) {
+            if (!activeMatchSession || activeMatchSession.summaryQueued || !p1) return;
+            activeMatchSession.summaryQueued = true;
+            const minutes = Math.max((p1.player.time || 0) / 60000, 1 / 60);
+            const resultTextMap = {
+                victory: TRANSLATIONS[cfg.lang].victory,
+                defeat: TRANSLATIONS[cfg.lang].defeat,
+                gameover: TRANSLATIONS[cfg.lang].gameover
+            };
+            const reasonTextMap = {
+                solo: cfg.lang === 'ja' ? 'ソロ結果' : 'Solo result',
+                cpu: cfg.lang === 'ja' ? 'CPU戦結果' : 'CPU match',
+                online: cfg.lang === 'ja' ? '対人戦結果' : 'Online result',
+                disconnect: cfg.lang === 'ja' ? '通信切断' : 'Disconnected'
+            };
+            const ratingDelta = updateRatingFromSummary(result);
+            pendingMatchSummary = {
+                resultText: resultTextMap[result] || result,
+                reasonText: reasonTextMap[reason] || reason,
+                modeLabel: getMatchModeLabel(activeMatchSession.mode),
+                pps: (((p1.player.pieces || 0) / Math.max((p1.player.time || 0) / 1000, 1)).toFixed(2)),
+                apm: (((p1.player.attacks || 0) / minutes).toFixed(2)),
+                lpm: (((p1.player.lines || 0) / minutes).toFixed(2)),
+                timeText: `${Math.floor((p1.player.time || 0) / 60000)}:${String(Math.floor(((p1.player.time || 0) / 1000) % 60)).padStart(2, '0')}`,
+                lines: p1.player.lines || 0,
+                attacks: p1.player.attacks || 0,
+                tSpins: p1.player.tSpins || 0,
+                maxRen: p1.player.maxRen || 0,
+                garbageReceived: p1.player.garbageReceived || 0,
+                timeline: [...activeMatchSession.timeline],
+                ruleText: `LV${activeMatchSession.ruleSet.startLevel} / x${activeMatchSession.ruleSet.garbageMultiplier.toFixed(1)} / HOLD ${activeMatchSession.ruleSet.allowHold ? 'ON' : 'OFF'}`,
+                ratingText: ratingDelta === 0 ? `${playerProfile.rating}` : `${playerProfile.rating} (${ratingDelta > 0 ? '+' : ''}${ratingDelta})`
+            };
+        }
+
+        function closeMatchSummary() {
+            document.getElementById('match-summary-overlay').style.display = 'none';
+            pendingMatchSummary = null;
+            activeMatchSession = null;
+        }
+
         function loadCfg() {
             const saved = localStorage.getItem('tetrisProUltCfg_v14');
-            if (saved) { const parsed = JSON.parse(saved); cfg = { ...cfg, ...parsed, keys: { ...cfg.keys, ...parsed.keys } }; }
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                cfg = {
+                    ...cfg,
+                    ...parsed,
+                    keys: { ...cfg.keys, ...parsed.keys },
+                    padKeys: { ...cfg.padKeys, ...parsed.padKeys },
+                    touchPos: { ...cfg.touchPos, ...parsed.touchPos }
+                };
+            }
             updateUIFromCfg(); setLang(cfg.lang);
         }
         function saveCfg() { localStorage.setItem('tetrisProUltCfg_v14', JSON.stringify(cfg)); }
@@ -1859,7 +2422,13 @@
                     delete parsed.playerName;
                     delete parsed.hasCompletedTutorial;
 
-                    cfg = { ...cfg, ...parsed, keys: { ...cfg.keys, ...parsed.keys } };
+                    cfg = {
+                        ...cfg,
+                        ...parsed,
+                        keys: { ...cfg.keys, ...parsed.keys },
+                        padKeys: { ...cfg.padKeys, ...parsed.padKeys },
+                        touchPos: { ...cfg.touchPos, ...parsed.touchPos }
+                    };
                     saveCfg();
                     updateUIFromCfg();
 
@@ -1897,6 +2466,8 @@
             document.getElementById('arr-range').value = cfg.arr; if(document.getElementById('arr-val')) document.getElementById('arr-val').value = cfg.arr;
 
             document.getElementById('sdf-range').value = cfg.sdf; if(document.getElementById('sdf-val')) document.getElementById('sdf-val').value = cfg.sdf;
+            if (document.getElementById('pad-deadzone-range')) document.getElementById('pad-deadzone-range').value = Math.round((cfg.gamepadDeadzone || 0.5) * 100);
+            if (document.getElementById('pad-deadzone-val')) document.getElementById('pad-deadzone-val').value = (cfg.gamepadDeadzone || 0.5).toFixed(2);
             document.getElementById('ospin-toggle').checked = cfg.ospin;
             if (document.getElementById('ospin-transform-select')) document.getElementById('ospin-transform-select').value = cfg.ospinTransform || 'fixed';
             document.getElementById('level-toggle').checked = cfg.enableLevelUp !== false;
@@ -1905,6 +2476,23 @@
                 const el = document.getElementById('key-' + k);
                 if (el) el.innerText = isGamepadConnected ? getPrettyKey(cfg.padKeys[k]) : getPrettyKey(cfg.keys[k]);
             }
+            updateProfileUI();
+        }
+
+        function applyKeyPreset(name) {
+            if (!KEY_PRESETS[name]) return;
+            cfg.keys = { ...cfg.keys, ...KEY_PRESETS[name] };
+            updateUIFromCfg();
+            saveCfg();
+            showToast(cfg.lang === 'ja' ? `キープリセット: ${name}` : `Key preset: ${name}`);
+        }
+
+        function applyPadPreset(name) {
+            if (!PAD_PRESETS[name]) return;
+            cfg.padKeys = { ...cfg.padKeys, ...PAD_PRESETS[name] };
+            updateUIFromCfg();
+            saveCfg();
+            showToast(cfg.lang === 'ja' ? `パッドプリセット: ${name}` : `Pad preset: ${name}`);
         }
 
         document.querySelectorAll('input[type="range"]').forEach(input => {
@@ -1930,6 +2518,7 @@
             if ((window.isPartyMode && window.partyModeInstance) || !p1 || inTutorial) return;
             isPaused = false;
             document.getElementById('pause-overlay').style.display = 'none';
+            beginMatchSession(isOnline ? 'online' : (cpu ? 'cpu' : 'solo'), p1.ruleSet || DEFAULT_ROOM_RULES);
             resetRound();
         }
 
@@ -2255,6 +2844,9 @@
             document.getElementById('btn-save-menu').style.display = 'block';
             document.getElementById('online-self-indicator').style.display = 'none';
             suppressConnectionCloseHandler = false;
+            resetConnectionQuality();
+            if (pendingMatchSummary) renderMatchSummary(pendingMatchSummary);
+            else activeMatchSession = null;
         }
 
         // --- Online Multiplayer (PeerJS) ---
@@ -2276,8 +2868,6 @@
         let onlineMyIndex = 0;
         let onlineStateCache = {};
         let onlineDeadPlayers = {};
-        let suppressConnectionCloseHandler = false;
-
         function isStandardOnlineMatch() {
             return isOnline && !isPartyMode;
         }
@@ -2314,10 +2904,103 @@
             const snapshot = p1.getState();
             onlineStateCache[onlineMyIndex] = snapshot;
             if (conn && conn.open) {
-                conn.send({ type: 'state', id: onlineMyIndex, state: snapshot });
+                conn.send({ type: 'state', id: onlineMyIndex, seq: onlineStateSequence++, stamp: Date.now(), state: snapshot });
             } else if (isHostedOnlineMatch()) {
                 broadcastMultiState();
             }
+        }
+
+        function clearLobbyChat() {
+            lobbyChatMessages = [];
+            const log = document.getElementById('lobby-chat-log');
+            if (log) log.innerHTML = '';
+            const input = document.getElementById('lobby-chat-input');
+            if (input) input.value = '';
+        }
+
+        function renderLobbyChat() {
+            const log = document.getElementById('lobby-chat-log');
+            if (!log) return;
+            log.innerHTML = lobbyChatMessages.map(message =>
+                `<div class="chat-line"><span class="name">${message.name}</span><span>${message.text}</span></div>`
+            ).join('');
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function pushLobbyChat(name, text) {
+            lobbyChatMessages.push({ name, text });
+            lobbyChatMessages = lobbyChatMessages.slice(-40);
+            renderLobbyChat();
+        }
+
+        function broadcastLobbyChat(message, sourceConnection = null) {
+            if (isHost && !isQuickMatch) {
+                partyClients.forEach(c => {
+                    if (c !== sourceConnection && c.open) c.send({ type: 'lobby_chat', ...message });
+                });
+            } else if (!isHost && conn && conn.open) {
+                conn.send({ type: 'lobby_chat', ...message });
+            }
+        }
+
+        function sendLobbyChatFromInput() {
+            const input = document.getElementById('lobby-chat-input');
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            const message = { name: cfg.playerName || 'PLAYER', text };
+            pushLobbyChat(message.name, message.text);
+            broadcastLobbyChat(message);
+        }
+
+        function sendLobbyStamp(text) {
+            const message = { name: cfg.playerName || 'PLAYER', text };
+            pushLobbyChat(message.name, message.text);
+            broadcastLobbyChat(message);
+        }
+
+        function resetConnectionQuality() {
+            connectionQuality = { ping: null, syncDelay: null, packetLoss: 0, missedStates: 0, receivedStates: 0, lastRemoteStateAt: 0 };
+            const panel = document.getElementById('connection-quality-panel');
+            if (panel) panel.style.display = 'none';
+            if (connectionMonitorInterval) {
+                clearInterval(connectionMonitorInterval);
+                connectionMonitorInterval = null;
+            }
+        }
+
+        function renderConnectionQuality() {
+            const panel = document.getElementById('connection-quality-panel');
+            if (!panel) return;
+            panel.style.display = isOnline ? 'block' : 'none';
+            document.getElementById('quality-ping').innerText = connectionQuality.ping === null ? '--' : `${connectionQuality.ping}ms`;
+            document.getElementById('quality-sync').innerText = connectionQuality.syncDelay === null ? '--' : `${connectionQuality.syncDelay}ms`;
+            document.getElementById('quality-loss').innerText = `${connectionQuality.packetLoss.toFixed(0)}%`;
+        }
+
+        function startConnectionMonitor() {
+            resetConnectionQuality();
+            if (!isOnline) return;
+            renderConnectionQuality();
+            connectionMonitorInterval = setInterval(() => {
+                if (conn && conn.open) {
+                    pingSerial++;
+                    conn.send({ type: 'ping', token: pingSerial, stamp: Date.now() });
+                }
+                if (connectionQuality.lastRemoteStateAt) {
+                    connectionQuality.syncDelay = Math.max(0, Date.now() - connectionQuality.lastRemoteStateAt);
+                }
+                renderConnectionQuality();
+            }, 2000);
+        }
+
+        function applyRoomRulesFromSettings() {
+            onlineRoomRules = {
+                garbageMultiplier: Math.max(0.5, Math.min(3, parseFloat(document.getElementById('room-garbage-multiplier').value) || 1)),
+                startLevel: Math.max(1, Math.min(20, parseInt(document.getElementById('room-start-level').value) || 1)),
+                allowHold: document.getElementById('room-allow-hold').checked
+            };
         }
 
         function getConnectionByNetworkId(id) {
@@ -2363,6 +3046,7 @@
         function handleOnlineRoundWin() {
             p1Wins++;
             if (p1Wins >= targetWins) {
+                queueMatchSummary('victory', 'online');
                 showToast(TRANSLATIONS[cfg.lang].victory + " (Match Winner!)");
                 setTimeout(() => returnToMenu(), 3000);
             } else {
@@ -2374,6 +3058,7 @@
         function handleOnlineRoundLoss() {
             p2Wins++;
             if (p2Wins >= targetWins) {
+                queueMatchSummary('defeat', 'online');
                 showToast(TRANSLATIONS[cfg.lang].defeat + " (Match Lost!)");
                 setTimeout(() => returnToMenu(), 3000);
             } else {
@@ -2403,6 +3088,7 @@
             }
             if (alivePlayers.length !== 1) return;
             const winnerId = alivePlayers[0];
+            queueMatchSummary(winnerId === onlineMyIndex ? 'victory' : 'defeat', 'online');
             showToast(winnerId === onlineMyIndex ? TRANSLATIONS[cfg.lang].victory : TRANSLATIONS[cfg.lang].defeat);
             setTimeout(() => returnToMenu(), 3000);
         }
@@ -2540,11 +3226,11 @@
                     p1Wins = 0;
                     p2Wins = 0;
                     targetWins = 2; // Best of 3
-                    currentConn.send({ type: 'hello', name: cfg.playerName });
+                    currentConn.send({ type: 'hello', name: cfg.playerName, roomRules: DEFAULT_ROOM_RULES });
                 } else {
                     document.getElementById('lobby-status').innerText = TRANSLATIONS[cfg.lang]["online-connected"];
                     document.getElementById('lobby-status').style.color = '#00ff00';
-                    currentConn.send({ type: 'hello', name: cfg.playerName, targetWins: targetWins, isPartyMode: isPartyMode, partyCount: targetPartyCount });
+                    currentConn.send({ type: 'hello', name: cfg.playerName, targetWins: targetWins, isPartyMode: isPartyMode, partyCount: targetPartyCount, roomRules: onlineRoomRules });
                 }
             };
 
@@ -2588,6 +3274,9 @@
                     } else {
                         opponentName = data.name;
                         let displayOpponentName = opponentName;
+                        if (data.roomRules) {
+                            onlineRoomRules = { ...DEFAULT_ROOM_RULES, ...data.roomRules };
+                        }
 
                         if (isHost && opponentName === cfg.playerName) {
                             displayOpponentName = opponentName + " (2)";
@@ -2629,6 +3318,25 @@
                         }
                     }
                 }
+                else if (data.type === 'lobby_chat') {
+                    if (!isHost || isQuickMatch) {
+                        pushLobbyChat(data.name, data.text);
+                    } else {
+                        pushLobbyChat(data.name, data.text);
+                        broadcastLobbyChat({ name: data.name, text: data.text }, connection);
+                    }
+                }
+                else if (data.type === 'ping') {
+                    if (connection && connection.open) {
+                        connection.send({ type: 'pong', token: data.token, stamp: data.stamp });
+                    }
+                }
+                else if (data.type === 'pong') {
+                    if (typeof data.stamp === 'number') {
+                        connectionQuality.ping = Math.max(0, Date.now() - data.stamp);
+                        renderConnectionQuality();
+                    }
+                }
                 else if (data.type === 'name_override') {
                     cfg.playerName = data.newName;
                     document.getElementById('player-name-input').value = data.newName;
@@ -2654,6 +3362,18 @@
                 }
                 else if (data.type === 'state') {
                     const senderId = normalizeNetworkId(data.id !== undefined ? data.id : connection.networkId);
+                    if (typeof data.seq === 'number') {
+                        if (typeof connection.lastStateSeq === 'number' && data.seq > connection.lastStateSeq + 1) {
+                            connectionQuality.missedStates += data.seq - connection.lastStateSeq - 1;
+                        }
+                        connection.lastStateSeq = data.seq;
+                    }
+                    connectionQuality.receivedStates++;
+                    connectionQuality.lastRemoteStateAt = Date.now();
+                    connectionQuality.syncDelay = typeof data.stamp === 'number' ? Math.max(0, Date.now() - data.stamp) : connectionQuality.syncDelay;
+                    const totalPackets = connectionQuality.receivedStates + connectionQuality.missedStates;
+                    connectionQuality.packetLoss = totalPackets > 0 ? (connectionQuality.missedStates / totalPackets) * 100 : 0;
+                    renderConnectionQuality();
                     if (senderId !== null) onlineStateCache[senderId] = data.state;
                     if (cpu && (cpu.isNetworkPlayer || !cpu.isAI)) {
                         cpu.setState(data.state);
@@ -2715,6 +3435,7 @@
                             p1.isGameOver = true;
                             p1Wins++;
                             if (p1Wins >= targetWins) {
+                                queueMatchSummary('victory', 'online');
                                 showToast(TRANSLATIONS[cfg.lang].victory + " (Match Winner!)");
                                 setTimeout(() => returnToMenu(), 3000);
                             } else {
@@ -2771,6 +3492,9 @@
             targetWins = parseInt(document.getElementById('room-target-wins').value) || 1;
             isPartyMode = document.getElementById('room-party-mode').checked;
             targetPartyCount = parseInt(document.getElementById('room-party-count').value) || 4;
+            applyRoomRulesFromSettings();
+            clearLobbyChat();
+            pushLobbyChat("SYSTEM", cfg.lang === 'ja' ? "ルームを作成しました。" : "Room created.");
 
             const roomCode = "TETRIS-" + generateRoomCode();
             initPeer(roomCode, (id) => {
@@ -2814,6 +3538,7 @@
                 return;
             }
             document.getElementById('btn-join-room').innerText = "...";
+            clearLobbyChat();
 
             initPeer(null, (id) => {
                 isHost = false;
@@ -2853,6 +3578,9 @@
             suppressConnectionCloseHandler = false;
             isQuickMatch = true;
             qmIndex = 1;
+            onlineRoomRules = { ...DEFAULT_ROOM_RULES };
+            clearLobbyChat();
+            resetConnectionQuality();
 
             document.getElementById('online-menu').style.display = 'none';
             document.getElementById('quick-match-lobby').style.display = 'block';
@@ -2957,6 +3685,8 @@
             if (showMenu) document.getElementById('online-menu').style.display = 'block';
             restoreGameViewLayout();
             resetOnlineLobby();
+            clearLobbyChat();
+            resetConnectionQuality();
         }
 
         function startOnlineGame() {
@@ -2974,6 +3704,22 @@
                     startOnlineGameExecution(partyClients.length + 1, 0);
                 }
             }
+        }
+
+        function applyRuleSetToActiveBoards(ruleSet) {
+            const normalizedRuleSet = { ...DEFAULT_ROOM_RULES, ...ruleSet };
+            const applyToBoard = (board) => {
+                if (!board) return;
+                board.ruleSet = { ...normalizedRuleSet };
+                if ((board.player.time || 0) === 0 && (board.player.pieces || 0) === 0) {
+                    board.player.level = normalizedRuleSet.startLevel;
+                    if (!normalizedRuleSet.allowHold) board.player.canHold = false;
+                    board.updateUI();
+                }
+            };
+            applyToBoard(p1);
+            applyToBoard(cpu);
+            opponents.forEach(applyToBoard);
         }
 
         function startOnlineGameExecution(playerCount, myIndex) {
@@ -3085,10 +3831,13 @@
             }
 
             p1.opponents = opponents;
+            applyRuleSetToActiveBoards(onlineRoomRules);
+            beginMatchSession('online', onlineRoomRules);
             syncCurrentStandardOnlineState();
             setTimeout(() => {
                 if (isStandardOnlineMatch()) syncCurrentStandardOnlineState();
             }, 120);
+            startConnectionMonitor();
 
             if (!lastTime) animate();
             else lastTime = performance.now();
@@ -3097,6 +3846,8 @@
         function startPartyModeExecution(playerCount, myIndex) {
             resetSoloCpuHintState();
             isOnline = true;
+            beginMatchSession('party', DEFAULT_ROOM_RULES);
+            startConnectionMonitor();
             document.getElementById('online-lobby').style.display = 'none';
             document.getElementById('btn-save-menu').style.display = 'none';
             document.getElementById('online-self-indicator').style.display = 'none';
@@ -3311,13 +4062,14 @@
                 this.meterFill = meterId ? document.getElementById(meterId) : null;
 
                 this.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
-                this.player = { pos: { x: 0, y: 0 }, matrix: null, type: null, color: null, score: 0, holdType: null, holdColor: null, canHold: true, ren: -1, btb: false, rotation: 0, time: 0, pieces: 0, lines: 0, attacks: 0, level: 1 };
+                this.player = { pos: { x: 0, y: 0 }, matrix: null, type: null, color: null, score: 0, holdType: null, holdColor: null, canHold: true, ren: -1, btb: false, rotation: 0, time: 0, pieces: 0, lines: 0, attacks: 0, level: 1, tSpins: 0, garbageReceived: 0, maxRen: 0, perfectClears: 0 };
                 this.bag = []; this.nextQueue = []; this.isGameOver = false; this.dropCounter = 0; this.pendingGarbage = 0;
                 this.lockDelayThreshold = 500; this.lockDelayCounter = 0; this.dasL = 0; this.arrL = 0; this.dasR = 0; this.arrR = 0;
                 this.oSpinRotCount = 0; this.oSpinTimer = 0; this.isOtransformed = false;
 
                 this.templateKey = templateKey;
                 this.targetBoard = null;
+                this.ruleSet = { ...DEFAULT_ROOM_RULES };
 
                 if (!isLoad) {
                     if (this.templateKey) this.loadTemplate(this.templateKey);
@@ -3354,6 +4106,10 @@
                 if (typeof this.player.time === 'undefined') this.player.time = 0;
                 if (typeof this.player.pieces === 'undefined') this.player.pieces = 0;
                 if (typeof this.player.attacks === 'undefined') this.player.attacks = 0;
+                if (typeof this.player.tSpins === 'undefined') this.player.tSpins = 0;
+                if (typeof this.player.garbageReceived === 'undefined') this.player.garbageReceived = 0;
+                if (typeof this.player.maxRen === 'undefined') this.player.maxRen = 0;
+                if (typeof this.player.perfectClears === 'undefined') this.player.perfectClears = 0;
                 this.bag = state.bag;
                 this.nextQueue = state.nextQueue;
                 this.pendingGarbage = state.pendingGarbage;
@@ -3409,6 +4165,7 @@
                 this.player.matrix = JSON.parse(JSON.stringify(PIECES[this.player.type]));
                 this.player.color = Object.keys(PIECES).indexOf(this.player.type) + 1;
                 this.player.pos = { x: 3, y: 2 };
+                if ((this.player.time || 0) === 0 && (this.player.pieces || 0) === 0) this.player.level = (this.ruleSet && this.ruleSet.startLevel) || 1;
                 this.player.rotation = 0; this.player.canHold = true; this.lockDelayCounter = 0;
                 this.isOtransformed = false; this.oSpinRotCount = 0; this.oSpinTimer = 0; this.lastMoveRotate = false;
                 if (this.collide()) { this.player.pos.y--; if (this.collide()) this.gameOver(); }
@@ -3571,6 +4328,7 @@
                             lineScore = [0, 100, 300, 500, 800][lines] * level;
                         }
                         this.player.ren++;
+                        this.player.maxRen = Math.max(this.player.maxRen || 0, this.player.ren);
                     } else {
                         this.player.ren = -1;
                     }
@@ -3596,9 +4354,15 @@
                         actionText = "PERFECT CLEAR";
                         atk += 10;
                         lineScore += [0, 800, 1200, 1800, 2000][lines] * level;
+                        this.player.perfectClears = (this.player.perfectClears || 0) + 1;
+                    }
+
+                    if (tSpinInfo.isTSpin) {
+                        this.player.tSpins = (this.player.tSpins || 0) + 1;
                     }
 
                     if (atk > 0) {
+                        atk = Math.max(0, Math.round(atk * ((this.ruleSet && this.ruleSet.garbageMultiplier) || 1)));
                         this.player.attacks += atk;
                         if (this.pendingGarbage > 0) { const offset = Math.min(atk, this.pendingGarbage); atk -= offset; this.pendingGarbage -= offset; this.updateMeter(); }
                         if (isOnline && conn && conn.open && atk > 0 && !this.isAI) {
@@ -3615,7 +4379,7 @@
                 this.updateUI();
             }
 
-            receiveGarbage(n) { this.pendingGarbage += n; this.updateMeter(); }
+            receiveGarbage(n) { this.pendingGarbage += n; this.player.garbageReceived = (this.player.garbageReceived || 0) + n; this.updateMeter(); }
             pushGarbageToArena(n) {
                 for (let i = 0; i < n; i++) { const r = new Array(10).fill(8); r[Math.floor(Math.random() * 10)] = 0; this.arena.shift(); this.arena.push(r); }
                 let limit = 0; while (this.collide() && limit < 22) { this.player.pos.y--; limit++; }
@@ -3625,6 +4389,7 @@
             updateMeter() { if (this.meterFill) { const percent = Math.min(100, (this.pendingGarbage / 20) * 100); this.meterFill.style.height = percent + '%'; } }
 
             playerHold() {
+                if (this.ruleSet && this.ruleSet.allowHold === false) return;
                 if (!this.player.canHold) return;
                 const curType = this.player.type, curColor = this.player.color;
                 if (this.player.holdType) {
@@ -3655,6 +4420,7 @@
                 if ((isQuickMatch || (isOnline && !isPartyMode)) && !this.isAI) {
                     p2Wins++;
                     if (p2Wins >= targetWins) {
+                        queueMatchSummary('defeat', 'online');
                         showToast(TRANSLATIONS[cfg.lang].defeat + " (Match Lost!)");
                         setTimeout(() => returnToMenu(), 3000);
                     } else {
@@ -3665,6 +4431,7 @@
                 }
 
                 let msg = this.isAI ? TRANSLATIONS[cfg.lang].victory : (this.opponent ? TRANSLATIONS[cfg.lang].defeat : TRANSLATIONS[cfg.lang].gameover);
+                queueMatchSummary(this.isAI ? 'victory' : (this.opponent ? 'defeat' : 'gameover'), this.opponent ? 'cpu' : 'solo');
                 showToast(msg); setTimeout(() => returnToMenu(), 3000);
             }
 
@@ -4432,10 +5199,11 @@
 
                 const isPressed = (idx) => gp.buttons[idx] && gp.buttons[idx].pressed;
 
-                const leftAxis = gp.axes[0] < -0.5;
-                const rightAxis = gp.axes[0] > 0.5;
-                const downAxis = gp.axes[1] > 0.5;
-                const upAxis = gp.axes[1] < -0.5;
+                const deadzone = cfg.gamepadDeadzone || 0.5;
+                const leftAxis = gp.axes[0] < -deadzone;
+                const rightAxis = gp.axes[0] > deadzone;
+                const downAxis = gp.axes[1] > deadzone;
+                const upAxis = gp.axes[1] < -deadzone;
 
                 const left = isPressed(cfg.padKeys.left) || leftAxis;
                 const right = isPressed(cfg.padKeys.right) || rightAxis;
@@ -4519,6 +5287,7 @@
             p1.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
             p1.player.score = 0; p1.player.ren = -1; p1.player.btb = false;
             p1.pendingGarbage = 0; p1.isGameOver = false; p1.player.holdType = null;
+            p1.player.level = (p1.ruleSet && p1.ruleSet.startLevel) || p1.player.level || 1;
             while (p1.nextQueue.length < 10) p1.nextQueue.push(p1.pullFromBag());
             p1.reset(); p1.updateMeter(); p1.updateUI();
 
@@ -4526,6 +5295,7 @@
                 cpu.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
                 cpu.player.score = 0; cpu.player.ren = -1; cpu.player.btb = false;
                 cpu.pendingGarbage = 0; cpu.isGameOver = false; cpu.player.holdType = null;
+                cpu.player.level = (cpu.ruleSet && cpu.ruleSet.startLevel) || cpu.player.level || 1;
                 while (cpu.nextQueue.length < 10) cpu.nextQueue.push(cpu.pullFromBag());
                 cpu.reset(); cpu.updateMeter(); cpu.updateUI();
             }
@@ -4534,6 +5304,7 @@
                 opp.arena = Array.from({ length: 22 }, () => new Array(10).fill(0));
                 opp.player.score = 0; opp.player.ren = -1; opp.player.btb = false;
                 opp.pendingGarbage = 0; opp.isGameOver = false; opp.player.holdType = null;
+                opp.player.level = (opp.ruleSet && opp.ruleSet.startLevel) || opp.player.level || 1;
                 while (opp.nextQueue.length < 10) opp.nextQueue.push(opp.pullFromBag());
                 opp.reset(); opp.updateMeter(); opp.updateUI();
             });
@@ -4595,6 +5366,7 @@
                 if (isPartyMode && window.partyModeInstance) {
                     window.partyModeInstance.update(dt);
                 }
+                sampleMatchTimeline();
             }
             requestAnimationFrame(animate);
         }
@@ -4612,13 +5384,18 @@
                 meters.forEach(m => m.style.display = 'block'); document.getElementById('cpu-field').style.display = 'flex';
                 p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', playerTmpl, isLoad);
                 cpu = new Tetris('c-canvas', 'c-hold', 'c-next', 'c-score', true, 'c-action-layer', 'c-meter', null, isLoad);
+                applyRuleSetToActiveBoards(DEFAULT_ROOM_RULES);
+                beginMatchSession('cpu', DEFAULT_ROOM_RULES);
                 p1.opponent = cpu; cpu.opponent = p1; document.getElementById('current-lv').innerText = cfg.lv;
             } else {
                 meters.forEach(m => m.style.display = 'none'); document.getElementById('cpu-field').style.display = 'none';
                 p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', playerTmpl, isLoad);
                 cpu = null;
+                applyRuleSetToActiveBoards(DEFAULT_ROOM_RULES);
+                beginMatchSession('solo', DEFAULT_ROOM_RULES);
             }
             isPaused = false;
+            resetConnectionQuality();
 
             if (!isLoad && !lastTime) animate();
             else if (isLoad) lastTime = performance.now();
@@ -4745,9 +5522,11 @@
         bindSliderGroup('das-val', 'das-range', 'das', 1, false, parseInt);
         bindSliderGroup('arr-val', 'arr-range', 'arr', 1, false, parseInt);
         bindSliderGroup('sdf-val', 'sdf-range', 'sdf', 1, false, parseInt);
+        bindSliderGroup('pad-deadzone-val', 'pad-deadzone-range', 'gamepadDeadzone', 100, true, parseFloat);
         bindSliderGroup('particles-val', 'particles-range', 'particles', 1, false, parseInt);
 
         loadCfg();
+        updateProfileUI();
         updateMenuLoadButton();
 
         // Start tutorial if first time
