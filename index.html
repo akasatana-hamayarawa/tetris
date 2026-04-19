@@ -1415,7 +1415,7 @@
             <input type="text" id="first-time-name" class="modal-input"
                 style="width: 200px; font-size: 18px; margin-bottom: 20px;" maxlength="15" placeholder="Name"
                 onchange="setPlayerTempName(this.value)" oninput="setPlayerTempName(this.value)">
-            <button class="menu-btn" onclick="checkNameUniqueAndSave(firstTimeNameTemp, true)"
+            <button class="btn" onclick="checkNameUniqueAndSave(firstTimeNameTemp, true)"
                 style="width: 100%;">START TUTORIAL / チュートリアル開始</button>
         </div>
     </div>
@@ -1463,12 +1463,12 @@
                 <div class="setting-row">
                     <label data-tr="label-config">CONFIG DATA</label>
                     <div style="display: flex; gap: 5px;">
-                        <button onclick="exportConfig()" class="menu-btn"
+                        <button onclick="exportConfig()" class="btn"
                             style="padding: 5px 10px; font-size: 12px; margin: 0; min-width: auto; height: 30px;">Export
                             JSON</button>
                         <input type="file" id="import-config-file" style="display: none;" accept=".json"
                             onchange="importConfig(event)">
-                        <button onclick="document.getElementById('import-config-file').click()" class="menu-btn"
+                        <button onclick="document.getElementById('import-config-file').click()" class="btn"
                             style="padding: 5px 10px; font-size: 12px; margin: 0; min-width: auto; height: 30px;">Import
                             JSON</button>
                     </div>
@@ -1656,11 +1656,12 @@
                 CPU</button><br>
 
             <button class="btn" style="--accent: #aa55ff;" onclick="showTemplateMenu()" data-tr="menu-template">TEMPLATE
-                MODE</button>
+                MODE</button><br>
+            <button class="btn" style="--accent: #55aaff;" onclick="showReplayMenu()"data-tr="menu-replay">VIEW REPLAYS</button>
         </div>
 
         <div id="tutorial-menu" style="display:none;">
-            <button class="btn" style="--accent:#55ff55;" onclick="openTutorialEntry()">TUTORIAL / チュートリアル</button>
+            <button class="btn" style="--accent:#55ff55;" onclick="openTutorialEntry()"data-tr="menu-tutorial">TUTORIAL</button>
         </div>
 
         <div id="online-menu" style="display:none;">
@@ -1828,14 +1829,14 @@
                 <div class="chat-input-row">
                     <input type="text" id="lobby-chat-input" class="modal-input" maxlength="120" placeholder="Message / メッセージ"
                         onkeydown="if(event.key === 'Enter') sendLobbyChatFromInput()">
-                    <button class="menu-btn" style="margin:0; min-width:96px;" onclick="sendLobbyChatFromInput()">SEND</button>
+                    <button class="btn" style="margin:0; min-width:96px;" onclick="sendLobbyChatFromInput()">SEND</button>
                 </div>
             </div>
 
             <button class="btn" id="btn-start-online" style="--accent: #00ff00; width: 100%; display: none;"
                 onclick="startOnlineGame()" data-tr="online-start">START GAME</button>
-            <button class="btn" style="border-color:#888; color:#888; margin-top:10px; width: 100%;"
-                onclick="disconnectOnline()" data-tr="online-leave">LEAVE ROOM</button>
+            <button class="btn" id="btn-online-exit" style="border-color:#888; color:#888; margin-top:10px; width: 100%;"
+                onclick="handleOnlineLobbyExit()">LEAVE ROOM / 部屋を退出</button>
         </div>
 
         <div id="quick-match-lobby" style="display:none; text-align: center; margin-top: 50px;">
@@ -1857,6 +1858,22 @@
 
             <button class="btn" style="border-color:#888; color:#888; width: 220px;" onclick="cancelQuickMatch()"
                 data-tr="online-leave">LEAVE ROOM</button>
+        </div>
+        <div id="replay-menu" style="display:none; text-align:center;">
+            <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 20px;">REPLAY ARCHIVE / リプレイ一覧</h2>
+            <div style="background: rgba(0,0,0,0.5); padding: 18px; border-radius: 10px; border: 1px solid #333; margin-bottom: 18px; text-align:left;">
+                <label style="color:#ccc; font-size:13px; display:block; margin-bottom:8px;">REPLAY CODE / リプレイコード</label>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input type="text" id="replay-code-input" class="modal-input" maxlength="40"
+                        style="flex:1; min-width:220px; text-align:center;" placeholder="HappyTetris6378"
+                        onkeydown="if(event.key === 'Enter') openReplayByCode()">
+                    <button class="btn" style="margin:0; min-width:140px;" onclick="openReplayByCode()">VIEW REPLAY / 見る</button>
+                </div>
+                <div style="font-size:11px; color:#8ea6b6; margin-top:10px;">PAST 30 DAYS / 直近1ヶ月のリプレイを表示</div>
+            </div>
+            <div id="replay-archive-list"
+                style="max-height: 360px; overflow-y:auto; padding-right:6px; display:flex; flex-direction:column; gap:10px; margin-bottom:18px;"></div>
+            <button class="btn" style="border-color:#888; color:#888;" onclick="hideReplayMenu()">BACK / 戻る</button>
         </div>
         <div id="template-menu" style="display:none;">
             <div id="tmpl-main-list">
@@ -1952,8 +1969,8 @@
     <div id="replay-controls"
         style="display:none; position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:1200; background:rgba(10,10,10,0.92); border:1px solid rgba(255,255,255,0.14); border-radius:12px; padding:10px 14px; align-items:center; gap:10px; box-shadow:0 0 20px rgba(0,0,0,0.35);">
         <span id="replay-status-label" style="font-size:12px; color:#9fb2c0; letter-spacing:1px;">REPLAY / リプレイ</span>
-        <button class="menu-btn" id="replay-pause-btn" style="margin:0; min-width:96px;" onclick="toggleReplayPause()">PAUSE</button>
-        <button class="menu-btn" style="margin:0; min-width:120px;" onclick="stopReplayPlayback()">EXIT REPLAY</button>
+        <button class="btn" id="replay-pause-btn" style="margin:0; min-width:96px;" onclick="toggleReplayPause()">PAUSE</button>
+        <button class="btn" style="margin:0; min-width:120px;" onclick="stopReplayPlayback()">EXIT REPLAY</button>
     </div>
 
     <div id="game-view">
@@ -2305,7 +2322,7 @@
 
         const TRANSLATIONS = {
             en: { settings: "SETTINGS", "tab-general": "GENERAL", "tab-ui": "UI SETTINGS", "tab-handling": "HANDLING", "tab-keys": "KEYS", "label-lang": "LANGUAGE", "label-name": "PLAYER NAME", "label-theme": "THEME", "label-level": "CPU LEVEL", "solo-levelup": "SOLO LEVEL UP", "stats-time": "TIME", "stats-lines": "LINES", "stats-level": "LEVEL", "label-ghost": "GHOST OPACITY", "label-particles": "BACKGROUND PARTICLES", "label-das": "DAS (Delayed Auto Shift)", "label-arr": "ARR (Auto Repeat Rate)", "label-sdf": "SDF (Soft Drop Factor)", "key-left": "MOVE LEFT", "key-right": "MOVE RIGHT", "key-soft": "SOFT DROP", "key-hard": "HARD DROP", "key-rotR": "ROTATE RIGHT", "key-rotL": "ROTATE LEFT", "key-hold": "HOLD (PRIMARY)", "key-hold2": "HOLD (SECONDARY)", "save-close": "SAVE & CLOSE", "menu-solo": "SOLO PLAY", "menu-cpu": "VS CPU", "menu-template": "TEMPLATE MODE", "menu-continue": "CONTINUE", "menu-online": "ONLINE PLAY", "online-quickmatch": "QUICK MATCH", "online-searching": "Searching for opponent...", "online-err-full": "Room is full", "online-create": "CREATE ROOM", "online-enter-code": "Enter Room Code", "online-join": "JOIN ROOM", "online-lobby-title": "ROOM LOBBY", "online-your-code": "YOUR ROOM CODE", "online-waiting": "Waiting for connection...", "online-connected": "Connected! Ready to start.", "online-start": "START GAME", "online-leave": "LEAVE ROOM", "online-err-notfound": "Invalid or missing room code.", "online-err-idinuse": "Room code is already in use.", "online-err-empty": "Please enter a code.", "tmpl-dt": "DT Cannon", "tmpl-pc": "Perfect Clear Setup", "tmpl-ren": "Center REN", "tmpl-tst": "TST Tower", "tmpl-hachi": "Hachimitsu Cannon", "tmpl-meisou": "Stray Cannon", "tmpl-back": "BACK", "tmpl-RS": "REN series", "tmpl-ES": "Elevator series", "tmpl-TS": "TD series", "tmpl-iev": "I mino elevator", "tmpl-jev": "J mino elevator", "tmpl-lev": "L mino elevator", "tmpl-hren": "Edge Opening", "tmpl-nren": "Center REN", "player-label": "PLAYER", "label-hold": "HOLD", "label-next": "NEXT", "label-score": "SCORE", victory: "VICTORY", defeat: "DEFEAT", gameover: "GAME OVER", "tab-play": "PLAY SETTINGS", "ospin-transform": "O-SPIN TRANSFORM", "ospin-transform-fixed": "I-mino (Fixed)", "ospin-transform-random": "Random (No O)", "tab-play": "PLAY SETTINGS", "ospin-transform": "O-SPIN TRANSFORM", "ospin-transform-fixed": "I-mino (Fixed)", "ospin-transform-random": "Random (No O)", "ospin-label": "O-SPIN ENABLED", "save-game": "SAVE GAME", "select-slot": "Select Slot", "save-name": "Save Name", "save-and-menu": "SAVE & EXIT TO MENU", "load-game": "LOAD GAME", "load-btn": "LOAD", "theme-default": "Default", "theme-retro": "Retro", "theme-light": "Light", "theme-dark": "Dark", "online-settings": "ROOM SETTINGS", "online-target-wins": "Target Wins", "online-party-mode": "Party Mode", "online-party-count": "Players (2-4)", "online-create-btn": "CREATE", "tmpl-cancel": "CANCEL", "key-pause": "PAUSE / CANCEL", "key-retry": "RETRY / RESTART", "pause-title": "PAUSED", "pause-msg": "Press PAUSE to Resume. Press RETRY to Restart.", "scale-label": "Screen Size", "btn-screen-scale": "Change Screen Size" },
-            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "solo-levelup": "ソロでレベル上昇", "stats-time": "タイム", "stats-lines": "ライン", "stats-level": "レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦", "online-quickmatch": "ランダムマッチ", "online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-TSPIN": "T-spin系", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-gmsr": "ガムシロ砲", "tmpl-hpc": "変なパフェ", "tmpl-trsn": "超螺旋", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "tab-play": "プレイ設定", "ospin-transform": "O-SPIN 変形先", "ospin-transform-fixed": "Iミノに変換 (固定)", "ospin-transform-random": "ランダム (O以外)", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク", "online-settings": "部屋設定", "online-target-wins": "目標勝利数", "online-party-mode": "パーティーモード", "online-party-count": "プレイ人数 (2-4)", "online-create-btn": "作成", "tmpl-cancel": "キャンセル", "key-pause": "ポーズ / キャンセル", "key-retry": "リトライ", "pause-title": "ポーズ中", "pause-msg": "ポーズボタンで再開。リトライボタンでやり直し。", "scale-label": "画面サイズ", "btn-screen-scale": "画面の大きさを変える" }
+            ja: { settings: "設定", "tab-general": "一般", "tab-ui": "UI設定", "tab-handling": "操作速度", "tab-keys": "キー配置", "label-lang": "言語設定", "label-name": "プレイヤー名", "label-theme": "テーマ", "label-level": "CPU レベル", "solo-levelup": "ソロでレベル上昇", "stats-time": "タイム", "stats-lines": "ライン", "stats-level": "レベル", "label-ghost": "影の透明度", "label-das": "横移動の溜め時間 (DAS)", "label-arr": "横移動の速さ (ARR)", "label-sdf": "ソフトドロップ速度 (SDF)", "key-left": "左に移動", "key-right": "右に移動", "key-soft": "ソフトドロップ", "key-hard": "ハードドロップ", "key-rotR": "右回転", "key-rotL": "左回転", "key-hold": "ホールド (メイン)", "key-hold2": "ホールド (サブ)", "save-close": "設定を保存して閉じる", "menu-solo": "一人でプレイ", "menu-cpu": "CPU対戦", "menu-template": "テンプレートモード", "menu-continue": "続きから始める", "menu-online": "対人戦","menu-replay":"リプレイを見る", "online-quickmatch": "ランダムマッチ", "menu-tutorial": "チュートリアル","online-searching": "対戦相手を検索中...", "online-err-full": "満室です", "online-create": "部屋を作る", "online-enter-code": "コードを入力", "online-join": "参加する", "online-lobby-title": "待機ルーム", "online-your-code": "あなたのルームコード", "online-waiting": "接続を待っています...", "online-connected": "接続完了！開始できます。", "online-start": "ゲームスタート", "online-leave": "部屋を退出", "online-err-notfound": "コードが間違っているか、無効です", "online-err-idinuse": "その部屋番号はすでに使われています", "online-err-empty": "コードを入力してください", "tmpl-dt": "DT砲", "tmpl-pc": "パフェテンプレ", "tmpl-nren": "中開けREN", "tmpl-gspc": "合掌パフェ", "tmpl-tst": "TSTタワー", "tmpl-hachi": "はちみつ砲", "tmpl-TSPIN": "T-spin系", "tmpl-meisou": "迷走砲", "tmpl-iev": "Iミノエレベーター", "tmpl-jev": "Jミノエレベーター", "tmpl-hren": "端開けREN", "tmpl-back": "戻る", "tmpl-RS": "REN系", "tmpl-ES": "エレベーター系", "tmpl-TS": "TD系テンプレ", "tmpl-PCS": "パフェ系", "tmpl-lev": "Lミノエレベーター", "tmpl-sgk2": "山岳積み2号", "tmpl-gmsr": "ガムシロ砲", "tmpl-hpc": "変なパフェ", "tmpl-trsn": "超螺旋", "player-label": "プレイヤー", "label-hold": "ホールド", "label-next": "ネクスト", "label-score": "スコア", victory: "勝利", defeat: "敗北", gameover: "ゲームオーバー", "tab-play": "プレイ設定", "ospin-transform": "O-SPIN 変形先", "ospin-transform-fixed": "Iミノに変換 (固定)", "ospin-transform-random": "ランダム (O以外)", "ospin-label": "O-SPIN可能？", "save-game": "ゲームをセーブ", "select-slot": "スロットを選択", "save-name": "セーブデータ名", "save-and-menu": "セーブしてメニューに戻る", "load-game": "続きから始める", "load-btn": "ロード", "theme-default": "デフォルト", "theme-retro": "レトロ", "theme-light": "ライト", "theme-dark": "ダーク", "online-settings": "部屋設定", "online-target-wins": "目標勝利数", "online-party-mode": "パーティーモード", "online-party-count": "プレイ人数 (2-4)", "online-create-btn": "作成", "tmpl-cancel": "キャンセル", "key-pause": "ポーズ / キャンセル", "key-retry": "リトライ", "pause-title": "ポーズ中", "pause-msg": "ポーズボタンで再開。リトライボタンでやり直し。", "scale-label": "画面サイズ", "btn-screen-scale": "画面の大きさを変える" }
         };
 
         const THEMES = {
@@ -2382,7 +2399,16 @@
         let connectionMonitorInterval = null;
         let onlineStateSequence = 0;
         let pingSerial = 0;
-        const REPLAY_FRAME_INTERVAL = 120;
+        const REPLAY_FRAME_INTERVAL = 33;
+        const REPLAY_ARCHIVE_DB_NAME = 'tetrisUltimateReplayArchive_v1';
+        const REPLAY_ARCHIVE_STORE = 'replays';
+        const REPLAY_ARCHIVE_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+        const REPLAY_SHARE_PEER_PREFIX = 'TETRIS-REPLAY-';
+        const REPLAY_CODE_WORDS_A = ['Happy', 'Lucky', 'Bright', 'Game', 'Pixel', 'Sky', 'Nova', 'Turbo', 'Magic', 'Sunny', 'Hyper', 'Cosmo', 'Dream', 'Silver', 'Ultra', 'Jolly', 'Rapid', 'Alpha', 'Candy', 'Classic'];
+        const REPLAY_CODE_WORDS_B = ['Tetris', 'Window', 'Stack', 'Block', 'Puzzle', 'Arena', 'Field', 'Crown', 'Tower', 'Dash', 'Planet', 'Storm', 'Board', 'Neon', 'Fusion', 'Rocket', 'Frame', 'Star', 'Knight', 'Spark'];
+        const REPLAY_CODE_WORDS_C = ['Rush', 'Wave', 'Beat', 'Flash', 'Burst', 'Drive', 'Shift', 'Loop', 'Note', 'Light', 'Zone', 'Core', 'Mode', 'Spin', 'Quest'];
+        let replayArchiveDbPromise = null;
+        let replaySharePeers = new Map();
 
         let firstTimeNameTemp = "Player1";
         let identityPeer = null;
@@ -2534,6 +2560,346 @@
             return Array.from({ length: count }, (_, i) => i === myIndex ? (cfg.playerName || `PLAYER ${i + 1}`) : `PLAYER ${i + 1}`);
         }
 
+        function normalizeReplayCode(value) {
+            return String(value || '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+        }
+
+        function buildReplaySharePeerId(code) {
+            const normalized = normalizeReplayCode(code).toUpperCase();
+            return normalized ? `${REPLAY_SHARE_PEER_PREFIX}${normalized}` : '';
+        }
+
+        function indexedDbRequestToPromise(request) {
+            return new Promise((resolve, reject) => {
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error || new Error('IndexedDB request failed'));
+            });
+        }
+
+        function indexedDbTransactionToPromise(transaction) {
+            return new Promise((resolve, reject) => {
+                transaction.oncomplete = () => resolve();
+                transaction.onerror = () => reject(transaction.error || new Error('IndexedDB transaction failed'));
+                transaction.onabort = () => reject(transaction.error || new Error('IndexedDB transaction aborted'));
+            });
+        }
+
+        function openReplayArchiveDb() {
+            if (replayArchiveDbPromise) return replayArchiveDbPromise;
+            replayArchiveDbPromise = new Promise((resolve, reject) => {
+                if (typeof indexedDB === 'undefined') {
+                    reject(new Error('IndexedDB is not available'));
+                    return;
+                }
+                const request = indexedDB.open(REPLAY_ARCHIVE_DB_NAME, 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains(REPLAY_ARCHIVE_STORE)) {
+                        const store = db.createObjectStore(REPLAY_ARCHIVE_STORE, { keyPath: 'codeKey' });
+                        store.createIndex('createdAt', 'createdAt', { unique: false });
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error || new Error('Failed to open replay archive'));
+            });
+            return replayArchiveDbPromise;
+        }
+
+        function createReplayCodeCandidate() {
+            const first = REPLAY_CODE_WORDS_A[Math.floor(Math.random() * REPLAY_CODE_WORDS_A.length)];
+            const second = REPLAY_CODE_WORDS_B[Math.floor(Math.random() * REPLAY_CODE_WORDS_B.length)];
+            const useThird = Math.random() < 0.38;
+            const third = useThird ? REPLAY_CODE_WORDS_C[Math.floor(Math.random() * REPLAY_CODE_WORDS_C.length)] : '';
+            const digitsLength = 4 + Math.floor(Math.random() * 3);
+            const max = 10 ** digitsLength;
+            const digits = Math.floor(Math.random() * max).toString().padStart(digitsLength, '0');
+            return `${first}${second}${third}${digits}`;
+        }
+
+        async function deleteReplayArchiveKeys(keys) {
+            if (!keys.length) return;
+            const db = await openReplayArchiveDb();
+            const tx = db.transaction(REPLAY_ARCHIVE_STORE, 'readwrite');
+            const store = tx.objectStore(REPLAY_ARCHIVE_STORE);
+            keys.forEach(key => {
+                if (key) store.delete(key);
+            });
+            await indexedDbTransactionToPromise(tx);
+            keys.forEach(key => closeReplaySharePeer(key));
+        }
+
+        async function listAllReplayArchiveEntriesRaw() {
+            const db = await openReplayArchiveDb();
+            const tx = db.transaction(REPLAY_ARCHIVE_STORE, 'readonly');
+            const store = tx.objectStore(REPLAY_ARCHIVE_STORE);
+            const entries = await indexedDbRequestToPromise(store.getAll());
+            await indexedDbTransactionToPromise(tx);
+            return Array.isArray(entries) ? entries : [];
+        }
+
+        async function getReplayArchiveEntries() {
+            const allEntries = await listAllReplayArchiveEntriesRaw();
+            const cutoff = Date.now() - REPLAY_ARCHIVE_RETENTION_MS;
+            const expiredKeys = [];
+            const activeEntries = [];
+            allEntries.forEach(entry => {
+                const createdAt = typeof entry.createdAt === 'number' ? entry.createdAt : 0;
+                if (createdAt >= cutoff) activeEntries.push(entry);
+                else if (entry.codeKey) expiredKeys.push(entry.codeKey);
+            });
+            if (expiredKeys.length) await deleteReplayArchiveKeys(expiredKeys);
+            activeEntries.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            return activeEntries;
+        }
+
+        async function listReplayArchiveEntries() {
+            const entries = await getReplayArchiveEntries();
+            syncReplaySharePeers(entries);
+            return entries;
+        }
+
+        async function replayArchiveCodeExists(codeKey) {
+            if (!codeKey) return false;
+            const db = await openReplayArchiveDb();
+            const tx = db.transaction(REPLAY_ARCHIVE_STORE, 'readonly');
+            const store = tx.objectStore(REPLAY_ARCHIVE_STORE);
+            const entry = await indexedDbRequestToPromise(store.get(codeKey));
+            await indexedDbTransactionToPromise(tx);
+            return !!entry;
+        }
+
+        async function generateUniqueReplayCode(maxAttempts = 40) {
+            for (let i = 0; i < maxAttempts; i++) {
+                const code = createReplayCodeCandidate();
+                const codeKey = normalizeReplayCode(code);
+                if (!codeKey) continue;
+                if (!(await replayArchiveCodeExists(codeKey))) return code;
+            }
+            const fallbackNumber = Date.now().toString().slice(-6);
+            return `ReplayWindow${fallbackNumber}`;
+        }
+
+        async function getReplayArchiveEntryByCode(code) {
+            const codeKey = normalizeReplayCode(code);
+            if (!codeKey) return null;
+            const db = await openReplayArchiveDb();
+            const tx = db.transaction(REPLAY_ARCHIVE_STORE, 'readonly');
+            const store = tx.objectStore(REPLAY_ARCHIVE_STORE);
+            const entry = await indexedDbRequestToPromise(store.get(codeKey));
+            await indexedDbTransactionToPromise(tx);
+            if (!entry) return null;
+            const cutoff = Date.now() - REPLAY_ARCHIVE_RETENTION_MS;
+            if ((entry.createdAt || 0) < cutoff) {
+                await deleteReplayArchiveKeys([codeKey]);
+                return null;
+            }
+            return entry;
+        }
+
+        async function saveReplayArchiveEntry(entry) {
+            if (!entry || !entry.replayData || !entry.replayData.frames || entry.replayData.frames.length < 2) return null;
+            const normalizedEntry = cloneReplayValue(entry);
+            normalizedEntry.codeKey = normalizeReplayCode(normalizedEntry.code);
+            if (!normalizedEntry.codeKey) return null;
+            normalizedEntry.createdAt = typeof normalizedEntry.createdAt === 'number' ? normalizedEntry.createdAt : Date.now();
+            normalizedEntry.savedAt = Date.now();
+            const db = await openReplayArchiveDb();
+            const tx = db.transaction(REPLAY_ARCHIVE_STORE, 'readwrite');
+            tx.objectStore(REPLAY_ARCHIVE_STORE).put(normalizedEntry);
+            await indexedDbTransactionToPromise(tx);
+            ensureReplaySharePeerForEntry(normalizedEntry);
+            return normalizedEntry;
+        }
+
+        async function importReplayArchiveEntry(entry, isRemote = false) {
+            if (!entry || !entry.replayData || !entry.replayData.frames || entry.replayData.frames.length < 2) return null;
+            const imported = cloneReplayValue(entry);
+            imported.codeKey = normalizeReplayCode(imported.code);
+            if (!imported.codeKey) return null;
+            imported.source = isRemote ? 'remote' : (imported.source || 'local');
+            imported.receivedAt = isRemote ? Date.now() : (imported.receivedAt || null);
+            if (!imported.summary) imported.summary = {};
+            imported.summary.replayCode = imported.code;
+            return saveReplayArchiveEntry(imported);
+        }
+
+        function closeReplaySharePeer(codeKey) {
+            const peerInstance = replaySharePeers.get(codeKey);
+            if (!peerInstance) return;
+            replaySharePeers.delete(codeKey);
+            try {
+                peerInstance.destroy();
+            } catch (err) {
+                console.warn('Failed to close replay share peer:', err);
+            }
+        }
+
+        function ensureReplaySharePeerForEntry(entry) {
+            if (typeof Peer !== 'function' || !entry || !entry.code) return;
+            const codeKey = normalizeReplayCode(entry.code);
+            if (!codeKey || replaySharePeers.has(codeKey)) return;
+            const peerId = buildReplaySharePeerId(entry.code);
+            if (!peerId) return;
+            try {
+                const replayPeer = createPeerInstance(peerId, { debug: 0 });
+                replaySharePeers.set(codeKey, replayPeer);
+                replayPeer.on('connection', (shareConn) => {
+                    shareConn.on('data', async (data) => {
+                        if (!data || data.type !== 'replay_request') return;
+                        try {
+                            const latestEntry = await getReplayArchiveEntryByCode(entry.code);
+                            if (shareConn.open) {
+                                shareConn.send({
+                                    type: 'replay_archive_payload',
+                                    entry: latestEntry ? cloneReplayValue(latestEntry) : null
+                                });
+                            }
+                        } catch (err) {
+                            console.warn('Failed to serve replay archive entry:', err);
+                            if (shareConn.open) shareConn.send({ type: 'replay_archive_payload', entry: null });
+                        }
+                    });
+                });
+                replayPeer.on('error', (err) => {
+                    if (err && err.type !== 'unavailable-id') {
+                        console.warn('Replay share peer error:', err);
+                    }
+                    if (replaySharePeers.get(codeKey) === replayPeer) replaySharePeers.delete(codeKey);
+                });
+                replayPeer.on('close', () => {
+                    if (replaySharePeers.get(codeKey) === replayPeer) replaySharePeers.delete(codeKey);
+                });
+            } catch (err) {
+                console.warn('Failed to create replay share peer:', err);
+            }
+        }
+
+        function syncReplaySharePeers(entries = []) {
+            if (typeof Peer !== 'function') return;
+            const desiredKeys = new Set(entries.map(entry => normalizeReplayCode(entry.code)).filter(Boolean));
+            Array.from(replaySharePeers.keys()).forEach(codeKey => {
+                if (!desiredKeys.has(codeKey)) closeReplaySharePeer(codeKey);
+            });
+            entries.forEach(entry => ensureReplaySharePeerForEntry(entry));
+        }
+
+        function requestReplayArchiveFromNetwork(code) {
+            return new Promise((resolve, reject) => {
+                if (typeof Peer !== 'function') {
+                    reject(new Error('PeerJS is unavailable'));
+                    return;
+                }
+                const peerId = buildReplaySharePeerId(code);
+                if (!peerId) {
+                    reject(new Error('Invalid replay code'));
+                    return;
+                }
+                let lookupPeer = null;
+                let lookupConn = null;
+                let settled = false;
+                const finish = (callback, value) => {
+                    if (settled) return;
+                    settled = true;
+                    clearTimeout(timeoutId);
+                    try {
+                        if (lookupConn) lookupConn.close();
+                    } catch (err) {
+                        console.warn('Failed to close replay lookup connection:', err);
+                    }
+                    try {
+                        if (lookupPeer) lookupPeer.destroy();
+                    } catch (err) {
+                        console.warn('Failed to close replay lookup peer:', err);
+                    }
+                    callback(value);
+                };
+                const timeoutId = setTimeout(() => finish(reject, new Error('Replay lookup timed out')), 9000);
+                try {
+                    lookupPeer = createPeerInstance(generateClientPeerId('TETRIS-RLOOKUP'), { debug: 0 });
+                    lookupPeer.on('open', () => {
+                        lookupConn = lookupPeer.connect(peerId, { reliable: true });
+                        lookupConn.on('open', () => {
+                            lookupConn.send({ type: 'replay_request', code: normalizeReplayCode(code) });
+                        });
+                        lookupConn.on('data', (data) => {
+                            if (!data || data.type !== 'replay_archive_payload') return;
+                            if (!data.entry) finish(reject, new Error('Replay not found'));
+                            else finish(resolve, data.entry);
+                        });
+                        lookupConn.on('error', (err) => finish(reject, err || new Error('Replay lookup failed')));
+                        lookupConn.on('close', () => {
+                            if (!settled) finish(reject, new Error('Replay connection closed'));
+                        });
+                    });
+                    lookupPeer.on('error', (err) => finish(reject, err || new Error('Replay lookup peer failed')));
+                } catch (err) {
+                    finish(reject, err);
+                }
+            });
+        }
+
+        function getReplayArchiveOwnerName(replayData) {
+            if (!replayData || !replayData.meta) return cfg.playerName || 'PLAYER 1';
+            if (replayData.meta.mode === 'party') {
+                const names = replayData.meta.playerNames || [];
+                const myIndex = typeof replayData.meta.myIndex === 'number' ? replayData.meta.myIndex : 0;
+                return names[myIndex] || cfg.playerName || 'PLAYER 1';
+            }
+            return replayData.meta.playerName || cfg.playerName || 'PLAYER 1';
+        }
+
+        function getReplayArchiveOpponentNames(replayData) {
+            if (!replayData || !replayData.meta) return [];
+            if (replayData.meta.mode === 'party') {
+                const names = replayData.meta.playerNames || [];
+                const myIndex = typeof replayData.meta.myIndex === 'number' ? replayData.meta.myIndex : 0;
+                return names.filter((_, index) => index !== myIndex);
+            }
+            return (replayData.meta.opponents || []).map(opp => opp.name).filter(Boolean);
+        }
+
+        function broadcastReplayArchiveEntry(entry, skipConnection = null) {
+            if (!entry) return;
+            const payload = { type: 'replay_archive', entry: cloneReplayValue(entry) };
+            if (conn && conn.open && conn !== skipConnection) {
+                try { conn.send(payload); } catch (err) { console.warn('Failed to send replay archive:', err); }
+            }
+            partyClients.forEach(client => {
+                if (!client || !client.open || client === skipConnection) return;
+                try {
+                    client.send(payload);
+                } catch (err) {
+                    console.warn('Failed to send replay archive:', err);
+                }
+            });
+        }
+
+        async function persistLastReplayArchive(summary) {
+            if (!lastReplayData || !lastReplayData.frames || lastReplayData.frames.length < 2) return null;
+            const code = await generateUniqueReplayCode();
+            const entry = {
+                code,
+                createdAt: Date.now(),
+                source: 'local',
+                ownerName: getReplayArchiveOwnerName(lastReplayData),
+                opponentNames: getReplayArchiveOpponentNames(lastReplayData),
+                summary: {
+                    ...cloneReplayValue(summary),
+                    replayCode: code
+                },
+                replayData: cloneReplayValue(lastReplayData)
+            };
+            const savedEntry = await saveReplayArchiveEntry(entry);
+            if (savedEntry) {
+                broadcastReplayArchiveEntry(savedEntry);
+                const replayMenu = document.getElementById('replay-menu');
+                if (replayMenu && replayMenu.style.display === 'block') {
+                    renderReplayArchiveList(await listReplayArchiveEntries());
+                }
+            }
+            return savedEntry;
+        }
+
         function captureReplayFrame(timestamp = performance.now(), force = false) {
             if (!activeMatchSession) return;
             const isPartyReplay = activeMatchSession.mode === 'party';
@@ -2583,15 +2949,18 @@
             if (activeMatchSession.mode === 'party' && window.partyModeInstance) {
                 meta.playerCount = window.partyModeInstance.playerCount;
                 meta.myIndex = window.partyModeInstance.myIndex;
-                meta.playerNames = getReplayNameList(meta.playerCount, meta.myIndex);
+                meta.playerNames = cloneReplayValue(window.partyModeInstance.playerNames || getReplayNameList(meta.playerCount, meta.myIndex));
             } else if (activeMatchSession.mode === 'online') {
-                meta.playerName = cfg.playerName || 'PLAYER 1';
+                meta.playerName = (p1 && p1.displayName) || cfg.playerName || 'PLAYER 1';
                 meta.opponents = opponents.map((opp, index) => ({
                     networkId: typeof opp.networkId === 'number' ? opp.networkId : index + 1,
-                    name: `PLAYER ${(typeof opp.networkId === 'number' ? opp.networkId : index + 1) + 1}`
+                    name: opp.displayName || `PLAYER ${(typeof opp.networkId === 'number' ? opp.networkId : index + 1) + 1}`
                 }));
             } else if (activeMatchSession.mode === 'cpu') {
+                meta.playerName = (p1 && p1.displayName) || cfg.playerName || 'PLAYER 1';
                 meta.cpuLabel = `CPU LV.${cfg.lv}`;
+            } else {
+                meta.playerName = (p1 && p1.displayName) || cfg.playerName || 'PLAYER 1';
             }
 
             return {
@@ -2719,6 +3088,7 @@
                 ['MAX REN', String(summary.maxRen)],
                 ['RECV', String(summary.garbageReceived)],
                 ['RULE', summary.ruleText],
+                ['REPLAY', summary.replayCode || '---'],
                 ['RATING', summary.ratingText]
             ];
             document.getElementById('match-summary-rows').innerHTML = rows.map(([label, value]) =>
@@ -2778,7 +3148,7 @@
                 disconnect: cfg.lang === 'ja' ? '通信切断' : 'Disconnected'
             };
             const ratingDelta = updateRatingFromSummary(result);
-            pendingMatchSummary = {
+            const summary = {
                 resultText: resultTextMap[result] || result,
                 reasonText: reasonTextMap[reason] || reason,
                 modeLabel: getMatchModeLabel(activeMatchSession.mode),
@@ -2793,8 +3163,26 @@
                 garbageReceived: stats.garbageReceived || 0,
                 timeline: [...activeMatchSession.timeline],
                 ruleText: `LV${activeMatchSession.ruleSet.startLevel} / x${activeMatchSession.ruleSet.garbageMultiplier.toFixed(1)} / HOLD ${activeMatchSession.ruleSet.allowHold ? 'ON' : 'OFF'}`,
-                ratingText: ratingDelta === 0 ? `${playerProfile.rating}` : `${playerProfile.rating} (${ratingDelta > 0 ? '+' : ''}${ratingDelta})`
+                ratingText: ratingDelta === 0 ? `${playerProfile.rating}` : `${playerProfile.rating} (${ratingDelta > 0 ? '+' : ''}${ratingDelta})`,
+                replayCode: cfg.lang === 'ja' ? '発行中...' : 'Generating...'
             };
+            pendingMatchSummary = summary;
+            persistLastReplayArchive(summary).then((savedEntry) => {
+                if (!savedEntry) {
+                    summary.replayCode = cfg.lang === 'ja' ? '未保存' : 'Unavailable';
+                } else {
+                    summary.replayCode = savedEntry.code;
+                }
+                if (pendingMatchSummary === summary && document.getElementById('match-summary-overlay').style.display === 'flex') {
+                    renderMatchSummary(summary);
+                }
+            }).catch((err) => {
+                console.warn('Failed to persist replay archive:', err);
+                summary.replayCode = cfg.lang === 'ja' ? '保存失敗' : 'Save failed';
+                if (pendingMatchSummary === summary && document.getElementById('match-summary-overlay').style.display === 'flex') {
+                    renderMatchSummary(summary);
+                }
+            });
         }
 
         function closeMatchSummary() {
@@ -2868,12 +3256,14 @@
                 meters.forEach(m => m.style.display = 'none');
                 document.getElementById('cpu-field').style.display = 'none';
                 p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', null, true);
+                p1.displayName = replayData.meta.playerName || cfg.playerName || 'PLAYER 1';
             } else if (replayData.meta.mode === 'cpu') {
                 meters.forEach(m => m.style.display = 'block');
                 document.getElementById('cpu-field').style.display = 'flex';
                 document.getElementById('current-lv').innerText = cfg.lv;
                 p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', null, true);
                 cpu = new Tetris('c-canvas', 'c-hold', 'c-next', 'c-score', true, 'c-action-layer', 'c-meter', null, true);
+                p1.displayName = replayData.meta.playerName || cfg.playerName || 'PLAYER 1';
             } else {
                 meters.forEach(m => m.style.display = 'block');
                 document.getElementById('cpu-field').style.display = 'none';
@@ -2885,6 +3275,7 @@
                 gameView.appendChild(opponentsContainer);
 
                 p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', null, true);
+                p1.displayName = replayData.meta.playerName || cfg.playerName || 'PLAYER 1';
                 cpu = null;
                 opponents = [];
                 (replayData.meta.opponents || []).forEach((oppMeta, index) => {
@@ -2894,6 +3285,7 @@
                     newOpp.isNetworkPlayer = true;
                     newOpp.isAI = true;
                     newOpp.networkId = oppMeta.networkId;
+                    newOpp.displayName = oppMeta.name || `PLAYER ${index + 2}`;
                     opponents.push(newOpp);
                 });
                 p1.opponents = opponents;
@@ -2983,6 +3375,7 @@
             partyView.appendChild(rightUI);
 
             window.partyModeInstance = new PartyTetris('party-canvas', playerCount, myIndex);
+            window.partyModeInstance.playerNames = cloneReplayValue(playerNames);
             p1 = null;
             cpu = null;
             opponents = [];
@@ -3038,12 +3431,13 @@
             requestAnimationFrame(stepReplayPlayback);
         }
 
-        function startReplayPlayback() {
-            if (!lastReplayData || !lastReplayData.frames || lastReplayData.frames.length < 2) {
+        function startReplayPlayback(replayData = lastReplayData, options = {}) {
+            if (!replayData || !replayData.frames || replayData.frames.length < 2) {
                 showToast(cfg.lang === 'ja' ? "リプレイできるデータがありません" : "No replay data available.");
                 return;
             }
 
+            lastReplayData = cloneReplayValue(replayData);
             isReplayPlayback = true;
             isPaused = true;
             replayPlayback = {
@@ -3053,7 +3447,8 @@
                 elapsedMs: 0,
                 durationMs: lastReplayData.frames[lastReplayData.frames.length - 1].at || 0,
                 paused: false,
-                lastTick: 0
+                lastTick: 0,
+                returnToSummary: options.returnToSummary !== false
             };
 
             document.getElementById('match-summary-overlay').style.display = 'none';
@@ -3068,6 +3463,7 @@
 
         function stopReplayPlayback() {
             if (!isReplayPlayback) return;
+            if (!replayPlayback || replayPlayback.returnToSummary === false) pendingMatchSummary = null;
             isReplayPlayback = false;
             replayPlayback = null;
             setReplayControlsVisible(false);
@@ -3599,6 +3995,7 @@
             resetDisp('room-settings-menu', 'none');
             resetDisp('online-lobby', 'none');
             resetDisp('quick-match-lobby', 'none'); // Fix menu bug
+            resetDisp('replay-menu', 'none');
             resetDisp('template-menu', 'none');
             resetDisp('mode-select-menu', 'none');
 
@@ -3893,7 +4290,10 @@
             onlineStateCache[normalizedId] = state;
             if (opponents.length === 0) return;
             const opp = opponents.find(o => o.networkId === normalizedId);
-            if (opp) opp.setState(state);
+            if (opp) {
+                opp.setState(state);
+                captureReplayFrame(performance.now());
+            }
         }
 
         function broadcastMultiState() {
@@ -4092,11 +4492,38 @@
         function showOnlineMenu() {
             document.getElementById('main-menu-btns').style.display = 'none';
             document.getElementById('online-menu').style.display = 'block';
+            updateOnlineLobbyExitButton();
         }
 
         function hideOnlineMenu() {
             document.getElementById('online-menu').style.display = 'none';
             document.getElementById('main-menu-btns').style.display = 'block';
+        }
+
+        function updateOnlineLobbyExitButton() {
+            const button = document.getElementById('btn-online-exit');
+            if (!button) return;
+            button.innerText = (isHost && !isQuickMatch)
+                ? 'DISBAND ROOM / 部屋を解散'
+                : 'LEAVE ROOM / 部屋を退出';
+        }
+
+        function handleOnlineLobbyExit() {
+            if (isHost && !isQuickMatch) {
+                if (conn && conn.open) {
+                    try { conn.send({ type: 'room_closed' }); } catch (err) { console.warn('Failed to notify room closure:', err); }
+                }
+                partyClients.forEach(client => {
+                    if (!client || !client.open) return;
+                    try {
+                        client.send({ type: 'room_closed' });
+                    } catch (err) {
+                        console.warn('Failed to notify room closure:', err);
+                    }
+                });
+                showToast(cfg.lang === 'ja' ? "部屋を解散しました" : "Room disbanded.");
+            }
+            disconnectOnline();
         }
 
         function showRoomSettings() {
@@ -4306,6 +4733,10 @@
                     document.getElementById('lobby-p3-name').innerText = data.names[2];
                     document.getElementById('lobby-p4-name').innerText = data.names[3];
                 }
+                else if (data.type === 'room_closed') {
+                    showToast(cfg.lang === 'ja' ? "部屋が解散されました" : "The room was disbanded.");
+                    disconnectOnline();
+                }
                 else if (data.type === 'start') {
                     startOnlineGameExecution(2, 1);
                 }
@@ -4419,6 +4850,18 @@
                         window.partyModeInstance.gameOver(data.winner);
                     }
                 }
+                else if (data.type === 'replay_archive') {
+                    importReplayArchiveEntry(data.entry, true).then((savedEntry) => {
+                        if (!savedEntry) return;
+                        if (isHost && !isQuickMatch) broadcastReplayArchiveEntry(savedEntry, connection);
+                        const replayMenu = document.getElementById('replay-menu');
+                        if (replayMenu && replayMenu.style.display === 'block') {
+                            listReplayArchiveEntries().then(renderReplayArchiveList).catch(err => console.warn('Failed to refresh replay list:', err));
+                        }
+                    }).catch((err) => {
+                        console.warn('Failed to import remote replay archive:', err);
+                    });
+                }
             });
 
             connection.on('error', (err) => {
@@ -4503,6 +4946,7 @@
                 document.getElementById('btn-start-online').style.display = 'none';
                 document.getElementById('lobby-status').innerText = TRANSLATIONS[cfg.lang]["online-waiting"];
                 document.getElementById('lobby-status').style.color = '#ffaa00';
+                updateOnlineLobbyExitButton();
 
                 peer.on('connection', (connection) => {
                     if (partyClients.length >= targetPartyCount - 1 || isOnline) {
@@ -4537,6 +4981,7 @@
                 document.getElementById('lobby-p2-name').innerText = cfg.playerName;
                 document.getElementById('lobby-status').innerText = TRANSLATIONS[cfg.lang]["online-waiting"] || "Connecting...";
                 document.getElementById('btn-start-online').style.display = 'none';
+                updateOnlineLobbyExitButton();
 
                 try {
                     const connection = peer.connect(targetId, { reliable: true });
@@ -4728,6 +5173,7 @@
             if (showMenu) document.getElementById('online-menu').style.display = 'block';
             restoreGameViewLayout();
             resetOnlineLobby();
+            updateOnlineLobbyExitButton();
             clearLobbyChat();
             resetConnectionQuality();
             resumeIdentityReservation();
@@ -4803,6 +5249,7 @@
 
             isPaused = false;
             p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter');
+            p1.displayName = cfg.playerName || 'PLAYER 1';
             cpu = null;
             opponents = [];
 
@@ -4869,6 +5316,7 @@
                 newOpp.isNetworkPlayer = true;
                 newOpp.isAI = true; // Just passive
                 newOpp.networkId = i;
+                newOpp.displayName = name;
                 if (onlineStateCache[i]) newOpp.setState(onlineStateCache[i]);
                 else {
                     newOpp.updateUI();
@@ -4950,6 +5398,7 @@
 
             centerUI.appendChild(canvasWrap);
 
+            const partyPlayerNames = [];
             for (let i = 0; i < playerCount; i++) {
                 let name = "---";
                 if (isHost) {
@@ -4962,6 +5411,7 @@
                     else if (i === myIndex) name = cfg.playerName; // My name
                     else name = document.getElementById(`lobby-p${i + 1}-name`).innerText; // Other clients
                 }
+                partyPlayerNames[i] = name;
 
                 let pUI = document.createElement('div');
                 pUI.className = 'board-area';
@@ -4999,6 +5449,7 @@
             p1 = null; cpu = null;
 
             window.partyModeInstance = new PartyTetris('party-canvas', playerCount, myIndex);
+            window.partyModeInstance.playerNames = cloneReplayValue(partyPlayerNames);
             captureReplayFrame(performance.now(), true);
 
             if (!lastTime) animate();
@@ -5006,6 +5457,126 @@
 
         // --- Menu Functions ---
         let selectedTemplate = null;
+
+        function formatReplayArchiveDate(timestamp) {
+            const date = new Date(timestamp || Date.now());
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            const hh = String(date.getHours()).padStart(2, '0');
+            const mi = String(date.getMinutes()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd} ${hh}:${mi}`;
+        }
+
+        function renderReplayArchiveList(entries) {
+            const list = document.getElementById('replay-archive-list');
+            if (!list) return;
+            if (!entries || !entries.length) {
+                list.innerHTML = `
+                    <div style="padding:18px; border:1px dashed #335066; border-radius:10px; color:#8ea6b6; background:rgba(10,16,24,0.6);">
+                        ${cfg.lang === 'ja' ? '直近1か月のリプレイはまだありません。' : 'No replays from the last 30 days yet.'}
+                    </div>
+                `;
+                return;
+            }
+            list.innerHTML = entries.map(entry => {
+                const summary = entry.summary || {};
+                const ownerName = escapeHtml(entry.ownerName || getReplayArchiveOwnerName(entry.replayData));
+                const opponentNames = escapeHtml((entry.opponentNames || []).slice(0, 3).join(', ') || '---');
+                const replayCode = escapeHtml(entry.code || '---');
+                const sourceTag = entry.source === 'remote'
+                    ? (cfg.lang === 'ja' ? 'SHARED / 共有' : 'SHARED')
+                    : (cfg.lang === 'ja' ? 'LOCAL / 保存済み' : 'LOCAL');
+                return `
+                    <div style="background:rgba(8,12,18,0.92); border:1px solid #29485f; border-radius:12px; padding:14px 16px; text-align:left;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+                            <div>
+                                <div style="font-size:18px; color:#fff; font-weight:bold; letter-spacing:0.6px;">${replayCode}</div>
+                                <div style="font-size:12px; color:#7fa4b8; margin-top:4px;">${escapeHtml(summary.modeLabel || getMatchModeLabel(entry.replayData && entry.replayData.meta ? entry.replayData.meta.mode : 'solo'))} / ${escapeHtml(summary.resultText || 'RESULT')}</div>
+                            </div>
+                            <div style="font-size:11px; color:#8ea6b6;">${escapeHtml(sourceTag)}<br>${escapeHtml(formatReplayArchiveDate(entry.createdAt))}</div>
+                        </div>
+                        <div style="margin-top:10px; font-size:12px; color:#d8e6f2;">OWNER: <strong style="color:#fff;">${ownerName}</strong></div>
+                        <div style="margin-top:6px; font-size:12px; color:#9fb2c0;">VS: ${opponentNames}</div>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                            <button class="menu-btn" style="margin:0; min-width:140px;" onclick="playReplayArchiveByCode('${entry.code}')">WATCH / 再生</button>
+                            <button class="menu-btn" style="margin:0; min-width:140px;" onclick="fillReplayCodeInput('${entry.code}')">USE CODE / コード入力</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function fillReplayCodeInput(code) {
+            const input = document.getElementById('replay-code-input');
+            if (input) input.value = code || '';
+        }
+
+        async function showReplayMenu() {
+            document.getElementById('main-menu-btns').style.display = 'none';
+            document.getElementById('tutorial-menu').style.display = 'none';
+            document.getElementById('online-menu').style.display = 'none';
+            document.getElementById('room-settings-menu').style.display = 'none';
+            document.getElementById('online-lobby').style.display = 'none';
+            document.getElementById('quick-match-lobby').style.display = 'none';
+            document.getElementById('template-menu').style.display = 'none';
+            document.getElementById('mode-select-menu').style.display = 'none';
+            document.getElementById('replay-menu').style.display = 'block';
+            try {
+                renderReplayArchiveList(await listReplayArchiveEntries());
+            } catch (err) {
+                console.warn('Failed to load replay archive:', err);
+                renderReplayArchiveList([]);
+            }
+        }
+
+        function hideReplayMenu() {
+            document.getElementById('replay-menu').style.display = 'none';
+            updateTutorialEntryUI();
+        }
+
+        function playReplayArchiveEntry(entry) {
+            if (!entry || !entry.replayData || !entry.replayData.frames || entry.replayData.frames.length < 2) {
+                showToast(cfg.lang === 'ja' ? "リプレイデータが壊れています" : "Replay data is invalid.");
+                return;
+            }
+            document.getElementById('replay-menu').style.display = 'none';
+            pendingMatchSummary = null;
+            startReplayPlayback(cloneReplayValue(entry.replayData), { returnToSummary: false });
+        }
+
+        async function playReplayArchiveByCode(code) {
+            fillReplayCodeInput(code);
+            await openReplayByCode();
+        }
+
+        async function openReplayByCode() {
+            const input = document.getElementById('replay-code-input');
+            const requestedCode = (input ? input.value : '').trim();
+            if (!requestedCode) {
+                showToast(cfg.lang === 'ja' ? "リプレイコードを入力してください" : "Please enter a replay code.");
+                return;
+            }
+
+            try {
+                let entry = await getReplayArchiveEntryByCode(requestedCode);
+                if (!entry) {
+                    showToast(cfg.lang === 'ja' ? "コードを検索しています..." : "Searching replay code...");
+                    const remoteEntry = await requestReplayArchiveFromNetwork(requestedCode);
+                    entry = await importReplayArchiveEntry(remoteEntry, true);
+                    renderReplayArchiveList(await listReplayArchiveEntries());
+                }
+                if (!entry) {
+                    showToast(cfg.lang === 'ja' ? "そのコードのリプレイは見つかりませんでした" : "Replay code not found.");
+                    return;
+                }
+                fillReplayCodeInput(entry.code);
+                playReplayArchiveEntry(entry);
+            } catch (err) {
+                console.warn('Failed to open replay by code:', err);
+                showToast(cfg.lang === 'ja' ? "そのコードのリプレイを取得できませんでした" : "Could not load that replay code.");
+            }
+        }
 
         function showTemplateMenu() {
             document.getElementById('main-menu-btns').style.display = 'none';
@@ -5289,6 +5860,7 @@
                     this.showAction("FOCUS");
                 }
                 this.updateUI();
+                captureReplayFrame(performance.now(), true);
                 return true;
             }
 
@@ -5329,7 +5901,12 @@
                     targetBoard: this.targetBoard ? this.targetBoard.map(row => row.map(v => v === -1 ? '.' : v).join('')) : null,
                     bombCountdown: this.bombCountdown,
                     lockDelayCounter: this.lockDelayCounter,
-                    dropCounter: this.dropCounter
+                    dropCounter: this.dropCounter,
+                    effects: cloneReplayValue(this.effects),
+                    oSpinRotCount: this.oSpinRotCount || 0,
+                    oSpinTimer: this.oSpinTimer || 0,
+                    isOtransformed: !!this.isOtransformed,
+                    lastMoveRotate: !!this.lastMoveRotate
                 };
             }
 
@@ -5364,6 +5941,11 @@
                 this.lockDelayCounter = state.lockDelayCounter || 0;
                 this.dropCounter = state.dropCounter || 0;
                 this.bombCountdown = typeof state.bombCountdown === 'number' ? state.bombCountdown : this.getBombSpawnInterval();
+                this.effects = cloneReplayValue(state.effects || { speedUpUntil: 0, slowUntil: 0 });
+                this.oSpinRotCount = state.oSpinRotCount || 0;
+                this.oSpinTimer = state.oSpinTimer || 0;
+                this.isOtransformed = !!state.isOtransformed;
+                this.lastMoveRotate = !!state.lastMoveRotate;
                 this.updateUI();
                 this.updateMeter();
                 refreshSkillPanel(this);
@@ -5495,6 +6077,7 @@
                                 this.isOtransformed = true; this.showAction("O-SPIN");
                         }
                     }
+                    captureReplayFrame(performance.now(), true);
                 } else { this.player.matrix = oldM; this.player.pos = { ...oldP }; }
                 if (!this.isAI) syncSoloCpuHint();
             }
@@ -5507,6 +6090,7 @@
                     return false;
                 }
                 this.lastMoveRotate = false; this.lockDelayCounter = 0;
+                captureReplayFrame(performance.now());
                 if (!this.isAI) syncSoloCpuHint();
                 return true;
             }
@@ -5534,6 +6118,7 @@
                     this.updateUI();
                 }
                 this.lock();
+                captureReplayFrame(performance.now(), true);
             }
 
             detonateBomb() {
@@ -5561,6 +6146,7 @@
                 }
                 this.player.pieces++;
                 this.sweep(tSpinInfo); this.reset();
+                captureReplayFrame(performance.now(), true);
             }
 
             checkTSpin() {
@@ -5679,7 +6265,7 @@
                 this.updateUI();
             }
 
-            receiveGarbage(n) { this.pendingGarbage += n; this.player.garbageReceived = (this.player.garbageReceived || 0) + n; this.updateMeter(); }
+            receiveGarbage(n) { this.pendingGarbage += n; this.player.garbageReceived = (this.player.garbageReceived || 0) + n; this.updateMeter(); captureReplayFrame(performance.now(), true); }
             pushGarbageToArena(n) {
                 for (let i = 0; i < n; i++) {
                     const r = new Array(this.getBoardWidth()).fill(8);
@@ -5707,6 +6293,7 @@
                 if (this.isAI) this.aiPlan();
                 this.updateUI();
                 refreshSkillPanel(this);
+                captureReplayFrame(performance.now(), true);
                 if (!this.isAI) syncSoloCpuHint();
             }
 
@@ -6233,7 +6820,7 @@
                     if (!this.collide(this.me.matrix, this.me.pos)) { success = true; break; }
                     this.me.pos = { ...oldP };
                 }
-                if (success) { this.me.rotation = newR; this.me.lockDelayCounter = 0; }
+                if (success) { this.me.rotation = newR; this.me.lockDelayCounter = 0; captureReplayFrame(performance.now(), true); }
                 else { this.me.matrix = oldM; this.me.pos = { ...oldP }; }
             }
 
@@ -6241,7 +6828,7 @@
                 if (this.me.isDead) return false;
                 this.me.pos.x += dir;
                 if (this.collide(this.me.matrix, this.me.pos)) { this.me.pos.x -= dir; return false; }
-                this.me.lockDelayCounter = 0; return true;
+                this.me.lockDelayCounter = 0; captureReplayFrame(performance.now()); return true;
             }
 
             playerDrop(isSoftDrop = false) {
@@ -6259,6 +6846,7 @@
                 this.me.score += dropped * 2;
                 this.updateUI();
                 this.lock();
+                captureReplayFrame(performance.now(), true);
             }
 
             playerHold() {
@@ -6272,6 +6860,7 @@
                 } else this.reset();
                 this.me.holdType = curType; this.me.holdColor = curColor; this.me.canHold = false;
                 this.updateUI();
+                captureReplayFrame(performance.now(), true);
             }
 
             lock() {
@@ -6285,6 +6874,7 @@
                     conn.send(packet);
                 }
                 this.reset();
+                captureReplayFrame(performance.now(), true);
             }
 
             processLock(data) {
@@ -6338,6 +6928,7 @@
                 if (isHost) {
                     partyClients.forEach(c => c.send({ type: 'party_arena', arena: this.arena, cleared: lines }));
                 }
+                captureReplayFrame(performance.now(), true);
             }
 
             receiveGarbage(amount) {
@@ -6354,15 +6945,17 @@
                 if (isHost) {
                     partyClients.forEach(c => c.send({ type: 'party_arena', arena: this.arena, cleared: 0 }));
                 }
+                captureReplayFrame(performance.now(), true);
             }
 
             setState(state) {
-                if (state.arena) this.arena = state.arena;
+                if (state.arena && typeof state.arena[0] === 'string') this.arena = state.arena.map(row => row.split('').map(cell => parseInt(cell, 10) || 0));
+                else if (state.arena) this.arena = state.arena;
             }
 
             getReplayState() {
                 return {
-                    arena: cloneReplayValue(this.arena),
+                    arena: this.arena.map(row => row.join('')),
                     me: cloneReplayValue(this.me),
                     others: cloneReplayValue(this.others),
                     playersDead: cloneReplayValue(this.playersDead),
@@ -6372,7 +6965,8 @@
 
             applyReplayState(state) {
                 if (!state) return;
-                this.arena = cloneReplayValue(state.arena || this.arena);
+                if (state.arena && typeof state.arena[0] === 'string') this.arena = state.arena.map(row => row.split('').map(cell => parseInt(cell, 10) || 0));
+                else this.arena = cloneReplayValue(state.arena || this.arena);
                 this.me = cloneReplayValue(state.me || this.me);
                 this.others = cloneReplayValue(state.others || this.others);
                 this.playersDead = cloneReplayValue(state.playersDead || this.playersDead || {});
@@ -6764,6 +7358,7 @@
                 meters.forEach(m => m.style.display = 'block'); document.getElementById('cpu-field').style.display = 'flex';
                 p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', null, isLoad);
                 cpu = new Tetris('c-canvas', 'c-hold', 'c-next', 'c-score', true, 'c-action-layer', 'c-meter', null, isLoad);
+                p1.displayName = cfg.playerName || 'PLAYER 1';
                 applyRuleSetToActiveBoards(DEFAULT_ROOM_RULES);
                 if (playerTmpl) p1.applyTemplateSetup(playerTmpl);
                 beginMatchSession('cpu', DEFAULT_ROOM_RULES);
@@ -6772,6 +7367,7 @@
             } else {
                 meters.forEach(m => m.style.display = 'none'); document.getElementById('cpu-field').style.display = 'none';
                 p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', null, isLoad);
+                p1.displayName = cfg.playerName || 'PLAYER 1';
                 cpu = null;
                 applyRuleSetToActiveBoards(DEFAULT_ROOM_RULES);
                 if (playerTmpl) p1.applyTemplateSetup(playerTmpl);
@@ -6803,8 +7399,12 @@
             saveCfg();
             updateUIFromCfg();
             updateTutorialEntryUI();
-            showToast(cfg.lang === 'ja' ? "チュートリアル完了！" : "Tutorial Completed!");
+            showToast(cfg.lang === 'ja' ? "チュートリアル完了！設定を確認してください" : "Tutorial Completed! Please review your settings.");
             returnToMenu();
+            const settingsOverlay = document.getElementById('settings-overlay');
+            if (settingsOverlay.style.display !== 'flex') {
+                toggleSettings();
+            }
         }
 
         function toggleSettings() { const s = document.getElementById('settings-overlay').style; s.display = s.display === 'flex' ? 'none' : 'flex'; }
@@ -6928,6 +7528,8 @@
         bindPartyRuleCardInteractions();
         syncPartyRuleSelectionUI();
         updateTouchControlsVisibility();
+        updateOnlineLobbyExitButton();
+        listReplayArchiveEntries().catch(err => console.warn('Replay archive bootstrap failed:', err));
 
         if (cfg.hasCompletedTutorial) {
             // Reserve my name globally
