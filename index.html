@@ -1411,12 +1411,12 @@
         <div class="modal-card" style="text-align: center; max-width: 350px;">
             <h2 style="margin-bottom: 20px;" data-tr="welcome-msg">Welcome!</h2>
             <p style="margin-bottom: 15px; color: #ddd; font-size: 14px;" data-tr="enter-name-msg">
-                チュートリアルが終了しました。プレイヤー名を入力してください。 / Tutorial ended. Please enter your name.</p>
+                チュートリアルを始める前にプレイヤー名を入力してください。 / Please enter your name before starting the tutorial.</p>
             <input type="text" id="first-time-name" class="modal-input"
                 style="width: 200px; font-size: 18px; margin-bottom: 20px;" maxlength="15" placeholder="Name"
                 onchange="setPlayerTempName(this.value)" oninput="setPlayerTempName(this.value)">
             <button class="menu-btn" onclick="checkNameUniqueAndSave(firstTimeNameTemp, true)"
-                style="width: 100%;">OK</button>
+                style="width: 100%;">START TUTORIAL / チュートリアル開始</button>
         </div>
     </div>
 
@@ -1657,6 +1657,10 @@
 
             <button class="btn" style="--accent: #aa55ff;" onclick="showTemplateMenu()" data-tr="menu-template">TEMPLATE
                 MODE</button>
+        </div>
+
+        <div id="tutorial-menu" style="display:none;">
+            <button class="btn" style="--accent:#55ff55;" onclick="openTutorialEntry()">TUTORIAL / チュートリアル</button>
         </div>
 
         <div id="online-menu" style="display:none;">
@@ -3097,12 +3101,34 @@
         }
         function saveCfg() { localStorage.setItem('tetrisProUltCfg_v14', JSON.stringify(cfg)); }
 
+        function updateTutorialEntryUI() {
+            const locked = !cfg.hasCompletedTutorial;
+            const tutorialMenu = document.getElementById('tutorial-menu');
+            const mainMenu = document.getElementById('main-menu-btns');
+            const settingsTrigger = document.getElementById('settings-trigger');
+            if (tutorialMenu) tutorialMenu.style.display = locked ? 'block' : 'none';
+            if (mainMenu) mainMenu.style.display = locked ? 'none' : 'block';
+            if (settingsTrigger) settingsTrigger.style.display = locked ? 'none' : 'block';
+        }
+
+        function openTutorialEntry() {
+            firstTimeNameTemp = cfg.playerName || firstTimeNameTemp || "Player1";
+            document.getElementById('first-time-name').value = firstTimeNameTemp;
+            document.getElementById('name-prompt-overlay').style.display = 'flex';
+        }
+
         function checkNameUniqueAndSave(newName, isTutorial = false) {
             if (!newName || newName.trim() === '') {
                 showToast(cfg.lang === 'ja' ? "名前を入力してください" : "Please enter a name");
                 return;
             }
-            if (newName === cfg.playerName) return; // No change
+            if (newName === cfg.playerName) {
+                if (isTutorial) {
+                    document.getElementById('name-prompt-overlay').style.display = 'none';
+                    startTutorial();
+                }
+                return;
+            }
 
             // Check uniqueness using PeerJS
             showToast(cfg.lang === 'ja' ? "名前をチェック中..." : "Checking name availability...");
@@ -3114,14 +3140,12 @@
                 identityPeer = testPeer; // Keep the connection open to reserve the name!
 
                 cfg.playerName = newName;
-                if (isTutorial) cfg.hasCompletedTutorial = true;
                 saveCfg();
                 updateUIFromCfg();
 
                 if (isTutorial) {
                     document.getElementById('name-prompt-overlay').style.display = 'none';
-                    showToast(cfg.lang === 'ja' ? "チュートリアル完了！" : "Tutorial Completed!");
-                    returnToMenu();
+                    startTutorial();
                 } else {
                     showToast(cfg.lang === 'ja' ? "名前を変更しました" : "Name updated successfully");
                 }
@@ -3136,12 +3160,11 @@
                 } else {
                     // Other error, just allow for offline play
                     cfg.playerName = newName;
-                    if (isTutorial) cfg.hasCompletedTutorial = true;
                     saveCfg();
                     updateUIFromCfg();
                     if (isTutorial) {
                         document.getElementById('name-prompt-overlay').style.display = 'none';
-                        returnToMenu();
+                        startTutorial();
                     }
                 }
             });
@@ -3599,6 +3622,7 @@
             }
             isPaused = false;
             inTutorial = false;
+            updateTutorialEntryUI();
             updateMenuLoadButton();
             document.getElementById('btn-save-menu').style.display = 'block';
             document.getElementById('online-self-indicator').style.display = 'none';
@@ -5348,23 +5372,45 @@
 
             loadTemplate(tmplKey) {
                 const t = TEMPLATES[tmplKey]; if (!t) return;
+                const boardRows = (t.board || []).map(row => String(row || '').padEnd(this.getBoardWidth(), '.').slice(0, this.getBoardWidth()));
 
                 if (this.isAI) {
                     this.targetBoard = Array.from({ length: this.getArenaHeight() }, () => new Array(this.getBoardWidth()).fill(-1));
-                    let startY = this.getArenaHeight() - t.board.length;
-                    for (let i = 0; i < t.board.length; i++) {
+                    let startY = this.getArenaHeight() - boardRows.length;
+                    for (let i = 0; i < boardRows.length; i++) {
                         for (let j = 0; j < this.getBoardWidth(); j++) {
-                            this.targetBoard[startY + i][j] = t.board[i][j] === '.' ? 0 : 1;
+                            this.targetBoard[startY + i][j] = boardRows[i][j] === '.' ? 0 : 1;
                         }
                     }
                 } else {
-                    let startY = this.getArenaHeight() - t.board.length;
-                    for (let i = 0; i < t.board.length; i++) {
-                        for (let j = 0; j < this.getBoardWidth(); j++) { this.arena[startY + i][j] = t.board[i][j] === '.' ? 0 : parseInt(t.board[i][j]); }
+                    let startY = this.getArenaHeight() - boardRows.length;
+                    for (let i = 0; i < boardRows.length; i++) {
+                        for (let j = 0; j < this.getBoardWidth(); j++) { this.arena[startY + i][j] = boardRows[i][j] === '.' ? 0 : parseInt(boardRows[i][j]); }
                     }
                     this.nextQueue = [...t.queue];
                     if (t.hold) { this.player.holdType = t.hold; this.player.holdColor = this.getPieceColor(t.hold); }
                 }
+            }
+
+            applyTemplateSetup(tmplKey) {
+                const t = TEMPLATES[tmplKey];
+                if (!t) return false;
+                this.templateKey = tmplKey;
+                this.arena = Array.from({ length: this.getArenaHeight() }, () => new Array(this.getBoardWidth()).fill(0));
+                this.targetBoard = null;
+                this.bag = [];
+                this.nextQueue = [];
+                this.pendingGarbage = 0;
+                this.player.holdType = null;
+                this.player.holdColor = null;
+                this.player.canHold = true;
+                this.loadTemplate(tmplKey);
+                while (this.nextQueue.length < 10) this.nextQueue.push(this.pullFromBag());
+                this.reset();
+                this.updateMeter();
+                this.updateUI();
+                this.draw();
+                return true;
             }
 
             pullFromBag() {
@@ -6716,17 +6762,19 @@
 
             if (isCPU) {
                 meters.forEach(m => m.style.display = 'block'); document.getElementById('cpu-field').style.display = 'flex';
-                p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', playerTmpl, isLoad);
+                p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', null, isLoad);
                 cpu = new Tetris('c-canvas', 'c-hold', 'c-next', 'c-score', true, 'c-action-layer', 'c-meter', null, isLoad);
                 applyRuleSetToActiveBoards(DEFAULT_ROOM_RULES);
+                if (playerTmpl) p1.applyTemplateSetup(playerTmpl);
                 beginMatchSession('cpu', DEFAULT_ROOM_RULES);
                 captureReplayFrame(performance.now(), true);
                 p1.opponent = cpu; cpu.opponent = p1; document.getElementById('current-lv').innerText = cfg.lv;
             } else {
                 meters.forEach(m => m.style.display = 'none'); document.getElementById('cpu-field').style.display = 'none';
-                p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', playerTmpl, isLoad);
+                p1 = new Tetris('p-canvas', 'p-hold', 'p-next', 'p-score', false, 'p-action-layer', 'p-meter', null, isLoad);
                 cpu = null;
                 applyRuleSetToActiveBoards(DEFAULT_ROOM_RULES);
+                if (playerTmpl) p1.applyTemplateSetup(playerTmpl);
                 beginMatchSession('solo', DEFAULT_ROOM_RULES);
                 captureReplayFrame(performance.now(), true);
             }
@@ -6749,9 +6797,14 @@
 
         function endTutorial() {
             if (tutorialTimeout) clearTimeout(tutorialTimeout);
-            isPaused = true;
+            tutorialTimeout = null;
             inTutorial = false;
-            document.getElementById('name-prompt-overlay').style.display = 'flex';
+            cfg.hasCompletedTutorial = true;
+            saveCfg();
+            updateUIFromCfg();
+            updateTutorialEntryUI();
+            showToast(cfg.lang === 'ja' ? "チュートリアル完了！" : "Tutorial Completed!");
+            returnToMenu();
         }
 
         function toggleSettings() { const s = document.getElementById('settings-overlay').style; s.display = s.display === 'flex' ? 'none' : 'flex'; }
@@ -6870,15 +6923,13 @@
 
         loadCfg();
         updateProfileUI();
+        updateTutorialEntryUI();
         updateMenuLoadButton();
         bindPartyRuleCardInteractions();
         syncPartyRuleSelectionUI();
         updateTouchControlsVisibility();
 
-        // Start tutorial if first time
-        if (!cfg.hasCompletedTutorial) {
-            setTimeout(startTutorial, 500);
-        } else {
+        if (cfg.hasCompletedTutorial) {
             // Reserve my name globally
             resumeIdentityReservation();
         }
