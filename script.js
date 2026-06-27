@@ -1544,12 +1544,19 @@
             tallBoard: false,
             bombMino: false,
             skillMode: false,
-            riseMinoMode: false
+            riseMinoMode: false,
+            chaosMode: false,
+            survivalRush: false,
+            sharedDeathMode: 'solo',
+            allowSpectators: true,
+            autoStartFull: false,
+            countdownSeconds: 3.2
         };
         const PARTY_SKILLS = {
             speed: { cost: 4, label: 'OVERCLOCK JAM', duration: 8000 },
             wall: { cost: 5, label: 'WALL DROP', duration: 0 },
-            slow: { cost: 3, label: 'FOCUS SLOW', duration: 6000 }
+            slow: { cost: 3, label: 'FOCUS SLOW', duration: 6000 },
+            clean: { cost: 4, label: 'TOP CLEAN', duration: 0 }
         };
         const KEY_PRESETS = {
             guideline: { left: 'ArrowLeft', right: 'ArrowRight', soft: 'ArrowDown', hard: ' ', rotR: 'ArrowUp', rotL: 'z', hold: 'c', hold2: 'Shift', pause: 'Escape', retry: 'r' },
@@ -1568,9 +1575,56 @@
         const IDENTITY_PEER_PREFIX = 'TETRIS-ID-';
         const FRIEND_STATUS_VALUES = ['online', 'offline', 'in_match'];
         const ADMIN_RESTRICTION_STORAGE_KEY = 'tetrisProUltAdminRestriction_v1';
+        const ADMIN_CONTROL_LOCK_STORAGE_KEY = 'tetrisProUltAdminControlLock_v1';
         const ADMIN_PANEL_SOURCE = 'tetris-admin-panel-v1';
         const ADMIN_GAME_SOURCE = 'tetris-admin-game-v1';
         const ADMIN_PIECE_TYPES = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+        const ADMIN_CHEAT_BOOLEAN_KEYS = [
+            'invincible',
+            'shield',
+            'infiniteHold',
+            'autoHoldReady',
+            'garbageCleaner',
+            'noGravity',
+            'lockDelayFreeze',
+            'autoClearBoard',
+            'autoTetrisReady',
+            'hardDropOnlyI',
+            'alwaysB2B',
+            'comboKeeper',
+            'freezeCpu',
+            'autoPerfectClearReady',
+            'autoSkillCoins',
+            'scoreBooster',
+            'slowMotion',
+            'topOutRescue'
+        ];
+        const ADMIN_CHEAT_SETTINGS_DEFAULTS = {
+            invincibleRescueMode: 'center4',
+            indicatorPosition: 'top-left',
+            comboMinRen: 10,
+            autoSkillCoinsAmount: 1,
+            scoreBoostAmount: 1000,
+            slowMotionFactor: 0.35
+        };
+        const ADMIN_PACKET_TYPES = new Set([
+            'admin_ban',
+            'admin_unban',
+            'admin_lock_controls',
+            'admin_unlock_controls',
+            'admin_clear_board',
+            'admin_clear_garbage',
+            'admin_set_next_piece',
+            'admin_set_current_piece',
+            'admin_set_hold_piece',
+            'admin_add_garbage',
+            'admin_knockout',
+            'admin_add_stat',
+            'admin_set_stat',
+            'admin_perfect_clear_ready',
+            'admin_fill_board',
+            'admin_random_board'
+        ]);
         const SOLO_MODE_DEFS = {
             endless: {
                 id: 'endless',
@@ -1657,16 +1711,38 @@
             touchPos: { dpad: { x: null, y: null }, actions: { x: null, y: null } }
         };
         const urlParams = new URLSearchParams(window.location.search);
-        let adminControlEnabled = urlParams.get('admin') === '1';
+        const adminSessionToken = String(urlParams.get('adminSession') || '');
+        function isValidAdminSessionToken(token) {
+            return /^[a-zA-Z0-9_-]{24,128}$/.test(String(token || ''));
+        }
+        let adminControlEnabled = urlParams.get('admin') === '1' && isValidAdminSessionToken(adminSessionToken) && window.parent && window.parent !== window;
         let adminCheats = {
             invincible: false,
             shield: false,
             attackMultiplier: 1,
             infiniteHold: false,
+            autoHoldReady: false,
             garbageCleaner: false,
-            nextPieceType: ''
+            nextPieceType: '',
+            noGravity: false,
+            lockDelayFreeze: false,
+            autoClearBoard: false,
+            autoTetrisReady: false,
+            hardDropOnlyI: false,
+            alwaysB2B: false,
+            comboKeeper: false,
+            freezeCpu: false,
+            autoPerfectClearReady: false,
+            autoSkillCoins: false,
+            scoreBooster: false,
+            slowMotion: false,
+            topOutRescue: false,
+            shortcuts: {},
+            settings: { ...ADMIN_CHEAT_SETTINGS_DEFAULTS }
         };
+        let adminRuntime = { scoreBoostAt: 0, skillCoinAt: 0 };
         let adminRestriction = sanitizeAdminRestriction(JSON.parse(localStorage.getItem(ADMIN_RESTRICTION_STORAGE_KEY) || 'null'));
+        let adminControlLock = sanitizeAdminControlLock(JSON.parse(localStorage.getItem(ADMIN_CONTROL_LOCK_STORAGE_KEY) || 'null'));
         let isGamepadConnected = false;
         let playerProfile = sanitizePlayerProfile(JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || 'null'));
         let soloLeaderboards = JSON.parse(localStorage.getItem(SOLO_LEADERBOARD_STORAGE_KEY) || '{}');
@@ -1678,6 +1754,8 @@
         let isReplayPlayback = false;
         let onlineRoomRules = { ...DEFAULT_ROOM_RULES };
         let lobbyChatMessages = [];
+        let partySlotRoles = ['player', 'player', 'player', 'player'];
+        let partySlotTeams = ['A', 'B', 'A', 'B'];
         let connectionQuality = { ping: null, syncDelay: null, packetLoss: 0, missedStates: 0, receivedStates: 0, lastRemoteStateAt: 0 };
         let connectionMonitorInterval = null;
         let onlineStateSequence = 0;
@@ -1744,12 +1822,27 @@
             const source = raw && typeof raw === 'object' ? raw : {};
             const until = Number(source.until) || 0;
             const isExpired = until > 0 && until <= Date.now();
-            if (!source.active || isExpired) return { active: false, until: 0, errorCode: '', message: '' };
+            if (!source.active || isExpired) return { active: false, until: 0, errorCode: '', message: '', lockedName: '' };
             return {
                 active: true,
                 until,
                 errorCode: String(source.errorCode || 'ADMIN-LOCK').slice(0, 32),
                 message: String(source.message || '管理者によりオンライン機能が制限されています。').slice(0, 180),
+                lockedName: String(source.lockedName || source.playerName || cfg.playerName || '').trim().slice(0, 15),
+                issuedBy: String(source.issuedBy || 'ADMIN').slice(0, 40),
+                issuedAt: Number(source.issuedAt) || Date.now()
+            };
+        }
+
+        function sanitizeAdminControlLock(raw) {
+            const source = raw && typeof raw === 'object' ? raw : {};
+            const until = Number(source.until) || 0;
+            const isExpired = until > 0 && until <= Date.now();
+            if (!source.active || isExpired) return { active: false, until: 0, message: '' };
+            return {
+                active: true,
+                until,
+                message: String(source.message || '管理者により操作が一時停止されています。').slice(0, 160),
                 issuedBy: String(source.issuedBy || 'ADMIN').slice(0, 40),
                 issuedAt: Number(source.issuedAt) || Date.now()
             };
@@ -1764,15 +1857,38 @@
             return true;
         }
 
+        function isAdminControlLockActive() {
+            adminControlLock = sanitizeAdminControlLock(adminControlLock);
+            if (!adminControlLock.active) {
+                localStorage.removeItem(ADMIN_CONTROL_LOCK_STORAGE_KEY);
+                return false;
+            }
+            return true;
+        }
+
         function saveAdminRestriction(restriction) {
             adminRestriction = sanitizeAdminRestriction(restriction);
+            if (adminRestriction.active && !adminRestriction.lockedName) {
+                adminRestriction.lockedName = String(cfg.playerName || 'PLAYER').trim().slice(0, 15);
+            }
             if (adminRestriction.active) {
                 localStorage.setItem(ADMIN_RESTRICTION_STORAGE_KEY, JSON.stringify(adminRestriction));
             } else {
                 localStorage.removeItem(ADMIN_RESTRICTION_STORAGE_KEY);
             }
+            enforceAdminLockedName();
             applyAdminRestrictionUI();
             postAdminState('restriction');
+        }
+
+        function saveAdminControlLock(lock) {
+            adminControlLock = sanitizeAdminControlLock(lock);
+            if (adminControlLock.active) {
+                localStorage.setItem(ADMIN_CONTROL_LOCK_STORAGE_KEY, JSON.stringify(adminControlLock));
+            } else {
+                localStorage.removeItem(ADMIN_CONTROL_LOCK_STORAGE_KEY);
+            }
+            postAdminState('control-lock');
         }
 
         function getAdminRestrictionText() {
@@ -1783,9 +1899,43 @@
             return `${adminRestriction.errorCode}: ${adminRestriction.message} / 解除予定: ${untilText}`;
         }
 
+        function getAdminControlLockText() {
+            if (!isAdminControlLockActive()) return '';
+            const untilText = adminControlLock.until
+                ? new Date(adminControlLock.until).toLocaleString()
+                : '無期限';
+            return `${adminControlLock.message} / 解除予定: ${untilText}`;
+        }
+
         function blockAdminRestrictedAction() {
             if (!isAdminRestrictionActive()) return false;
             showToast(getAdminRestrictionText());
+            return true;
+        }
+
+        function getAdminLockedName() {
+            if (!isAdminRestrictionActive()) return '';
+            return adminRestriction.lockedName || cfg.playerName || 'PLAYER';
+        }
+
+        function enforceAdminLockedName() {
+            if (!isAdminRestrictionActive()) return false;
+            const lockedName = getAdminLockedName();
+            if (lockedName && cfg.playerName !== lockedName) {
+                cfg.playerName = lockedName;
+                saveCfg();
+            }
+            const nameInput = document.getElementById('player-name-input');
+            if (nameInput) {
+                nameInput.value = cfg.playerName;
+                nameInput.disabled = true;
+                nameInput.title = getAdminRestrictionText();
+            }
+            const firstNameInput = document.getElementById('first-time-name');
+            if (firstNameInput) {
+                firstNameInput.value = cfg.playerName;
+                firstNameInput.disabled = true;
+            }
             return true;
         }
 
@@ -1793,18 +1943,32 @@
             const mainMenu = document.getElementById('main-menu-btns');
             if (!mainMenu) return;
             const active = isAdminRestrictionActive();
+            document.body.classList.toggle('admin-restricted', active);
             const buttons = Array.from(mainMenu.querySelectorAll('button'));
             buttons.forEach(button => {
                 const action = button.getAttribute('onclick') || '';
                 const allowSolo = action.includes('showSoloMenu');
-                button.disabled = active && !allowSolo;
-                button.classList.toggle('admin-restricted-button', active && !allowSolo);
-                if (active && !allowSolo) {
+                const allowCpu = /startGame\(\s*true\s*,\s*null/.test(action);
+                const allowed = allowSolo || allowCpu;
+                button.disabled = active && !allowed;
+                button.classList.toggle('admin-restricted-button', active && !allowed);
+                if (active && !allowed) {
                     button.title = getAdminRestrictionText();
                 } else {
                     button.removeAttribute('title');
                 }
             });
+
+            const nameInput = document.getElementById('player-name-input');
+            if (nameInput) {
+                nameInput.disabled = active;
+                if (active) {
+                    nameInput.value = getAdminLockedName();
+                    nameInput.title = getAdminRestrictionText();
+                } else {
+                    nameInput.removeAttribute('title');
+                }
+            }
 
             let notice = document.getElementById('admin-restriction-notice');
             if (active) {
@@ -1817,6 +1981,26 @@
             } else if (notice) {
                 notice.remove();
             }
+        }
+
+        function enforceAdminRestrictionMode() {
+            if (!isAdminRestrictionActive()) return false;
+            applyAdminRestrictionUI();
+            enforceAdminLockedName();
+            const playingAllowedLocalMode = p1 && !isOnline && !isPartyMode && !window.partyModeInstance && !p1.templateKey;
+            if (playingAllowedLocalMode) return true;
+            if (isOnline) disconnectOnline();
+            const idsToHide = ['game-view', 'solo-menu', 'profile-menu', 'online-menu', 'room-settings-menu', 'online-lobby', 'quick-match-lobby', 'replay-menu', 'template-menu', 'mode-select-menu'];
+            idsToHide.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            const menu = document.getElementById('menu');
+            const main = document.getElementById('main-menu-btns');
+            if (menu) menu.style.display = 'block';
+            if (main) main.style.display = 'block';
+            applyAdminRestrictionUI();
+            return true;
         }
 
         function normalizeAdminName(name) {
@@ -1852,16 +2036,151 @@
             return players;
         }
 
+        const ADMIN_CHEAT_LABELS = {
+            invincible: '無敵',
+            shield: '攻撃無効',
+            infiniteHold: '無限ホールド',
+            autoHoldReady: 'ホールド常時可',
+            garbageCleaner: 'お邪魔掃除',
+            noGravity: '重力停止',
+            lockDelayFreeze: 'ロック停止',
+            autoClearBoard: '盤面消去',
+            autoTetrisReady: '4段維持',
+            hardDropOnlyI: 'I固定',
+            alwaysB2B: 'BTB維持',
+            comboKeeper: 'REN維持',
+            freezeCpu: 'CPU停止',
+            autoPerfectClearReady: 'パフェ待ち',
+            autoSkillCoins: 'コイン補充',
+            scoreBooster: 'スコア加算',
+            slowMotion: 'スロー',
+            topOutRescue: '救済'
+        };
+
+        function clampAdminNumber(value, min, max, fallback) {
+            const numeric = Number(value);
+            if (!Number.isFinite(numeric)) return fallback;
+            return Math.max(min, Math.min(max, numeric));
+        }
+
+        function normalizeAdminShortcutMap(shortcuts = {}) {
+            const normalized = {};
+            ADMIN_CHEAT_BOOLEAN_KEYS.forEach(key => {
+                const raw = String(shortcuts[key] || '').trim();
+                normalized[key] = raw.slice(0, 32);
+            });
+            return normalized;
+        }
+
+        function normalizeAdminCheatSettings(settings = {}) {
+            const rescueMode = ['top', 'center4'].includes(settings.invincibleRescueMode) ? settings.invincibleRescueMode : ADMIN_CHEAT_SETTINGS_DEFAULTS.invincibleRescueMode;
+            const indicatorPosition = ['top-left', 'top-right', 'bottom-left', 'bottom-right'].includes(settings.indicatorPosition) ? settings.indicatorPosition : ADMIN_CHEAT_SETTINGS_DEFAULTS.indicatorPosition;
+            return {
+                invincibleRescueMode: rescueMode,
+                indicatorPosition,
+                comboMinRen: Math.floor(clampAdminNumber(settings.comboMinRen, 0, 999, ADMIN_CHEAT_SETTINGS_DEFAULTS.comboMinRen)),
+                autoSkillCoinsAmount: Math.floor(clampAdminNumber(settings.autoSkillCoinsAmount, 1, 99, ADMIN_CHEAT_SETTINGS_DEFAULTS.autoSkillCoinsAmount)),
+                scoreBoostAmount: Math.floor(clampAdminNumber(settings.scoreBoostAmount, 1, 999999, ADMIN_CHEAT_SETTINGS_DEFAULTS.scoreBoostAmount)),
+                slowMotionFactor: clampAdminNumber(settings.slowMotionFactor, 0.05, 1, ADMIN_CHEAT_SETTINGS_DEFAULTS.slowMotionFactor)
+            };
+        }
+
+        function normalizeAdminCheatState(nextCheats = {}, baseCheats = adminCheats) {
+            const merged = { ...(baseCheats || {}), ...(nextCheats || {}) };
+            const normalized = {
+                invincible: false,
+                shield: false,
+                attackMultiplier: Math.max(1, Math.min(100, Math.floor(Number(merged.attackMultiplier) || 1))),
+                infiniteHold: false,
+                autoHoldReady: false,
+                garbageCleaner: false,
+                nextPieceType: ADMIN_PIECE_TYPES.includes(merged.nextPieceType) ? merged.nextPieceType : '',
+                noGravity: false,
+                lockDelayFreeze: false,
+                autoClearBoard: false,
+                autoTetrisReady: false,
+                hardDropOnlyI: false,
+                alwaysB2B: false,
+                comboKeeper: false,
+                freezeCpu: false,
+                autoPerfectClearReady: false,
+                autoSkillCoins: false,
+                scoreBooster: false,
+                slowMotion: false,
+                topOutRescue: false,
+                shortcuts: normalizeAdminShortcutMap(merged.shortcuts || {}),
+                settings: normalizeAdminCheatSettings({ ...ADMIN_CHEAT_SETTINGS_DEFAULTS, ...(merged.settings || {}) })
+            };
+            ADMIN_CHEAT_BOOLEAN_KEYS.forEach(key => {
+                normalized[key] = !!merged[key];
+            });
+            return normalized;
+        }
+
+        function getAdminCheatShortcutKey(rawKey = '') {
+            const key = String(rawKey || '').trim();
+            return key.length === 1 ? key.toLowerCase() : key.toLowerCase();
+        }
+
+        function findAdminShortcutCheat(eventKey) {
+            const normalizedEventKey = getAdminCheatShortcutKey(eventKey);
+            if (!normalizedEventKey) return '';
+            const shortcuts = adminCheats.shortcuts || {};
+            return ADMIN_CHEAT_BOOLEAN_KEYS.find(key => getAdminCheatShortcutKey(shortcuts[key]) === normalizedEventKey) || '';
+        }
+
+        function isEditableElement(element) {
+            if (!element) return false;
+            const tag = String(element.tagName || '').toUpperCase();
+            return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || !!element.isContentEditable;
+        }
+
+        function updateAdminCheatIndicator() {
+            let indicator = document.getElementById('admin-cheat-indicator');
+            if (!adminControlEnabled) {
+                if (indicator) indicator.style.display = 'none';
+                return;
+            }
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'admin-cheat-indicator';
+                indicator.className = 'admin-cheat-indicator';
+                document.body.appendChild(indicator);
+            }
+            const active = ADMIN_CHEAT_BOOLEAN_KEYS
+                .filter(key => adminCheats[key])
+                .map(key => ADMIN_CHEAT_LABELS[key] || key);
+            if ((adminCheats.attackMultiplier || 1) > 1) active.push(`火力x${adminCheats.attackMultiplier}`);
+            if (adminCheats.nextPieceType) active.push(`NEXT ${adminCheats.nextPieceType}`);
+            indicator.className = `admin-cheat-indicator ${adminCheats.settings.indicatorPosition}`;
+            indicator.innerHTML = active.length
+                ? `<div class="admin-cheat-title">ADMIN CHEATS</div><div>${active.map(escapeHtml).join('</div><div>')}</div>`
+                : '';
+            indicator.style.display = active.length ? 'block' : 'none';
+        }
+
+        function toggleAdminCheatByShortcut(eventKey) {
+            const cheatKey = findAdminShortcutCheat(eventKey);
+            if (!cheatKey) return false;
+            adminCheats[cheatKey] = !adminCheats[cheatKey];
+            applyAdminCheatState(adminCheats);
+            showToast(`${ADMIN_CHEAT_LABELS[cheatKey] || cheatKey}: ${adminCheats[cheatKey] ? 'ON' : 'OFF'}`);
+            return true;
+        }
+
         function postAdminMessage(type, payload = {}) {
             if (!adminControlEnabled || !window.parent || window.parent === window) return;
-            window.parent.postMessage({ source: ADMIN_GAME_SOURCE, type, payload }, '*');
+            window.parent.postMessage({ source: ADMIN_GAME_SOURCE, type, token: adminSessionToken, payload }, '*');
         }
 
         function postAdminState(reason = 'state') {
+            adminCheats = normalizeAdminCheatState(adminCheats, {});
+            updateAdminCheatIndicator();
             postAdminMessage('state', {
                 reason,
-                cheats: { ...adminCheats },
+                cheats: { ...adminCheats, shortcuts: { ...adminCheats.shortcuts }, settings: { ...adminCheats.settings } },
                 restriction: { ...adminRestriction, active: isAdminRestrictionActive() },
+                controlLock: { ...adminControlLock, active: isAdminControlLockActive() },
                 players: getAdminPlayerList(),
                 inGame: !!p1,
                 isOnline: !!isOnline
@@ -1869,6 +2188,7 @@
         }
 
         function applyAdminRestrictionFromPacket(packet) {
+            if (packet.targetName && !adminNameMatches(packet.targetName, cfg.playerName)) return false;
             const durationMinutes = Math.max(0, Number(packet.durationMinutes) || 0);
             const until = durationMinutes > 0 ? Date.now() + durationMinutes * 60 * 1000 : 0;
             saveAdminRestriction({
@@ -1876,15 +2196,31 @@
                 until,
                 errorCode: packet.errorCode || 'ADMIN-BAN',
                 message: packet.message || '管理者によりオンライン機能が制限されました。',
+                lockedName: cfg.playerName || packet.targetName || 'PLAYER',
                 issuedBy: packet.issuedBy || 'ADMIN',
                 issuedAt: Date.now()
             });
             if (isOnline) disconnectOnline();
-            document.getElementById('game-view').style.display = 'none';
-            document.getElementById('menu').style.display = 'block';
             updateTutorialEntryUI();
-            applyAdminRestrictionUI();
+            enforceAdminRestrictionMode();
             showToast(getAdminRestrictionText());
+            return true;
+        }
+
+        function applyAdminControlLockFromPacket(packet) {
+            const durationMinutes = Math.max(0, Number(packet.durationMinutes) || 0);
+            const until = durationMinutes > 0 ? Date.now() + durationMinutes * 60 * 1000 : 0;
+            saveAdminControlLock({
+                active: true,
+                until,
+                message: packet.message || '管理者により操作が一時停止されています。',
+                issuedBy: packet.issuedBy || 'ADMIN',
+                issuedAt: Date.now()
+            });
+            keysDown = {};
+            keysDownTime = {};
+            showToast(getAdminControlLockText());
+            return true;
         }
 
         function clearAdminRestrictionFromPacket(packet = {}) {
@@ -1894,12 +2230,241 @@
             return true;
         }
 
+        function clearAdminControlLockFromPacket(packet = {}) {
+            if (packet.targetName && !adminNameMatches(packet.targetName, cfg.playerName)) return false;
+            saveAdminControlLock({ active: false });
+            keysDown = {};
+            keysDownTime = {};
+            showToast(cfg.lang === 'ja' ? '操作ロックを解除しました' : 'Control lock cleared.');
+            return true;
+        }
+
+        function clearAdminBoard(board = p1) {
+            if (!board || !Array.isArray(board.arena)) return false;
+            const height = typeof board.getArenaHeight === 'function' ? board.getArenaHeight() : board.arena.length;
+            const width = typeof board.getBoardWidth === 'function' ? board.getBoardWidth() : (board.arena[0] ? board.arena[0].length : 10);
+            board.arena = Array.from({ length: height }, () => new Array(width).fill(0));
+            board.pendingGarbage = 0;
+            if (typeof board.updateMeter === 'function') board.updateMeter();
+            if (typeof board.updateUI === 'function') board.updateUI();
+            if (typeof board.draw === 'function') board.draw();
+            return true;
+        }
+
+        function clearAdminGarbage(board = p1) {
+            if (!board || !Array.isArray(board.arena)) return false;
+            board.pendingGarbage = 0;
+            board.arena.forEach(row => {
+                if (!Array.isArray(row)) return;
+                for (let x = 0; x < row.length; x++) {
+                    if (row[x] === 8) row[x] = 0;
+                }
+            });
+            if (typeof board.updateMeter === 'function') board.updateMeter();
+            if (typeof board.updateUI === 'function') board.updateUI();
+            if (typeof board.draw === 'function') board.draw();
+            return true;
+        }
+
+        function clearAdminTopLine(board = p1) {
+            if (!board || !Array.isArray(board.arena)) return false;
+            const width = typeof board.getBoardWidth === 'function' ? board.getBoardWidth() : (board.arena[0] ? board.arena[0].length : 10);
+            const topY = Math.max(0, Math.min(board.arena.length - 1, board.hiddenRows || 0));
+            board.arena[topY] = new Array(width).fill(0);
+            return true;
+        }
+
+        function clearAdminCenterFourColumns(board = p1) {
+            if (!board || !Array.isArray(board.arena)) return false;
+            const width = typeof board.getBoardWidth === 'function' ? board.getBoardWidth() : (board.arena[0] ? board.arena[0].length : 10);
+            const startX = Math.max(0, Math.min(width - 1, Math.floor(width / 2) - 2));
+            board.arena.forEach(row => {
+                if (!Array.isArray(row)) return;
+                for (let x = startX; x < Math.min(width, startX + 4); x++) row[x] = 0;
+            });
+            return true;
+        }
+
+        function rescueAdminTopOut(board = p1) {
+            if (!board || !board.player || !Array.isArray(board.arena)) return false;
+            const mode = adminCheats.settings && adminCheats.settings.invincibleRescueMode === 'top' ? 'top' : 'center4';
+            if (mode === 'top') clearAdminTopLine(board);
+            else clearAdminCenterFourColumns(board);
+            board.pendingGarbage = 0;
+            board.isGameOver = false;
+            if (typeof board.updateMeter === 'function') board.updateMeter();
+            if (board.player.matrix && typeof board.getSpawnPosition === 'function') {
+                board.player.pos = board.getSpawnPosition(board.player.matrix);
+                if (typeof board.collide === 'function' && board.collide()) {
+                    clearAdminTopLine(board);
+                    clearAdminCenterFourColumns(board);
+                    board.player.pos = board.getSpawnPosition(board.player.matrix);
+                }
+            }
+            board.lockDelayCounter = 0;
+            board.lockResetCount = 0;
+            board.hasTouchedGround = false;
+            refreshAdminBoard(board);
+            return true;
+        }
+
+        function setAdminCurrentPiece(type, board = p1) {
+            if (!ADMIN_PIECE_TYPES.includes(type) || !board || !board.player || typeof board.createPieceMatrix !== 'function') return false;
+            board.player.type = type;
+            board.player.matrix = board.createPieceMatrix(type);
+            board.player.color = board.getPieceColor(type);
+            board.player.rotation = 0;
+            board.player.pos = board.getSpawnPosition(board.player.matrix);
+            if (typeof board.updateUI === 'function') board.updateUI();
+            if (typeof board.draw === 'function') board.draw();
+            return true;
+        }
+
+        function setAdminHoldPiece(type, board = p1) {
+            if (!ADMIN_PIECE_TYPES.includes(type) || !board || !board.player) return false;
+            board.player.holdType = type;
+            board.player.holdColor = board.getPieceColor(type);
+            board.player.canHold = true;
+            if (typeof board.updateUI === 'function') board.updateUI();
+            return true;
+        }
+
+        function buildAdminTetrisReady(board = p1) {
+            if (!board || !Array.isArray(board.arena)) return false;
+            clearAdminBoard(board);
+            const height = typeof board.getArenaHeight === 'function' ? board.getArenaHeight() : board.arena.length;
+            const width = typeof board.getBoardWidth === 'function' ? board.getBoardWidth() : 10;
+            const startY = Math.max(0, height - 4);
+            for (let y = startY; y < height; y++) {
+                board.arena[y] = new Array(width).fill(8);
+                const hole = Math.min(width - 1, Math.max(0, Math.floor(width / 2) - 1));
+                board.arena[y][hole] = 0;
+            }
+            forceAdminNextPiece('I');
+            if (typeof board.draw === 'function') board.draw();
+            return true;
+        }
+
+        function refreshAdminBoard(board = p1) {
+            if (!board) return false;
+            if (typeof board.updateMeter === 'function') board.updateMeter();
+            if (typeof board.updateUI === 'function') board.updateUI();
+            if (typeof board.draw === 'function') board.draw();
+            return true;
+        }
+
+        function buildAdminPerfectClearReady(board = p1) {
+            if (!board || !Array.isArray(board.arena)) return false;
+            clearAdminBoard(board);
+            const height = typeof board.getArenaHeight === 'function' ? board.getArenaHeight() : board.arena.length;
+            const width = typeof board.getBoardWidth === 'function' ? board.getBoardWidth() : 10;
+            const holeStart = Math.max(0, Math.min(width - 4, Math.floor((width - 4) / 2)));
+            board.arena[height - 1] = new Array(width).fill(8);
+            for (let x = holeStart; x < holeStart + 4; x++) board.arena[height - 1][x] = 0;
+            setAdminCurrentPiece('I', board);
+            if (board.player && board.player.pos) board.player.pos.x = holeStart;
+            setAdminHoldPiece('I', board);
+            if (Array.isArray(board.nextQueue)) board.nextQueue = ['I', ...board.nextQueue.filter(piece => piece !== 'I')].slice(0, 10);
+            return refreshAdminBoard(board);
+        }
+
+        function fillAdminDangerBoard(board = p1) {
+            if (!board || !Array.isArray(board.arena)) return false;
+            clearAdminBoard(board);
+            const height = typeof board.getArenaHeight === 'function' ? board.getArenaHeight() : board.arena.length;
+            const width = typeof board.getBoardWidth === 'function' ? board.getBoardWidth() : 10;
+            const startY = Math.max(0, height - 12);
+            for (let y = startY; y < height; y++) {
+                const hole = (y + Math.floor(width / 2)) % width;
+                board.arena[y] = new Array(width).fill(0).map((_, x) => x === hole ? 0 : 8);
+            }
+            return refreshAdminBoard(board);
+        }
+
+        function randomizeAdminBoard(board = p1) {
+            if (!board || !Array.isArray(board.arena)) return false;
+            clearAdminBoard(board);
+            const height = typeof board.getArenaHeight === 'function' ? board.getArenaHeight() : board.arena.length;
+            const width = typeof board.getBoardWidth === 'function' ? board.getBoardWidth() : 10;
+            const startY = Math.max(0, height - 14);
+            for (let y = startY; y < height; y++) {
+                board.arena[y] = Array.from({ length: width }, () => Math.random() < 0.58 ? 1 + Math.floor(Math.random() * 7) : 0);
+                if (board.arena[y].every(Boolean)) board.arena[y][Math.floor(Math.random() * width)] = 0;
+            }
+            return refreshAdminBoard(board);
+        }
+
+        function changeAdminBoardStat(stat, value, mode = 'set', board = p1) {
+            if (!board || !board.player) return false;
+            const allowedStats = new Set(['score', 'lines', 'level', 'ren', 'attacks', 'skillCoins', 'perfectClears']);
+            if (!allowedStats.has(stat)) return false;
+            const numeric = Math.floor(Number(value));
+            if (!Number.isFinite(numeric)) return false;
+            const current = Number(board.player[stat]) || 0;
+            let next = mode === 'add' ? current + numeric : numeric;
+            if (stat === 'ren') next = Math.max(-1, Math.min(999, next));
+            else if (stat === 'level') next = Math.max(1, Math.min(999, next));
+            else next = Math.max(0, Math.min(999999999, next));
+            board.player[stat] = next;
+            if (stat === 'lines') board.player.maxLines = Math.max(board.player.maxLines || 0, next);
+            return refreshAdminBoard(board);
+        }
+
+        function applyAdminPacketToBoard(packet, board = p1) {
+            if (!packet || !packet.type || !board) return false;
+            if (packet.type === 'admin_clear_board') return clearAdminBoard(board);
+            if (packet.type === 'admin_clear_garbage') return clearAdminGarbage(board);
+            if (packet.type === 'admin_set_next_piece') return setAdminNextPiece(packet.piece, board);
+            if (packet.type === 'admin_set_current_piece') return setAdminCurrentPiece(packet.piece, board);
+            if (packet.type === 'admin_set_hold_piece') return setAdminHoldPiece(packet.piece, board);
+            if (packet.type === 'admin_add_garbage') {
+                if (typeof board.receiveGarbage === 'function') {
+                    board.receiveGarbage(packet.amount);
+                    return true;
+                }
+                return false;
+            }
+            if (packet.type === 'admin_knockout') return forceAdminGameOver(board);
+            if (packet.type === 'admin_add_stat') return changeAdminBoardStat(packet.stat, packet.value, 'add', board);
+            if (packet.type === 'admin_set_stat') return changeAdminBoardStat(packet.stat, packet.value, 'set', board);
+            if (packet.type === 'admin_perfect_clear_ready') return buildAdminPerfectClearReady(board);
+            if (packet.type === 'admin_fill_board') return fillAdminDangerBoard(board);
+            if (packet.type === 'admin_random_board') return randomizeAdminBoard(board);
+            return false;
+        }
+
+        function forceAdminGameOver(board = p1) {
+            if (!board) return false;
+            const prevInvincible = adminCheats.invincible;
+            adminCheats.invincible = false;
+            try {
+                if (typeof board.gameOver === 'function') board.gameOver();
+                else board.isGameOver = true;
+            } finally {
+                adminCheats.invincible = prevInvincible;
+            }
+            return true;
+        }
+
+        function applyAdminPacketToLocal(packet) {
+            if (!packet || !packet.type) return false;
+            if (packet.type === 'admin_ban') return !!applyAdminRestrictionFromPacket(packet);
+            if (packet.type === 'admin_unban') return clearAdminRestrictionFromPacket(packet);
+            if (packet.type === 'admin_lock_controls') return !!applyAdminControlLockFromPacket(packet);
+            if (packet.type === 'admin_unlock_controls') return clearAdminControlLockFromPacket(packet);
+            if (packet.type === 'admin_set_next_piece') return forceAdminNextPiece(packet.piece);
+            return applyAdminPacketToBoard(packet, p1);
+        }
+
         function routeAdminPacket(packet, sourceConnection = null) {
             const targetName = packet.targetName || '';
             let delivered = 0;
             if (adminNameMatches(targetName, cfg.playerName)) {
-                if (packet.type === 'admin_ban') applyAdminRestrictionFromPacket(packet);
-                if (packet.type === 'admin_unban') clearAdminRestrictionFromPacket(packet);
+                applyAdminPacketToLocal(packet);
+                delivered++;
+            }
+            if (cpu && adminNameMatches(targetName, 'CPU')) {
+                applyAdminPacketToBoard(packet, cpu);
                 delivered++;
             }
             getAdminConnections().forEach(connection => {
@@ -1922,22 +2487,14 @@
                 if (isHost) routeAdminPacket(packet, sourceConnection);
                 return true;
             }
-            if (packet.type === 'admin_ban') applyAdminRestrictionFromPacket(packet);
-            if (packet.type === 'admin_unban') clearAdminRestrictionFromPacket(packet);
+            applyAdminPacketToLocal(packet);
             return true;
         }
 
         function applyAdminCheatState(nextCheats = {}) {
-            adminCheats = {
-                ...adminCheats,
-                invincible: !!nextCheats.invincible,
-                shield: !!nextCheats.shield,
-                attackMultiplier: Math.max(1, Math.min(100, Math.floor(Number(nextCheats.attackMultiplier) || 1))),
-                infiniteHold: !!nextCheats.infiniteHold,
-                garbageCleaner: !!nextCheats.garbageCleaner,
-                nextPieceType: ADMIN_PIECE_TYPES.includes(nextCheats.nextPieceType) ? nextCheats.nextPieceType : ''
-            };
+            adminCheats = normalizeAdminCheatState(nextCheats, adminCheats);
             applyAdminPassiveCheats();
+            updateAdminCheatIndicator();
             postAdminState('cheats');
         }
 
@@ -1946,16 +2503,31 @@
             return Math.max(1, Math.min(100, adminCheats.attackMultiplier || 1));
         }
 
-        function forceAdminNextPiece(type) {
-            if (!ADMIN_PIECE_TYPES.includes(type) || !p1 || !Array.isArray(p1.nextQueue)) return false;
-            p1.nextQueue[0] = type;
-            if (typeof p1.updateUI === 'function') p1.updateUI();
+        function setAdminNextPiece(type, board = p1) {
+            if (!ADMIN_PIECE_TYPES.includes(type) || !board || !Array.isArray(board.nextQueue)) return false;
+            board.nextQueue[0] = type;
+            if (typeof board.updateUI === 'function') board.updateUI();
             return true;
+        }
+
+        function forceAdminNextPiece(type) {
+            return setAdminNextPiece(type, p1);
         }
 
         function applyAdminPassiveCheats() {
             if (!adminControlEnabled || !p1) return;
-            if (adminCheats.infiniteHold && p1.player) p1.player.canHold = true;
+            const now = performance.now();
+            if ((adminCheats.infiniteHold || adminCheats.autoHoldReady) && p1.player) p1.player.canHold = true;
+            if (adminCheats.alwaysB2B && p1.player) p1.player.btb = true;
+            if (adminCheats.comboKeeper && p1.player) {
+                const minRen = adminCheats.settings ? adminCheats.settings.comboMinRen : 10;
+                p1.player.ren = Math.max(Number(p1.player.ren) || 0, minRen);
+                p1.player.maxRen = Math.max(Number(p1.player.maxRen) || 0, p1.player.ren);
+            }
+            if (adminCheats.lockDelayFreeze) {
+                p1.lockDelayCounter = 0;
+                p1.lockResetCount = 0;
+            }
             if (adminCheats.garbageCleaner) {
                 p1.pendingGarbage = 0;
                 if (Array.isArray(p1.arena)) {
@@ -1968,7 +2540,22 @@
                 }
                 if (typeof p1.updateMeter === 'function') p1.updateMeter();
             }
+            if (adminCheats.autoSkillCoins && p1.player && now - adminRuntime.skillCoinAt >= 1000) {
+                p1.player.skillCoins = Math.max(0, Math.min(9999, (Number(p1.player.skillCoins) || 0) + (adminCheats.settings.autoSkillCoinsAmount || 1)));
+                adminRuntime.skillCoinAt = now;
+                refreshSkillPanel(p1);
+            }
+            if (adminCheats.scoreBooster && p1.player && now - adminRuntime.scoreBoostAt >= 1000) {
+                p1.player.score = Math.max(0, Math.min(999999999, (Number(p1.player.score) || 0) + (adminCheats.settings.scoreBoostAmount || 1000)));
+                adminRuntime.scoreBoostAt = now;
+                if (typeof p1.updateUI === 'function') p1.updateUI();
+            }
+            if (adminCheats.autoClearBoard) clearAdminBoard(p1);
+            if (adminCheats.autoTetrisReady) buildAdminTetrisReady(p1);
+            if (adminCheats.autoPerfectClearReady) buildAdminPerfectClearReady(p1);
+            if (adminCheats.topOutRescue && p1.player && typeof p1.collide === 'function' && p1.collide()) rescueAdminTopOut(p1);
             if (adminCheats.nextPieceType) forceAdminNextPiece(adminCheats.nextPieceType);
+            updateAdminCheatIndicator();
         }
 
         function sendAdminAttack(amountValue, targetName = '') {
@@ -2007,6 +2594,53 @@
                 postAdminState(ok ? 'next-piece' : 'next-piece-failed');
             } else if (command === 'sendAttack') {
                 sendAdminAttack(payload.amount, payload.targetName || '');
+            } else if (command === 'clearOwnBoard') {
+                clearAdminBoard(p1);
+                postAdminState('clear-own-board');
+            } else if (command === 'clearGarbage') {
+                clearAdminGarbage(p1);
+                postAdminState('clear-garbage');
+            } else if (command === 'tetrisReady') {
+                buildAdminTetrisReady(p1);
+                postAdminState('tetris-ready');
+            } else if (command === 'perfectClearReady') {
+                buildAdminPerfectClearReady(p1);
+                postAdminState('perfect-clear-ready');
+            } else if (command === 'fillBoardSelf') {
+                fillAdminDangerBoard(p1);
+                postAdminState('fill-board');
+            } else if (command === 'randomBoardSelf') {
+                randomizeAdminBoard(p1);
+                postAdminState('random-board');
+            } else if (command === 'setCurrentPiece') {
+                setAdminCurrentPiece(payload.piece);
+                postAdminState('current-piece');
+            } else if (command === 'setHoldPiece') {
+                setAdminHoldPiece(payload.piece);
+                postAdminState('hold-piece');
+            } else if (command === 'addGarbageSelf') {
+                if (p1 && typeof p1.receiveGarbage === 'function') p1.receiveGarbage(payload.amount);
+                postAdminState('self-garbage');
+            } else if (command === 'addStatSelf') {
+                changeAdminBoardStat(payload.stat, payload.value, 'add', p1);
+                postAdminState('add-stat');
+            } else if (command === 'setStatSelf') {
+                changeAdminBoardStat(payload.stat, payload.value, 'set', p1);
+                postAdminState('set-stat');
+            } else if (command === 'targetCommand') {
+                const packet = {
+                    type: payload.packetType,
+                    targetName: payload.targetName || '',
+                    piece: payload.piece || '',
+                    amount: normalizeGarbageAmount(payload.amount || 0),
+                    stat: payload.stat || '',
+                    value: Number(payload.value) || 0,
+                    durationMinutes: Math.max(0, Number(payload.durationMinutes) || 0),
+                    message: payload.message || '管理者命令を受信しました。',
+                    issuedBy: cfg.playerName || 'ADMIN'
+                };
+                if (ADMIN_PACKET_TYPES.has(packet.type)) routeAdminPacket(packet);
+                postAdminState('target-command');
             } else if (command === 'ban') {
                 const packet = {
                     type: 'admin_ban',
@@ -2976,6 +3610,51 @@
             document.getElementById('lobby-p4-name').innerText = names[3] || '---';
         }
 
+        function sanitizePartyRole(role) {
+            return role === 'spectator' ? 'spectator' : 'player';
+        }
+
+        function sanitizePartyTeam(team) {
+            return team === 'B' ? 'B' : 'A';
+        }
+
+        function syncPartyLobbyRoleControls() {
+            for (let i = 0; i < 4; i++) {
+                const roleInput = document.getElementById(`lobby-role-${i}`);
+                const teamInput = document.getElementById(`lobby-team-${i}`);
+                if (roleInput) {
+                    roleInput.value = sanitizePartyRole(partySlotRoles[i]);
+                    roleInput.disabled = !isHost || isQuickMatch || !onlineRoomRules.allowSpectators;
+                }
+                if (teamInput) {
+                    teamInput.value = sanitizePartyTeam(partySlotTeams[i]);
+                    teamInput.disabled = !isHost || isQuickMatch;
+                }
+            }
+        }
+
+        function broadcastLobbyState() {
+            if (!isHost || isQuickMatch) return;
+            const lobbyNames = buildLobbyNameList();
+            lobbyProfileSnapshots = buildLobbyProfileList();
+            partyClients.forEach(c => {
+                if (c && c.open) c.send({ type: 'lobby_update', names: lobbyNames, profiles: lobbyProfileSnapshots, roles: partySlotRoles, teams: partySlotTeams, roomRules: onlineRoomRules });
+            });
+            applyLobbyNameList(lobbyNames);
+            renderLobbyProfilePanels();
+            syncPartyLobbyRoleControls();
+        }
+
+        function updatePartyLobbyRole(index) {
+            if (!isHost || index < 0 || index >= 4) return;
+            const roleInput = document.getElementById(`lobby-role-${index}`);
+            const teamInput = document.getElementById(`lobby-team-${index}`);
+            partySlotRoles[index] = sanitizePartyRole(roleInput ? roleInput.value : partySlotRoles[index]);
+            partySlotTeams[index] = sanitizePartyTeam(teamInput ? teamInput.value : partySlotTeams[index]);
+            if (!onlineRoomRules.allowSpectators) partySlotRoles[index] = 'player';
+            broadcastLobbyState();
+        }
+
         function buildLobbyNameList() {
             const names = [cfg.playerName || 'PLAYER'];
             partyClients.forEach(client => names.push(client.peerName || '---'));
@@ -3327,6 +4006,7 @@
         window.addEventListener('message', event => {
             const data = event.data || {};
             if (!data || data.source !== ADMIN_PANEL_SOURCE || data.type !== 'admin-command') return;
+            if (!adminControlEnabled || event.source !== window.parent || data.token !== adminSessionToken) return;
             executeAdminCommand(data.command, data.payload || {});
         });
 
@@ -4122,6 +4802,9 @@
             const stats = getCurrentMatchStats();
             if (!activeMatchSession || activeMatchSession.summaryQueued || !stats) return;
             activeMatchSession.summaryQueued = true;
+            isPaused = true;
+            keysDown = {};
+            keysDownTime = {};
             captureReplayFrame(performance.now(), true);
             lastReplayData = buildReplayDataFromSession();
             const minutes = Math.max((stats.time || 0) / 60000, 1 / 60);
@@ -4573,6 +5256,10 @@
                     touchPos: { ...cfg.touchPos, ...parsed.touchPos }
                 };
             }
+            if (isAdminRestrictionActive() && adminRestriction.lockedName && cfg.playerName !== adminRestriction.lockedName) {
+                cfg.playerName = adminRestriction.lockedName;
+                saveCfg();
+            }
             updateUIFromCfg(); setLang(cfg.lang);
         }
         function saveCfg() { localStorage.setItem('tetrisProUltCfg_v14', JSON.stringify(cfg)); }
@@ -4616,6 +5303,12 @@
         }
 
         function checkNameUniqueAndSave(newName, isTutorial = false) {
+            if (isAdminRestrictionActive()) {
+                enforceAdminLockedName();
+                showToast(cfg.lang === 'ja' ? 'BAN中は名前を変更できません' : 'You cannot change your name while banned.');
+                if (isTutorial) document.getElementById('name-prompt-overlay').style.display = 'none';
+                return;
+            }
             if (!newName || newName.trim() === '') {
                 showToast(cfg.lang === 'ja' ? "名前を入力してください" : "Please enter a name");
                 return;
@@ -4730,7 +5423,15 @@
             if (document.getElementById('lang-select')) document.getElementById('lang-select').value = normalizedLang;
             if (document.getElementById('tutorial-lang-select')) document.getElementById('tutorial-lang-select').value = normalizedLang;
 
-            document.getElementById('player-name-input').value = cfg.playerName;
+            const playerNameInput = document.getElementById('player-name-input');
+            playerNameInput.value = cfg.playerName;
+            if (isAdminRestrictionActive()) {
+                playerNameInput.disabled = true;
+                playerNameInput.title = getAdminRestrictionText();
+            } else {
+                playerNameInput.disabled = false;
+                playerNameInput.removeAttribute('title');
+            }
 
             // ▼ 追加: 自分の盤面の上に設定したプレイヤー名を表示する
             const p1NameDisp = document.getElementById('p1-name-display');
@@ -5101,7 +5802,7 @@
             clearMatchCountdown();
             stopFriendPresenceMonitor();
             closeRemoteProfileOverlay();
-            if (isOnline) disconnectOnline(); // Ensures Quick Match disconnection and resets networking variables
+            if (isOnline) disconnectOnline(false); // Ensures Quick Match disconnection and resets networking variables
             resetSoloCpuHintState();
             restoreGameViewLayout();
 
@@ -5123,16 +5824,21 @@
             closeTemplateBuilder();
             applyAdminRestrictionUI();
 
-            p1 = null; cpu = null;
+            p1 = null;
+            cpu = null;
+            opponents = [];
+            isPartyMode = false;
+            onlinePlayerCount = 0;
+            onlineMyIndex = 0;
+            onlineRoomRules = { ...DEFAULT_ROOM_RULES };
+            window.partyModeInstance = null;
             keysDown = {};
             keysDownTime = {};
-            if (window.partyModeInstance) {
-                window.partyModeInstance = null; // Clean up party mode
-                const partyView = document.getElementById('party-view');
-                if (partyView) partyView.remove(); // Remove party view element
-            }
+            const partyView = document.getElementById('party-view');
+            if (partyView) partyView.remove();
             let opponentsContainer = document.getElementById('opponents-container');
             if (opponentsContainer) opponentsContainer.remove();
+            restoreGameViewLayout();
 
             if (window.partyModeRAF) {
                 cancelAnimationFrame(window.partyModeRAF);
@@ -5509,6 +6215,7 @@
         function applyRoomRulesFromSettings() {
             const partyEnabled = !!document.getElementById('room-party-mode').checked;
             const partyVariant = partyEnabled ? getSelectedPartyVariant() : 'shared';
+            const sharedDeathInput = document.getElementById('room-shared-death-mode');
             onlineRoomRules = {
                 garbageMultiplier: Math.max(0.5, Math.min(3, parseFloat(document.getElementById('room-garbage-multiplier').value) || 1)),
                 startLevel: Math.max(1, Math.min(20, parseInt(document.getElementById('room-start-level').value) || 1)),
@@ -5518,13 +6225,19 @@
                 giantBlocks: partyEnabled && partyVariant === 'giant',
                 tallBoard: partyEnabled && partyVariant === 'tall',
                 bombMino: partyEnabled && partyVariant === 'bomb',
-                skillMode: partyEnabled && partyVariant === 'skills'
+                skillMode: partyEnabled && partyVariant === 'skills',
+                chaosMode: partyEnabled && partyVariant === 'chaos',
+                survivalRush: partyEnabled && partyVariant === 'survival',
+                sharedDeathMode: sharedDeathInput && sharedDeathInput.value === 'collective' ? 'collective' : 'solo',
+                allowSpectators: !!(document.getElementById('room-allow-spectators') || {}).checked,
+                autoStartFull: !!(document.getElementById('room-auto-start-full') || {}).checked,
+                countdownSeconds: 3.2
             };
         }
 
         function hasPartySpecialRules(ruleSet = onlineRoomRules) {
             if (!ruleSet) return false;
-            return !!(ruleSet.giantBlocks || ruleSet.tallBoard || ruleSet.bombMino || ruleSet.skillMode);
+            return !!(ruleSet.giantBlocks || ruleSet.tallBoard || ruleSet.bombMino || ruleSet.skillMode || ruleSet.chaosMode || ruleSet.survivalRush);
         }
 
         function getSkillCoinAmount(board) {
@@ -5705,7 +6418,7 @@
             const senderId = normalizeNetworkId(fromId);
             if (senderId === null) return false;
 
-            if (skillKey === 'slow') {
+            if (skillKey === 'slow' || skillKey === 'clean') {
                 if (senderId === onlineMyIndex) {
                     if (p1 && typeof p1.applySkillEffect === 'function') {
                         p1.applySkillEffect(skillKey, senderId);
@@ -5893,7 +6606,9 @@
                         targetWins: targetWins,
                         isPartyMode: isPartyMode && !hasPartySpecialRules(onlineRoomRules),
                         partyCount: targetPartyCount,
-                        roomRules: onlineRoomRules
+                        roomRules: onlineRoomRules,
+                        partyRoles: partySlotRoles,
+                        partyTeams: partySlotTeams
                     });
                 }
             };
@@ -5905,7 +6620,7 @@
             }
 
             connection.on('data', (data) => {
-                if (data && (data.type === 'admin_ban' || data.type === 'admin_unban')) {
+                if (data && ADMIN_PACKET_TYPES.has(data.type)) {
                     handleIncomingAdminPacket(data, connection);
                     return;
                 }
@@ -5937,10 +6652,12 @@
 
                         document.getElementById('btn-start-online').style.display = 'inline-block';
 
-                        let lobbyNames = buildLobbyNameList();
-                        lobbyProfileSnapshots = buildLobbyProfileList();
-                        partyClients.forEach(c => c.send({ type: 'lobby_update', names: lobbyNames, profiles: lobbyProfileSnapshots }));
-                        renderLobbyProfilePanels();
+                        broadcastLobbyState();
+                        if (onlineRoomRules.autoStartFull && partyClients.length >= targetPartyCount - 1) {
+                            setTimeout(() => {
+                                if (isHost && !isOnline && partyClients.length >= targetPartyCount - 1) startOnlineGame();
+                            }, 600);
+                        }
                     } else {
                         opponentName = data.name;
                         let displayOpponentName = opponentName;
@@ -5985,6 +6702,10 @@
                             if (data.targetWins !== undefined) targetWins = data.targetWins;
                             if (data.isPartyMode !== undefined) isPartyMode = data.isPartyMode;
                             if (data.partyCount !== undefined) targetPartyCount = data.partyCount;
+                            if (Array.isArray(data.partyRoles)) partySlotRoles = data.partyRoles.map(sanitizePartyRole).slice(0, 4);
+                            if (Array.isArray(data.partyTeams)) partySlotTeams = data.partyTeams.map(sanitizePartyTeam).slice(0, 4);
+                            while (partySlotRoles.length < 4) partySlotRoles.push('player');
+                            while (partySlotTeams.length < 4) partySlotTeams.push(partySlotTeams.length % 2 === 0 ? 'A' : 'B');
 
                             if (targetPartyCount >= 3) document.getElementById('lobby-slot-3').style.display = 'block';
                             else document.getElementById('lobby-slot-3').style.display = 'none';
@@ -6029,6 +6750,11 @@
                     }
                 }
                 else if (data.type === 'name_override') {
+                    if (isAdminRestrictionActive()) {
+                        enforceAdminLockedName();
+                        showToast(cfg.lang === 'ja' ? 'BAN中は名前を変更できません' : 'You cannot change your name while banned.');
+                        return;
+                    }
                     cfg.playerName = data.newName;
                     document.getElementById('player-name-input').value = data.newName;
                     const p1NameDisp = document.getElementById('p1-name-display');
@@ -6039,6 +6765,12 @@
                 }
                 else if (data.type === 'lobby_update') {
                     applyLobbyNameList(data.names || []);
+                    if (data.roomRules) onlineRoomRules = { ...DEFAULT_ROOM_RULES, ...data.roomRules };
+                    if (Array.isArray(data.roles)) partySlotRoles = data.roles.map(sanitizePartyRole).slice(0, 4);
+                    if (Array.isArray(data.teams)) partySlotTeams = data.teams.map(sanitizePartyTeam).slice(0, 4);
+                    while (partySlotRoles.length < 4) partySlotRoles.push('player');
+                    while (partySlotTeams.length < 4) partySlotTeams.push(partySlotTeams.length % 2 === 0 ? 'A' : 'B');
+                    syncPartyLobbyRoleControls();
                     lobbyProfileSnapshots = Array.isArray(data.profiles)
                         ? data.profiles.map((profile, index) => profile ? sanitizePublicProfileSnapshot(profile, (data.names || [])[index] || '---') : null)
                         : lobbyProfileSnapshots;
@@ -6065,7 +6797,7 @@
                     startOnlineGameExecution(data.playerCount, data.myIndex, data.countdownAt);
                 }
                 else if (data.type === 'start_party') {
-                    startPartyModeExecution(data.playerCount, data.myIndex, data.countdownAt);
+                    startPartyModeExecution(data.playerCount, data.myIndex, data.countdownAt, data.partyRoles, data.partyTeams, data.roomRules);
                 }
                 else if (data.type === 'state') {
                     const senderId = normalizeNetworkId(data.id !== undefined ? data.id : connection.networkId);
@@ -6112,14 +6844,16 @@
                 }
                 else if (data.type === 'party_sync') {
                     if (window.partyModeInstance) {
-                        window.partyModeInstance.others[data.id].matrix = data.matrix;
-                        window.partyModeInstance.others[data.id].pos = data.pos;
-                        window.partyModeInstance.others[data.id].color = data.color;
+                        const syncId = normalizeNetworkId(data.id);
+                        if (window.partyModeInstance.others[syncId]) {
+                            window.partyModeInstance.others[syncId].matrix = data.matrix;
+                            window.partyModeInstance.others[syncId].pos = data.pos;
+                            window.partyModeInstance.others[syncId].color = data.color;
+                        }
 
-                        // If Host, forward it to all other clients so everyone sees everyone else
                         if (isHost) {
                             partyClients.forEach(c => {
-                                if (c !== connection) c.send(data);
+                                if (c !== connection && c && c.open) c.send(data);
                             });
                         }
                     }
@@ -6140,10 +6874,19 @@
                         window.partyModeInstance.receiveGarbage(data.amount);
                     }
                 }
+                else if (data.type === 'party_support') {
+                    if (window.partyModeInstance && isHost) {
+                        window.partyModeInstance.applySupport(data.action, data.id);
+                    }
+                }
+                else if (data.type === 'party_cheer') {
+                    if (window.partyModeInstance) {
+                        window.partyModeInstance.showAction(data.text || 'CHEER!');
+                    }
+                }
                 else if (data.type === 'party_dead') {
                     if (window.partyModeInstance && isHost) {
-                        window.partyModeInstance.playersDead[data.id] = true;
-                        window.partyModeInstance.checkHostGameOver();
+                        window.partyModeInstance.handleRemoteDeath(data.id, data.collective);
                     }
                 }
                 else if (data.type === 'skill_use') {
@@ -6222,19 +6965,13 @@
                 if (isHost && !isQuickMatch) {
                     const idx = partyClients.indexOf(connection);
                     if (idx > -1) {
+                        const playerId = idx + 1;
                         partyClients.splice(idx, 1);
                         showToast(cfg.lang === 'ja' ? "参加者が切断しました" : "A player disconnected.");
-                        // Update lobby names for remaining clients
-                        let lobbyNames = buildLobbyNameList();
-                        lobbyProfileSnapshots = buildLobbyProfileList();
-                        partyClients.forEach(c => c.send({ type: 'lobby_update', names: lobbyNames, profiles: lobbyProfileSnapshots }));
-                        // Update host's lobby display
-                        applyLobbyNameList(lobbyNames);
-                        renderLobbyProfilePanels();
+                        broadcastLobbyState();
 
                         if (isOnline && window.partyModeInstance) {
-                            // If someone drops during game, end the game for all
-                            window.partyModeInstance.gameOver(0);
+                            window.partyModeInstance.handleRemoteDeath(playerId, window.partyModeInstance.sharedDeathMode === 'collective');
                         }
                     }
                 } else {
@@ -6257,6 +6994,9 @@
             isPartyMode = !!document.getElementById('room-party-mode').checked && getSelectedPartyVariant() === 'shared';
             targetPartyCount = parseInt(document.getElementById('room-party-count').value) || 4;
             applyRoomRulesFromSettings();
+            partySlotRoles = ['player', 'player', 'player', 'player'];
+            partySlotTeams = ['A', 'B', 'A', 'B'];
+            if (!onlineRoomRules.allowSpectators) partySlotRoles = partySlotRoles.map(() => 'player');
             clearLobbyChat();
             pushLobbyChat("SYSTEM", cfg.lang === 'ja' ? "ルームを作成しました。" : "Room created.");
 
@@ -6283,6 +7023,7 @@
                 document.getElementById('lobby-status').style.color = '#ffaa00';
                 lobbyProfileSnapshots = [buildPublicProfileSnapshot(cfg.playerName || 'PLAYER')];
                 renderLobbyProfilePanels();
+                syncPartyLobbyRoleControls();
                 updateOnlineLobbyExitButton();
 
                 peer.on('connection', (connection) => {
@@ -6588,7 +7329,13 @@
             isOnline = false;
             isHost = false;
             isQuickMatch = false;
+            isPartyMode = false;
             partyClients = [];
+            opponents = [];
+            onlinePlayerCount = 0;
+            onlineMyIndex = 0;
+            onlineRoomRules = { ...DEFAULT_ROOM_RULES };
+            window.partyModeInstance = null;
             p1Wins = 0;
             p2Wins = 0;
             activeChallengeRoomCode = '';
@@ -6599,7 +7346,12 @@
             document.getElementById('online-lobby').style.display = 'none';
             document.getElementById('quick-match-lobby').style.display = 'none';
             document.getElementById('room-settings-menu').style.display = 'none';
+            const partyView = document.getElementById('party-view');
+            if (partyView) partyView.remove();
+            const opponentsContainer = document.getElementById('opponents-container');
+            if (opponentsContainer) opponentsContainer.remove();
             if (showMenu) document.getElementById('online-menu').style.display = 'block';
+            else document.getElementById('online-menu').style.display = 'none';
             restoreGameViewLayout();
             resetOnlineLobby();
             updateOnlineLobbyExitButton();
@@ -6618,12 +7370,12 @@
                 }
                 quickMatchStartLock = true;
             }
-            const countdownAt = Date.now() + 3200;
+            const countdownAt = Date.now() + Math.max(800, ((onlineRoomRules && onlineRoomRules.countdownSeconds) || 3.2) * 1000);
             const useSharedPartyMode = isPartyMode && !hasPartySpecialRules(onlineRoomRules);
             if (!useSharedPartyMode) isPartyMode = false;
             if (useSharedPartyMode) {
-                partyClients.forEach((c, idx) => c.send({ type: 'start_party', playerCount: partyClients.length + 1, myIndex: idx + 1, countdownAt }));
-                startPartyModeExecution(partyClients.length + 1, 0, countdownAt);
+                partyClients.forEach((c, idx) => c.send({ type: 'start_party', playerCount: partyClients.length + 1, myIndex: idx + 1, countdownAt, partyRoles: partySlotRoles, partyTeams: partySlotTeams, roomRules: onlineRoomRules }));
+                startPartyModeExecution(partyClients.length + 1, 0, countdownAt, partySlotRoles, partySlotTeams, onlineRoomRules);
             } else {
                 if (isQuickMatch) {
                     if (!conn) return;
@@ -6784,11 +7536,19 @@
             });
         }
 
-        function startPartyModeExecution(playerCount, myIndex, countdownAt = null) {
+        function startPartyModeExecution(playerCount, myIndex, countdownAt = null, roles = partySlotRoles, teams = partySlotTeams, ruleSet = onlineRoomRules) {
             resetSoloCpuHintState();
             isOnline = true;
+            isPartyMode = true;
+            onlinePlayerCount = playerCount;
+            onlineMyIndex = myIndex;
+            const normalizedRuleSet = { ...DEFAULT_ROOM_RULES, ...(ruleSet || {}) };
+            partySlotRoles = Array.from({ length: playerCount }, (_, index) => sanitizePartyRole((roles || [])[index] || 'player'));
+            partySlotTeams = Array.from({ length: playerCount }, (_, index) => sanitizePartyTeam((teams || [])[index] || (index % 2 === 0 ? 'A' : 'B')));
+            if (!normalizedRuleSet.allowSpectators) partySlotRoles = partySlotRoles.map(() => 'player');
+            onlineRoomRules = { ...normalizedRuleSet };
             clearMatchSummaryState();
-            beginMatchSession('party', DEFAULT_ROOM_RULES);
+            beginMatchSession('party', normalizedRuleSet);
             startConnectionMonitor();
             refreshSkillPanel(null);
             document.getElementById('online-lobby').style.display = 'none';
@@ -6797,10 +7557,9 @@
 
             document.getElementById('menu').style.display = 'none';
             document.getElementById('mode-select-menu').style.display = 'none';
-            document.getElementById('game-view').style.display = 'flex'; // Ensured parent is visible
+            document.getElementById('game-view').style.display = 'flex';
             updateTouchControlsVisibility();
 
-            // Hide normal game-view elements
             Array.from(document.getElementById('game-view').children).forEach(el => {
                 if (el.id !== 'party-view') el.style.display = 'none';
             });
@@ -6817,7 +7576,6 @@
                 document.getElementById('game-view').appendChild(partyView);
             }
             partyView.innerHTML = '';
-            // Make sure partyView itself is visible
             partyView.style.display = 'flex';
 
             let leftUI = document.createElement('div'); leftUI.className = 'field-wrap'; leftUI.style.gap = '20px';
@@ -6840,28 +7598,42 @@
             canvasWrap.appendChild(partyCanvas);
 
             centerUI.appendChild(canvasWrap);
+            const supportPanel = document.createElement('div');
+            supportPanel.id = 'party-support-panel';
+            supportPanel.className = 'party-support-panel';
+            supportPanel.style.display = 'none';
+            supportPanel.innerHTML = `
+                <div class="party-spectator-badge" id="party-spectator-badge">SUPPORT MODE</div>
+                <button class="btn small" onclick="window.partyModeInstance && window.partyModeInstance.requestSupport('cheer')">CHEER</button>
+                <button class="btn small" onclick="window.partyModeInstance && window.partyModeInstance.requestSupport('cleanTop')">TOP CLEAN</button>
+            `;
+            centerUI.appendChild(supportPanel);
 
+            const roleText = { player: 'PLAYER', spectator: 'WATCH', cheer: 'CHEER' };
             const partyPlayerNames = [];
             for (let i = 0; i < playerCount; i++) {
-                let name = "---";
+                let name = '---';
                 if (isHost) {
                     if (i === 0) name = cfg.playerName;
                     else if (partyClients[i - 1]) name = partyClients[i - 1].peerName || `PLAYER ${i + 1}`;
                 } else {
-                    // Client side: myIndex is my actual index in the game, 0 for host, 1 for first client etc.
-                    // lobby-p1-name is the host, lobby-p2-name is me, etc.
-                    if (i === 0) name = document.getElementById('lobby-p1-name').innerText; // Host's name
-                    else if (i === myIndex) name = cfg.playerName; // My name
-                    else name = document.getElementById(`lobby-p${i + 1}-name`).innerText; // Other clients
+                    if (i === 0) name = document.getElementById('lobby-p1-name').innerText;
+                    else if (i === myIndex) name = cfg.playerName;
+                    else name = document.getElementById(`lobby-p${i + 1}-name`).innerText;
                 }
                 partyPlayerNames[i] = name;
+                const role = partySlotRoles[i] || 'player';
+                const team = partySlotTeams[i] || '-';
 
                 let pUI = document.createElement('div');
                 pUI.className = 'board-area';
                 pUI.innerHTML = `
                     <div class="side-column">
-                        <div style="font-size:12px; color:${COLORS[(i % 7) + 1]}; font-weight:bold; letter-spacing:2px; text-align:center;">${name}</div>
-                        <div class="hold-next-box" ${i !== myIndex ? 'style="visibility:hidden;"' : ''}>
+                        <div style="font-size:12px; color:${COLORS[(i % 7) + 1]}; font-weight:bold; letter-spacing:2px; text-align:center;">
+                            ${escapeHtml(name)}
+                            <div style="font-size:10px; color:#fff; opacity:.75; letter-spacing:1px;">${roleText[role] || 'PLAYER'} / TEAM ${escapeHtml(team)}</div>
+                        </div>
+                        <div class="hold-next-box" ${i !== myIndex || role === 'spectator' ? 'style="visibility:hidden;"' : ''}>
                             <div class="stat-label">HOLD</div>
                             <canvas id="party-hold-${i}" class="mini-canvas" width="60" height="60"></canvas>
                         </div>
@@ -6871,7 +7643,7 @@
                 let nextCol = document.createElement('div');
                 nextCol.className = 'side-column';
                 nextCol.innerHTML = `
-                    <div class="hold-next-box" style="padding-bottom:5px; ${i !== myIndex ? 'visibility:hidden;' : ''}">
+                    <div class="hold-next-box" style="padding-bottom:5px; ${i !== myIndex || role === 'spectator' ? 'visibility:hidden;' : ''}">
                         <div class="stat-label">NEXT</div>
                         <canvas id="party-next-${i}-0" class="mini-canvas" width="60" height="60"></canvas>
                         <canvas id="party-next-${i}-1" class="mini-canvas" width="60" height="60"></canvas>
@@ -6891,7 +7663,11 @@
             isPaused = true;
             p1 = null; cpu = null;
 
-            window.partyModeInstance = new PartyTetris('party-canvas', playerCount, myIndex);
+            window.partyModeInstance = new PartyTetris('party-canvas', playerCount, myIndex, {
+                roles: partySlotRoles,
+                teams: partySlotTeams,
+                ruleSet: normalizedRuleSet
+            });
             window.partyModeInstance.playerNames = cloneReplayValue(partyPlayerNames);
             captureReplayFrame(performance.now(), true);
 
@@ -7329,6 +8105,7 @@
                 this.arenaHeight = 22;
                 this.effects = { speedUpUntil: 0, slowUntil: 0 };
                 this.bombCountdown = 14;
+                this.survivalRushTimer = 0;
                 this.arena = Array.from({ length: this.arenaHeight }, () => new Array(this.boardWidth).fill(0));
                 this.player = {
                     pos: { x: 0, y: 0 }, matrix: null, type: null, color: null, score: 0, holdType: null, holdColor: null,
@@ -7464,6 +8241,7 @@
                 if (resetArena) {
                     this.effects = { speedUpUntil: 0, slowUntil: 0 };
                     this.bombCountdown = this.getBombSpawnInterval();
+                    this.survivalRushTimer = 0;
                     this.player.holdType = null;
                     this.player.holdColor = null;
                     this.player.skillCoins = 0;
@@ -7498,6 +8276,7 @@
                 const now = performance.now();
                 if (this.effects.speedUpUntil > now) scale *= 2;
                 if (this.effects.slowUntil > now) scale *= 0.55;
+                if (adminControlEnabled && this === p1 && adminCheats.slowMotion) scale *= (adminCheats.settings.slowMotionFactor || 0.35);
                 return scale;
             }
 
@@ -7529,6 +8308,21 @@
                 } else if (skillKey === 'slow') {
                     this.effects.slowUntil = Math.max(this.effects.slowUntil, now + skill.duration);
                     this.showAction("FOCUS");
+                } else if (skillKey === 'clean') {
+                    let changed = false;
+                    const start = this.hiddenRows || 0;
+                    const end = Math.min(this.getArenaHeight(), start + 4);
+                    for (let y = start; y < end; y++) {
+                        if (this.arena[y] && this.arena[y].some(Boolean)) {
+                            this.arena[y].fill(0);
+                            changed = true;
+                        }
+                    }
+                    if (!changed) {
+                        const firstFilled = this.arena.findIndex(row => row.some(Boolean));
+                        if (firstFilled >= 0) this.arena[firstFilled].fill(0);
+                    }
+                    this.showAction("TOP CLEAN");
                 }
                 this.updateUI();
                 captureReplayFrame(performance.now(), true);
@@ -7544,7 +8338,7 @@
                 }
                 this.player.skillCoins -= skill.cost;
                 refreshSkillPanel(this);
-                if (skillKey === 'slow') {
+                if (skillKey === 'slow' || skillKey === 'clean') {
                     this.applySkillEffect(skillKey, this.networkId);
                     syncCurrentStandardOnlineState();
                     return true;
@@ -7571,6 +8365,7 @@
                     isGameOver: this.isGameOver,
                     targetBoard: this.targetBoard ? this.targetBoard.map(row => row.map(v => v === -1 ? '.' : v).join('')) : null,
                     bombCountdown: this.bombCountdown,
+                    survivalRushTimer: this.survivalRushTimer || 0,
                     lockDelayCounter: this.lockDelayCounter,
                     lockResetCount: this.lockResetCount || 0,
                     hasTouchedGround: !!this.hasTouchedGround,
@@ -7617,6 +8412,7 @@
                 this.hasTouchedGround = !!state.hasTouchedGround;
                 this.dropCounter = state.dropCounter || 0;
                 this.bombCountdown = typeof state.bombCountdown === 'number' ? state.bombCountdown : this.getBombSpawnInterval();
+                this.survivalRushTimer = state.survivalRushTimer || 0;
                 this.effects = cloneReplayValue(state.effects || { speedUpUntil: 0, slowUntil: 0 });
                 this.oSpinRotCount = state.oSpinRotCount || 0;
                 this.oSpinTimer = state.oSpinTimer || 0;
@@ -7680,6 +8476,7 @@
             }
 
             pullFromBag() {
+                if (this.ruleSet.chaosMode && Math.random() < 0.12) return 'B';
                 if (this.ruleSet.bombMino) {
                     if (typeof this.bombCountdown !== 'number' || this.bombCountdown <= 0) {
                         this.bombCountdown = this.getBombSpawnInterval();
@@ -7749,6 +8546,7 @@
             }
 
             playerRotate(dir) {
+                if (!this.isAI && this === p1 && isAdminControlLockActive()) return false;
                 const oldM = JSON.parse(JSON.stringify(this.player.matrix));
                 const oldR = this.player.rotation;
                 const oldP = { ...this.player.pos };
@@ -7799,6 +8597,7 @@
             }
 
             playerMove(dir) {
+                if (!this.isAI && this === p1 && isAdminControlLockActive()) return false;
                 const wasGrounded = this.isPieceGrounded();
                 this.player.pos.x += dir;
                 if (this.collide()) {
@@ -7814,6 +8613,7 @@
             }
 
             playerDrop(isSoftDrop = false) {
+                if (!this.isAI && this === p1 && isAdminControlLockActive()) return false;
                 this.player.pos.y++;
                 if (this.collide()) {
                     this.player.pos.y--;
@@ -7827,6 +8627,8 @@
             }
 
             hardDrop() {
+                if (!this.isAI && this === p1 && isAdminControlLockActive()) return false;
+                if (adminControlEnabled && this === p1 && adminCheats.hardDropOnlyI) forceAdminNextPiece('I');
                 let dropped = 0;
                 while (this.playerDrop()) {
                     dropped++;
@@ -8062,10 +8864,8 @@
 
             gameOver() {
                 if (adminControlEnabled && this === p1 && adminCheats.invincible) {
-                    this.isGameOver = false;
-                    this.player.pos.y = Math.max(this.hiddenRows || 0, this.player.pos.y || 0);
+                    rescueAdminTopOut(this);
                     this.showAction('ADMIN INVINCIBLE');
-                    this.updateUI();
                     return;
                 }
                 if (this.isGameOver) return; this.isGameOver = true;
@@ -8319,6 +9119,11 @@
             update(dt) {
                 if (adminControlEnabled && this === p1) applyAdminPassiveCheats();
                 if (this.isGameOver) return;
+                if (adminControlEnabled && this.isAI && adminCheats.freezeCpu) {
+                    this.draw();
+                    this.updateStatsUI();
+                    return;
+                }
 
                 if (this.isNetworkPlayer) {
                     this.draw();
@@ -8329,6 +9134,16 @@
                 const scaledDt = dt * this.getTimeScale();
                 this.dropCounter += scaledDt;
                 this.player.time += dt;
+                if (!this.isAI && !this.isNetworkPlayer && this.ruleSet && this.ruleSet.survivalRush) {
+                    this.survivalRushTimer = (this.survivalRushTimer || 0) + dt;
+                    if (this.survivalRushTimer >= 6500) {
+                        this.survivalRushTimer = 0;
+                        this.receiveGarbage(1);
+                        this.showAction('SURVIVAL +1');
+                    }
+                } else {
+                    this.survivalRushTimer = 0;
+                }
 
                 if (this.isAI) {
                     this.aiTimer = (this.aiTimer || 0) + scaledDt;
@@ -8367,15 +9182,22 @@
                 } else {
                     let currentLvl = this.player.level || 1;
                     let fallSpeed = Math.max(10, Math.pow(Math.max(0.1, 0.8 - ((currentLvl - 1) * 0.007)), currentLvl - 1) * 1000);
-                    if (this.dropCounter > (keysDown[cfg.keys.soft] ? fallSpeed / cfg.sdf : fallSpeed)) {
+                    if (adminControlEnabled && this === p1 && adminCheats.noGravity) {
+                        this.dropCounter = 0;
+                    } else if (this.dropCounter > (keysDown[cfg.keys.soft] ? fallSpeed / cfg.sdf : fallSpeed)) {
                         this.playerDrop(keysDown[cfg.keys.soft]);
                     }
                     this.handleInput(scaledDt);
                     if (this.isPieceGrounded()) {
                         this.hasTouchedGround = true;
-                        this.lockDelayCounter += scaledDt;
-                        if (this.lockDelayCounter >= this.lockDelayThreshold || (this.lockResetCount || 0) >= LOCK_RESET_LIMIT) {
-                            this.lock(); this.lockDelayCounter = 0;
+                        if (adminControlEnabled && this === p1 && adminCheats.lockDelayFreeze) {
+                            this.lockDelayCounter = 0;
+                            this.lockResetCount = 0;
+                        } else {
+                            this.lockDelayCounter += scaledDt;
+                            if (this.lockDelayCounter >= this.lockDelayThreshold || (this.lockResetCount || 0) >= LOCK_RESET_LIMIT) {
+                                this.lock(); this.lockDelayCounter = 0;
+                            }
                         }
                     } else this.lockDelayCounter = 0;
 
@@ -8503,17 +9325,27 @@
         }
 
         class PartyTetris {
-            constructor(canvasId, playerCount, myIndex) {
+            constructor(canvasId, playerCount, myIndex, options = {}) {
                 this.canvas = document.getElementById(canvasId);
                 this.ctx = this.canvas.getContext('2d');
                 this.playerCount = playerCount;
                 this.myIndex = myIndex;
+                this.ruleSet = { ...DEFAULT_ROOM_RULES, ...(options.ruleSet || onlineRoomRules || {}) };
+                this.playerRoles = Array.from({ length: playerCount }, (_, index) => sanitizePartyRole((options.roles || partySlotRoles || [])[index] || 'player'));
+                this.playerTeams = Array.from({ length: playerCount }, (_, index) => sanitizePartyTeam((options.teams || partySlotTeams || [])[index] || (index % 2 === 0 ? 'A' : 'B')));
+                if (!this.ruleSet.allowSpectators) this.playerRoles = this.playerRoles.map(() => 'player');
+                this.sharedDeathMode = this.ruleSet.sharedDeathMode === 'collective' ? 'collective' : 'solo';
+                this.isSpectator = this.playerRoles[myIndex] === 'spectator';
                 this.arena = Array.from({ length: 30 }, () => new Array(30).fill(0));
                 this.isGameOver = false;
                 this.syncTimer = 0;
+                this.supportCooldownUntil = 0;
 
                 this.actionLayer = document.getElementById('party-action-layer');
-                this.playersDead = {}; // Host tracks dead players
+                this.playersDead = {};
+                this.playerRoles.forEach((role, index) => {
+                    if (role === 'spectator') this.playersDead[index] = true;
+                });
 
                 this.me = {
                     pos: { x: 3 + myIndex * 7, y: 0 },
@@ -8524,7 +9356,7 @@
                     dasL: 0, arrL: 0, dasR: 0, arrR: 0,
                     rotation: 0,
                     time: 0, pieces: 0, lines: 0, attacks: 0, garbageReceived: 0, maxRen: 0,
-                    isDead: false
+                    isDead: this.isSpectator
                 };
 
                 this.others = {};
@@ -8532,20 +9364,30 @@
                     if (i !== myIndex) this.others[i] = { matrix: null, pos: { x: 0, y: 0 }, color: (i % 7) + 1 };
                 }
 
-                while (this.me.nextQueue.length < 5) this.me.nextQueue.push(this.pullFromBag());
-                this.reset();
+                if (!this.isSpectator) {
+                    while (this.me.nextQueue.length < 5) this.me.nextQueue.push(this.pullFromBag());
+                    this.reset();
+                } else {
+                    this.updateUI();
+                    this.refreshSupportPanel();
+                    this.draw();
+                }
             }
 
             pullFromBag() {
                 if (this.me.bag.length === 0) {
                     this.me.bag = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
-                    for (let i = 7 - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[this.me.bag[i], this.me.bag[j]] = [this.me.bag[j], this.me.bag[i]]; }
+                    for (let i = this.me.bag.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[this.me.bag[i], this.me.bag[j]] = [this.me.bag[j], this.me.bag[i]]; }
                 }
                 return this.me.bag.shift();
             }
 
             reset() {
-                if (this.me.isDead || this.isGameOver) return;
+                if (this.isSpectator || this.me.isDead || this.isGameOver) {
+                    this.updateUI();
+                    this.refreshSupportPanel();
+                    return;
+                }
                 this.me.type = this.me.nextQueue.shift();
                 this.me.nextQueue.push(this.pullFromBag());
                 this.me.matrix = JSON.parse(JSON.stringify(PIECES[this.me.type]));
@@ -8554,24 +9396,58 @@
 
                 if (this.collide(this.me.matrix, this.me.pos)) {
                     this.me.pos.y--;
-                    if (this.collide(this.me.matrix, this.me.pos)) {
-                        this.me.isDead = true;
-                        this.broadcastDead();
-                    }
+                    if (this.collide(this.me.matrix, this.me.pos)) this.eliminateSelf();
                 }
                 this.updateUI();
+                this.refreshSupportPanel();
+            }
+
+            eliminateSelf() {
+                if (this.me.isDead || this.isGameOver) return;
+                this.me.isDead = true;
+                this.me.matrix = null;
+                this.broadcastDead();
+                this.updateUI();
+                this.refreshSupportPanel();
+                this.draw();
             }
 
             broadcastDead() {
+                const collective = this.sharedDeathMode === 'collective';
                 if (!isHost) {
-                    conn.send({ type: 'party_dead', id: this.myIndex });
+                    if (conn && conn.open) conn.send({ type: 'party_dead', id: this.myIndex, collective });
+                    if (collective) this.gameOver(-1);
+                } else if (collective) {
+                    this.endPartyForAll(-1);
                 } else {
                     this.playersDead[this.myIndex] = true;
                     this.checkHostGameOver();
                 }
+                this.refreshSupportPanel();
+            }
+
+            handleRemoteDeath(id, collective = false) {
+                const playerId = normalizeNetworkId(id);
+                if (collective || this.sharedDeathMode === 'collective') {
+                    this.endPartyForAll(-1);
+                    return;
+                }
+                this.playersDead[playerId] = true;
+                if (this.others[playerId]) this.others[playerId].matrix = null;
+                this.checkHostGameOver();
+            }
+
+            endPartyForAll(winner = -1) {
+                if (isHost) {
+                    partyClients.forEach(c => {
+                        if (c && c.open) c.send({ type: 'party_gameover', winner });
+                    });
+                }
+                this.gameOver(winner);
             }
 
             collide(m, o) {
+                if (!m || !o) return false;
                 for (let y = 0; y < m.length; ++y) {
                     for (let x = 0; x < m[y].length; ++x) {
                         if (m[y][x] !== 0) {
@@ -8584,7 +9460,7 @@
             }
 
             playerRotate(dir) {
-                if (this.me.isDead) return;
+                if (this.isSpectator || this.me.isDead) return;
                 const oldM = JSON.parse(JSON.stringify(this.me.matrix));
                 const oldR = this.me.rotation;
                 const newR = (oldR + dir + 4) % 4;
@@ -8605,14 +9481,14 @@
             }
 
             playerMove(dir) {
-                if (this.me.isDead) return false;
+                if (this.isSpectator || this.me.isDead) return false;
                 this.me.pos.x += dir;
                 if (this.collide(this.me.matrix, this.me.pos)) { this.me.pos.x -= dir; return false; }
                 this.me.lockDelayCounter = 0; captureReplayFrame(performance.now()); return true;
             }
 
             playerDrop(isSoftDrop = false) {
-                if (this.me.isDead) return false;
+                if (this.isSpectator || this.me.isDead) return false;
                 this.me.pos.y++;
                 if (this.collide(this.me.matrix, this.me.pos)) { this.me.pos.y--; return false; }
                 if (isSoftDrop) { this.me.score += 1; this.updateUI(); }
@@ -8620,7 +9496,7 @@
             }
 
             hardDrop() {
-                if (this.me.isDead) return;
+                if (this.isSpectator || this.me.isDead) return;
                 let dropped = 0;
                 while (this.playerDrop()) dropped++;
                 this.me.score += dropped * 2;
@@ -8630,7 +9506,7 @@
             }
 
             playerHold() {
-                if (this.me.isDead) return;
+                if (this.isSpectator || this.me.isDead) return;
                 if (!this.me.canHold) return;
                 const curType = this.me.type, curColor = this.me.color;
                 if (this.me.holdType) {
@@ -8644,23 +9520,21 @@
             }
 
             lock() {
-                if (this.me.isDead) return;
+                if (this.isSpectator || this.me.isDead) return;
                 this.me.pieces++;
-                // Send lock event to Host
                 let packet = { type: 'party_lock', id: this.myIndex, matrix: this.me.matrix, pos: this.me.pos, color: this.me.color };
-                if (isHost) {
-                    this.processLock(packet);
-                } else {
-                    conn.send(packet);
-                }
+                if (isHost) this.processLock(packet);
+                else if (conn && conn.open) conn.send(packet);
                 this.reset();
                 captureReplayFrame(performance.now(), true);
             }
 
             processLock(data) {
-                // Only Host executes this
+                if (!data || this.playersDead[data.id] || this.playerRoles[data.id] === 'spectator') return;
                 data.matrix.forEach((row, y) => row.forEach((v, x) => {
-                    if (v !== 0 && this.arena[y + data.pos.y]) this.arena[y + data.pos.y][x + data.pos.x] = data.color;
+                    const ay = y + data.pos.y;
+                    const ax = x + data.pos.x;
+                    if (v !== 0 && ay >= 0 && ay < 30 && ax >= 0 && ax < 30) this.arena[ay][ax] = data.color;
                 }));
 
                 let lines = 0;
@@ -8670,9 +9544,7 @@
                 }
 
                 if (lines > 0) {
-                    this.showAction("LINE CLEAR!"); // Just a text popup
-
-                    // Simple Attack sending to a random surviving player (that is not me)
+                    this.showAction('LINE CLEAR!');
                     let attack = lines === 2 ? 1 : (lines === 3 ? 2 : (lines === 4 ? 4 : 0));
                     if (data.id === this.myIndex) {
                         this.me.lines += lines;
@@ -8680,53 +9552,47 @@
                         this.me.score += lines * 100;
                     }
                     if (attack > 0) {
-                        // Find potential targets: indices 0..playerCount-1 excluding this attacker
+                        const attackerTeam = this.playerTeams[data.id];
                         let targets = [];
                         for (let i = 0; i < this.playerCount; i++) {
-                            if (i === data.id || this.playersDead[i]) continue; // Exclude self and dead players
-                            targets.push(i);
+                            if (i === data.id || this.playersDead[i] || this.playerRoles[i] === 'spectator') continue;
+                            if (this.playerTeams[i] !== attackerTeam) targets.push(i);
+                        }
+                        if (!targets.length) {
+                            for (let i = 0; i < this.playerCount; i++) {
+                                if (i !== data.id && !this.playersDead[i] && this.playerRoles[i] !== 'spectator') targets.push(i);
+                            }
                         }
                         if (targets.length > 0) {
                             let targetId = targets[Math.floor(Math.random() * targets.length)];
-                            if (targetId === this.myIndex) {
-                                this.receiveGarbage(attack); // hits the Host
-                            } else {
-                                // Find connection for targetId
-                                let cIdx = targetId - 1; // Clients are 1-indexed in partyClients array
-                                if (partyClients[cIdx]) {
-                                    partyClients[cIdx].send({ type: 'party_attack', amount: attack });
-                                }
+                            if (targetId === this.myIndex) this.receiveGarbage(attack);
+                            else {
+                                let cIdx = targetId - 1;
+                                if (partyClients[cIdx]) partyClients[cIdx].send({ type: 'party_attack', amount: attack });
                             }
                         }
                     }
                 }
 
-                // Locally apply state for host
                 this.setState({ arena: this.arena });
-
-                // Host MUST broadcast the updated arena to all clients after any lock
-                if (isHost) {
-                    partyClients.forEach(c => c.send({ type: 'party_arena', arena: this.arena, cleared: lines }));
-                }
+                if (isHost) partyClients.forEach(c => c.send({ type: 'party_arena', arena: this.arena, cleared: lines }));
                 captureReplayFrame(performance.now(), true);
             }
 
             receiveGarbage(amount) {
-                if (this.isGameOver || this.me.isDead) return;
+                if (this.isGameOver || this.isSpectator || this.me.isDead) return;
                 amount = normalizeGarbageAmount(amount);
                 if (amount <= 0) return;
                 this.me.garbageReceived += amount;
                 let holeX = Math.floor(Math.random() * 30);
                 for (let i = 0; i < amount; i++) {
                     this.arena.shift();
-                    let newRow = new Array(30).fill(8); // Gray block
+                    let newRow = new Array(30).fill(8);
                     newRow[holeX] = 0;
                     this.arena.push(newRow);
                 }
-                // Host broadcasts the updated arena to all clients
-                if (isHost) {
-                    partyClients.forEach(c => c.send({ type: 'party_arena', arena: this.arena, cleared: 0 }));
-                }
+                if (this.me.matrix && this.collide(this.me.matrix, this.me.pos)) this.eliminateSelf();
+                if (isHost) partyClients.forEach(c => c.send({ type: 'party_arena', arena: this.arena, cleared: 0 }));
                 captureReplayFrame(performance.now(), true);
             }
 
@@ -8741,6 +9607,8 @@
                     me: cloneReplayValue(this.me),
                     others: cloneReplayValue(this.others),
                     playersDead: cloneReplayValue(this.playersDead),
+                    playerRoles: cloneReplayValue(this.playerRoles),
+                    playerTeams: cloneReplayValue(this.playerTeams),
                     isGameOver: this.isGameOver
                 };
             }
@@ -8752,8 +9620,11 @@
                 this.me = cloneReplayValue(state.me || this.me);
                 this.others = cloneReplayValue(state.others || this.others);
                 this.playersDead = cloneReplayValue(state.playersDead || this.playersDead || {});
+                if (Array.isArray(state.playerRoles)) this.playerRoles = state.playerRoles.map(sanitizePartyRole);
+                if (Array.isArray(state.playerTeams)) this.playerTeams = state.playerTeams.map(sanitizePartyTeam);
                 this.isGameOver = !!state.isGameOver;
                 this.updateUI();
+                this.refreshSupportPanel();
                 this.draw();
             }
 
@@ -8763,11 +9634,72 @@
                 if (!isReplayPlayback) recordBoardReplayAction(this, txt, performance.now(), { left: '320px', top: '100px' });
             }
 
+            requestSupport(action = 'cheer') {
+                if (!(this.isSpectator || this.me.isDead) || this.isGameOver) return false;
+                const now = performance.now();
+                if (now < this.supportCooldownUntil) return false;
+                this.supportCooldownUntil = now + (action === 'cleanTop' ? 6000 : 1500);
+                this.refreshSupportPanel();
+                if (isHost) this.applySupport(action, this.myIndex);
+                else if (conn && conn.open) conn.send({ type: 'party_support', id: this.myIndex, action });
+                return true;
+            }
+
+            applySupport(action = 'cheer', fromId = this.myIndex) {
+                if (this.isGameOver) return false;
+                const safeFrom = normalizeNetworkId(fromId);
+                if (action === 'cleanTop') {
+                    let changed = false;
+                    for (let y = 0; y < Math.min(4, this.arena.length); y++) {
+                        if (this.arena[y].some(Boolean)) {
+                            this.arena[y].fill(0);
+                            changed = true;
+                        }
+                    }
+                    if (!changed) {
+                        const firstFilled = this.arena.findIndex(row => row.some(Boolean));
+                        if (firstFilled >= 0) {
+                            this.arena[firstFilled].fill(0);
+                            changed = true;
+                        }
+                    }
+                    this.showAction(`P${safeFrom + 1} SUPPORT!`);
+                    if (isHost) {
+                        partyClients.forEach(c => {
+                            if (c && c.open) {
+                                c.send({ type: 'party_arena', arena: this.arena, cleared: 0 });
+                                c.send({ type: 'party_cheer', text: `P${safeFrom + 1} SUPPORT!` });
+                            }
+                        });
+                    }
+                    if (changed) captureReplayFrame(performance.now(), true);
+                    return true;
+                }
+                this.showAction(`P${safeFrom + 1} CHEER!`);
+                if (isHost) partyClients.forEach(c => c && c.open && c.send({ type: 'party_cheer', text: `P${safeFrom + 1} CHEER!` }));
+                return true;
+            }
+
+            refreshSupportPanel() {
+                const panel = document.getElementById('party-support-panel');
+                if (!panel) return;
+                const canSupport = !this.isGameOver && (this.isSpectator || this.me.isDead);
+                panel.style.display = canSupport ? 'flex' : 'none';
+                const badge = document.getElementById('party-spectator-badge');
+                if (badge) {
+                    if (this.isSpectator) badge.innerText = 'SPECTATOR SUPPORT';
+                    else if (this.me.isDead) badge.innerText = this.sharedDeathMode === 'collective' ? 'TEAM DOWN' : 'SUPPORT MODE';
+                }
+                const remaining = Math.max(0, this.supportCooldownUntil - performance.now());
+                panel.querySelectorAll('button').forEach(btn => btn.disabled = remaining > 0);
+            }
+
             update(dt) {
                 if (this.isGameOver) return;
                 this.me.time += dt;
+                this.refreshSupportPanel();
 
-                if (!this.me.isDead) {
+                if (!this.isSpectator && !this.me.isDead) {
                     this.me.dropCounter += dt;
                     if (this.me.dropCounter > (keysDown[cfg.keys.soft] ? 1000 / cfg.sdf : 1000)) this.playerDrop(keysDown[cfg.keys.soft]);
 
@@ -8801,12 +9733,9 @@
 
                 this.syncTimer += dt;
                 if (this.syncTimer > 30) {
-                    let pData = { type: 'party_sync', id: this.myIndex, matrix: this.me.isDead ? null : this.me.matrix, pos: this.me.pos, color: this.me.color };
-                    if (isHost) {
-                        partyClients.forEach(c => c.send(pData));
-                    } else {
-                        conn.send(pData);
-                    }
+                    let pData = { type: 'party_sync', id: this.myIndex, matrix: (this.isSpectator || this.me.isDead) ? null : this.me.matrix, pos: this.me.pos, color: this.me.color };
+                    if (isHost) partyClients.forEach(c => c.send(pData));
+                    else if (conn && conn.open) conn.send(pData);
                     this.syncTimer = 0;
                 }
 
@@ -8817,29 +9746,27 @@
                 if (!isHost || this.isGameOver) return;
                 const alivePlayers = [];
                 for (let i = 0; i < this.playerCount; i++) {
+                    if (this.playerRoles[i] === 'spectator') continue;
                     if (!this.playersDead[i]) alivePlayers.push(i);
                 }
                 if (alivePlayers.length > 1) return;
                 const winner = alivePlayers.length === 1 ? alivePlayers[0] : -1;
-                partyClients.forEach(c => {
-                    if (c && c.open) c.send({ type: 'party_gameover', winner: winner });
-                });
-                this.gameOver(winner);
+                this.endPartyForAll(winner);
             }
 
             gameOver(winner = -1) {
                 if (this.isGameOver) return;
                 this.isGameOver = true;
+                this.refreshSupportPanel();
                 const didWin = winner === this.myIndex;
-                queueMatchSummary(didWin ? 'victory' : 'defeat', 'party');
+                const result = this.isSpectator ? 'gameover' : (didWin ? 'victory' : 'defeat');
+                queueMatchSummary(result, 'party');
                 showToast(didWin ? TRANSLATIONS[cfg.lang].victory : TRANSLATIONS[cfg.lang].defeat);
             }
 
             draw() {
                 this.ctx.clearRect(0, 0, 30 * 24, 30 * 24);
-
-                // Draw Arena
-                const s = 24; const off = { x: 0, y: 0 };
+                const s = 24;
                 this.arena.forEach((row, y) => row.forEach((v, x) => {
                     if (v !== 0) {
                         this.ctx.fillStyle = COLORS[v]; this.ctx.fillRect(x * s, y * s, s, s);
@@ -8847,11 +9774,10 @@
                     }
                 }));
 
-                // Draw Others
                 for (let i = 0; i < this.playerCount; i++) {
                     if (i === this.myIndex) continue;
                     let o = this.others[i];
-                    if (o && o.matrix) {
+                    if (o && o.matrix && !this.playersDead[i]) {
                         this.ctx.globalAlpha = 0.5;
                         o.matrix.forEach((row, y) => row.forEach((v, x) => {
                             if (v !== 0) {
@@ -8863,7 +9789,6 @@
                     }
                 }
 
-                // Draw Me
                 if (!this.me.isDead && this.me.matrix) {
                     const gp = { ...this.me.pos }; while (!this.collide(this.me.matrix, { x: gp.x, y: gp.y + 1 })) gp.y++;
                     this.ctx.globalAlpha = cfg.ghost;
@@ -8915,6 +9840,13 @@
         let prevGamepadState = [];
         function pollGamepad() {
             if (isReplayPlayback) return;
+            if (isAdminControlLockActive() && p1 && !p1.isGameOver && !isPaused) {
+                keysDown[cfg.keys.left] = false;
+                keysDown[cfg.keys.right] = false;
+                keysDown[cfg.keys.soft] = false;
+                prevGamepadState = [];
+                return;
+            }
             const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
             for (let i = 0; i < gamepads.length; i++) {
                 const gp = gamepads[i];
@@ -8991,6 +9923,7 @@
         const touchHeldCounts = {};
 
         function getTouchControlTarget(allowPausedAction = false) {
+            if (isAdminControlLockActive()) return null;
             if (window.partyModeInstance && isPartyMode && !isPaused && !window.partyModeInstance.isGameOver) return window.partyModeInstance;
             if (allowPausedAction) return p1 || null;
             return p1 && !p1.isGameOver && !isPaused ? p1 : null;
@@ -9318,13 +10251,25 @@
                 return;
             }
 
+            if (adminControlEnabled && !isEditableElement(document.activeElement) && toggleAdminCheatByShortcut(e.key)) {
+                e.preventDefault();
+                return;
+            }
+
             if (isReplayPlayback) {
                 if (e.key === 'Escape') stopReplayPlayback();
                 return;
             }
 
             // 入力欄にフォーカスがあるときはゲームキーを無視する
-            if (document.activeElement.tagName === 'INPUT') return;
+            if (isEditableElement(document.activeElement)) return;
+            if (isAdminControlLockActive() && p1 && !p1.isGameOver && !isPaused) {
+                e.preventDefault();
+                keysDown = {};
+                keysDownTime = {};
+                showToast(getAdminControlLockText());
+                return;
+            }
 
             let key = e.key;
             if (key.toLowerCase() === 'p' && handleSoloCpuHintToggle()) {
@@ -9435,6 +10380,7 @@
         updateTouchControlsVisibility();
         updateOnlineLobbyExitButton();
         applyAdminRestrictionUI();
+        enforceAdminRestrictionMode();
         postAdminState('ready');
         listReplayArchiveEntries().catch(err => console.warn('Replay archive bootstrap failed:', err));
 
@@ -9490,3 +10436,9 @@
         drawBg();
         animate(); 
     
+
+
+
+
+
+

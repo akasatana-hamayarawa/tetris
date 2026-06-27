@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 
 <head>
@@ -670,6 +670,37 @@
                                 <div class="desc" data-tr="party-rule-skills-desc">Spend coins on speed, walls, and slowdown skills.</div>
                             </div>
                         </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-chaos" value="chaos" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title">CHAOS BAG</div>
+                                <div class="desc">Random pressure: bombs appear and gravity jumps during the match.</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-survival" value="survival" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title">SURVIVAL RUSH</div>
+                                <div class="desc">Garbage pressure rises over time until one side survives.</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="party-room-options">
+                        <label>
+                            <span>共有盤面で死んだ時</span>
+                            <select id="room-shared-death-mode" class="modal-input">
+                                <option value="solo">死んでも他の人は続行</option>
+                                <option value="collective">連帯責任で全員終了</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>観戦者を許可</span>
+                            <input type="checkbox" id="room-allow-spectators" checked>
+                        </label>
+                        <label>
+                            <span>満員で自動開始</span>
+                            <input type="checkbox" id="room-auto-start-full">
+                        </label>
                     </div>
                 </div>
             </div>
@@ -697,19 +728,23 @@
                 <div class="lobby-player-slot" style="margin: 5px 15px;">
                     <div style="font-size: 12px; color: #888;">PLAYER 1</div>
                     <button id="lobby-p1-name" class="lobby-slot-name" onclick="openLobbyProfileByIndex(0)" style="font-size: 18px; color: #00f0f0; font-weight: bold;">---</button>
+                    <div class="lobby-role-controls"><select id="lobby-role-0" onchange="updatePartyLobbyRole(0)"><option value="player">PLAY</option><option value="spectator">WATCH</option></select><select id="lobby-team-0" onchange="updatePartyLobbyRole(0)"><option value="A">TEAM A</option><option value="B">TEAM B</option></select></div>
                 </div>
                 <div class="lobby-player-slot" style="margin: 5px 15px;">
                     <div style="font-size: 12px; color: #888;">PLAYER 2</div>
                     <button id="lobby-p2-name" class="lobby-slot-name" onclick="openLobbyProfileByIndex(1)" style="font-size: 18px; color: #ff5555; font-weight: bold;">---</button>
+                    <div class="lobby-role-controls"><select id="lobby-role-1" onchange="updatePartyLobbyRole(1)"><option value="player">PLAY</option><option value="spectator">WATCH</option></select><select id="lobby-team-1" onchange="updatePartyLobbyRole(1)"><option value="A">TEAM A</option><option value="B">TEAM B</option></select></div>
                 </div>
                 <!-- Party mode slots (initially hidden) -->
                 <div id="lobby-slot-3" class="lobby-player-slot" style="margin: 5px 15px; display: none;">
                     <div style="font-size: 12px; color: #888;">PLAYER 3</div>
                     <button id="lobby-p3-name" class="lobby-slot-name" onclick="openLobbyProfileByIndex(2)" style="font-size: 18px; color: #55ff55; font-weight: bold;">---</button>
+                    <div class="lobby-role-controls"><select id="lobby-role-2" onchange="updatePartyLobbyRole(2)"><option value="player">PLAY</option><option value="spectator">WATCH</option></select><select id="lobby-team-2" onchange="updatePartyLobbyRole(2)"><option value="A">TEAM A</option><option value="B">TEAM B</option></select></div>
                 </div>
                 <div id="lobby-slot-4" class="lobby-player-slot" style="margin: 5px 15px; display: none;">
                     <div style="font-size: 12px; color: #888;">PLAYER 4</div>
                     <button id="lobby-p4-name" class="lobby-slot-name" onclick="openLobbyProfileByIndex(3)" style="font-size: 18px; color: #ffff55; font-weight: bold;">---</button>
+                    <div class="lobby-role-controls"><select id="lobby-role-3" onchange="updatePartyLobbyRole(3)"><option value="player">PLAY</option><option value="spectator">WATCH</option></select><select id="lobby-team-3" onchange="updatePartyLobbyRole(3)"><option value="A">TEAM A</option><option value="B">TEAM B</option></select></div>
                 </div>
             </div>
 

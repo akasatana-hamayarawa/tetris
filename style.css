@@ -1,4 +1,4 @@
-﻿        :root {
+        :root {
             --accent: #00f0f0;
             --bg: #050505;
             --panel: rgba(20, 20, 20, 0.9);
@@ -1447,6 +1447,50 @@
             align-items: center;
         }
 
+        .admin-cheat-indicator {
+            position: fixed;
+            z-index: 9996;
+            min-width: 150px;
+            max-width: min(280px, calc(100vw - 24px));
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 209, 102, 0.55);
+            border-radius: 6px;
+            background: rgba(12, 14, 18, 0.86);
+            color: #ffe7a3;
+            font-size: 11px;
+            line-height: 1.35;
+            letter-spacing: 0;
+            box-shadow: 0 0 18px rgba(255, 209, 102, 0.2);
+            pointer-events: none;
+            display: none;
+        }
+
+        .admin-cheat-indicator.top-left {
+            top: 16px;
+            left: 16px;
+        }
+
+        .admin-cheat-indicator.top-right {
+            top: 16px;
+            right: 16px;
+        }
+
+        .admin-cheat-indicator.bottom-left {
+            bottom: 16px;
+            left: 16px;
+        }
+
+        .admin-cheat-indicator.bottom-right {
+            right: 16px;
+            bottom: 16px;
+        }
+
+        .admin-cheat-title {
+            margin-bottom: 3px;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 10px;
+        }
         .hud-panel {
             position: fixed;
             top: 24px;
@@ -2132,6 +2176,74 @@
             letter-spacing: 1px;
         }
 
+
+        .party-room-options {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .party-room-options label {
+            display: grid;
+            gap: 6px;
+            align-items: center;
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.24);
+            color: #cbd8e0;
+            font-size: 12px;
+        }
+
+        .party-room-options input[type="checkbox"] {
+            justify-self: center;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--accent);
+        }
+
+        .lobby-role-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .lobby-role-controls select {
+            width: 86px;
+            max-width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 5px;
+            background: #121922;
+            color: #eaf7fb;
+            font-size: 10px;
+            padding: 4px;
+        }
+
+        .party-support-panel {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .party-support-panel button {
+            min-width: 118px;
+            width: auto;
+            margin: 0;
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+
+        .party-spectator-badge {
+            margin-top: 10px;
+            color: #ffd166;
+            font-size: 12px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
         .replay-browser {
             display: none;
             text-align: left;
@@ -2854,7 +2966,51 @@
                 font-size: 9px;
             }
 
-            .hud-panel {
+            .admin-cheat-indicator {
+            position: fixed;
+            z-index: 9996;
+            min-width: 150px;
+            max-width: min(280px, calc(100vw - 24px));
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 209, 102, 0.55);
+            border-radius: 6px;
+            background: rgba(12, 14, 18, 0.86);
+            color: #ffe7a3;
+            font-size: 11px;
+            line-height: 1.35;
+            letter-spacing: 0;
+            box-shadow: 0 0 18px rgba(255, 209, 102, 0.2);
+            pointer-events: none;
+            display: none;
+        }
+
+        .admin-cheat-indicator.top-left {
+            top: 16px;
+            left: 16px;
+        }
+
+        .admin-cheat-indicator.top-right {
+            top: 16px;
+            right: 16px;
+        }
+
+        .admin-cheat-indicator.bottom-left {
+            bottom: 16px;
+            left: 16px;
+        }
+
+        .admin-cheat-indicator.bottom-right {
+            right: 16px;
+            bottom: 16px;
+        }
+
+        .admin-cheat-title {
+            margin-bottom: 3px;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 10px;
+        }
+        .hud-panel {
                 top: 12px;
                 left: 12px;
                 right: 12px;
