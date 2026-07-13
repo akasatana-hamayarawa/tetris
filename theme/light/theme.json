@@ -1,0 +1,38 @@
+{
+  "id": "light",
+  "name": {
+    "ja": "ライト",
+    "en": "Light"
+  },
+  "version": "1.0.0",
+  "author": "Project Team",
+  "description": "明るい背景の視認性重視テーマ",
+  "preview": "assets/preview.png",
+  "icon": "assets/icon.png",
+  "colors": {
+    "accent": "#0088ff",
+    "bg": "#e0e0e0",
+    "panel": "rgba(255, 255, 255, 0.95)",
+    "text": "#000000",
+    "border": "#cccccc",
+    "star": "0, 136, 255",
+    "canvasBg": "#f0f0f0"
+  },
+  "fonts": {
+    "main": null
+  },
+  "sounds": {
+    "select": null,
+    "confirm": null
+  },
+  "cursor": null,
+  "particles": {
+    "enabled": false
+  },
+  "animations": {
+    "buttonHover": "none"
+  },
+  "css": "theme.css",
+  "js": null,
+  "assets": "assets/"
+}

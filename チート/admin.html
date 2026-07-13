@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris Ultimate Admin</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+    <iframe id="game-frame" title="Tetris Ultimate" src="../index.html?admin=1"></iframe>
+
+    <aside id="admin-panel" class="admin-panel" aria-label="管理者チートパネル" aria-hidden="true">
+        <header class="admin-topbar">
+            <div class="title-block">
+                <span class="eyebrow">ADMIN CHEAT PANEL v2</span>
+                <strong>テトリス管理パネル</strong>
+            </div>
+            <div class="topbar-mid">
+                <p id="status-line">ゲームを読み込み中です。Tabキーで開閉できます。</p>
+                <div class="search-row">
+                    <input id="cheat-search" class="hack-input search-input" type="search"
+                        placeholder="機能を検索... (例: ホールド / スコア / テーマ)" autocomplete="off">
+                    <button id="expand-all" class="small-button" type="button">全展開</button>
+                    <button id="collapse-all" class="small-button" type="button">全折畳</button>
+                </div>
+            </div>
+            <button id="close-panel" class="icon-button" type="button" aria-label="閉じる">X</button>
+        </header>
+
+        <main class="admin-layout">
+            <section class="panel-card status-card">
+                <div class="section-title">
+                    <h2>状態</h2>
+                    <button id="refresh-state" class="small-button" type="button">更新</button>
+                </div>
+                <div id="player-status" class="status-box">接続プレイヤー: なし</div>
+                <div id="restriction-status" class="status-box">BAN: なし</div>
+                <div id="control-status" class="status-box">操作ロック: なし</div>
+                <button id="all-cheats-off" class="hack-row danger action" type="button">常時チートを全てOFF</button>
+                <button id="close-panel-bottom" class="hack-row action" type="button">パネルを閉じる</button>
+            </section>
+
+            <!-- 常時チート(ON/OFFトグル) はカテゴリごとに折りたためる状態で動的に生成されます -->
+            <h1 class="cheat-group-heading">常時チート <span class="cat-count" id="persistent-cheat-total-count">0</span></h1>
+            <div id="cheat-category-root"></div>
+
+            <!-- 瞬時チート(ワンショット操作: 自分の盤面/ミノ/スコア/テスト/エフェクト等)も動的に生成されます -->
+            <h1 class="cheat-group-heading">瞬時チート <span class="cat-count" id="instant-cheat-total-count">0</span></h1>
+            <div id="action-category-root"></div>
+
+            <details class="panel-card" open>
+                <summary class="section-title"><h2>チート設定値</h2></summary>
+                <div id="cheat-settings-grid" class="cheat-settings-grid"></div>
+                <div class="section-title compact-title">
+                    <h2>ショートカット</h2>
+                    <button id="clear-cheat-shortcuts" class="small-button" type="button">キー消去</button>
+                </div>
+                <div id="cheat-shortcut-grid" class="shortcut-grid"></div>
+            </details>
+
+            <details class="panel-card">
+                <summary class="section-title"><h2>相手操作</h2></summary>
+                <label class="hack-label" for="target-name">対象名</label>
+                <input id="target-name" class="hack-input" list="player-list" placeholder="空欄は全員 / CPU でCPU対象">
+                <datalist id="player-list"></datalist>
+
+                <div class="input-actions">
+                    <input id="attack-lines" class="hack-input" type="number" min="1" max="10000" value="100" aria-label="攻撃ライン数">
+                    <button id="send-attack" class="hack-row danger" type="button">攻撃を送る</button>
+                    <input id="target-garbage" class="hack-input" type="number" min="1" max="10000" value="30" aria-label="相手に追加するお邪魔">
+                    <button id="target-add-garbage" class="hack-row danger" type="button">お邪魔追加</button>
+                </div>
+
+                <div class="button-grid">
+                    <button id="target-clear-board" class="hack-row action" type="button">盤面を空にする</button>
+                    <button id="target-clear-garbage" class="hack-row action" type="button">お邪魔を消す</button>
+                    <button id="target-perfect-clear" class="hack-row action" type="button">パフェ待ち</button>
+                    <button id="target-fill-board" class="hack-row danger" type="button">危険な山</button>
+                    <button id="target-random-board" class="hack-row danger" type="button">ランダム盤面</button>
+                    <button id="target-knockout" class="hack-row danger" type="button">即負け</button>
+                </div>
+
+                <div class="field-grid">
+                    <label class="hack-label" for="target-piece">相手ミノ</label>
+                    <select id="target-piece" class="hack-input piece-select"></select>
+                    <button id="target-set-next" class="hack-row action" type="button">NEXT</button>
+                    <span></span>
+                    <span></span>
+                    <button id="target-set-current" class="hack-row action" type="button">現在ミノ</button>
+                    <span></span>
+                    <span></span>
+                    <button id="target-set-hold" class="hack-row action" type="button">ホールド</button>
+                </div>
+
+                <div class="input-actions">
+                    <input id="target-score-amount" class="hack-input" type="number" value="100000" aria-label="相手スコア追加">
+                    <button id="target-add-score" class="hack-row action" type="button">スコア追加</button>
+                    <input id="target-lines-amount" class="hack-input" type="number" value="40" aria-label="相手ライン追加">
+                    <button id="target-add-lines" class="hack-row action" type="button">ライン追加</button>
+                    <input id="target-level-value" class="hack-input" type="number" min="1" max="999" value="99" aria-label="相手レベル">
+                    <button id="target-set-level" class="hack-row action" type="button">レベル設定</button>
+                </div>
+            </details>
+
+            <details class="panel-card">
+                <summary class="section-title"><h2>操作ロック</h2></summary>
+                <label class="hack-label" for="lock-minutes">ロック時間 (分 / 0で無期限)</label>
+                <input id="lock-minutes" class="hack-input" type="number" min="0" value="3">
+                <label class="hack-label" for="lock-message">ロック表示メッセージ</label>
+                <textarea id="lock-message" class="hack-input" rows="3">管理者により操作が一時停止されています。</textarea>
+                <button id="lock-controls" class="hack-row danger" type="button">対象の操作を止める</button>
+                <button id="unlock-controls" class="hack-row action" type="button">操作ロック解除</button>
+            </details>
+
+            <details class="panel-card ban-card">
+                <summary class="section-title"><h2>BAN管理</h2></summary>
+                <label class="hack-label" for="ban-target">BAN対象名</label>
+                <input id="ban-target" class="hack-input" list="player-list" placeholder="例: Player1 / 空欄不可">
+                <label class="hack-label" for="ban-minutes">BAN時間 (分 / 0で無期限)</label>
+                <input id="ban-minutes" class="hack-input" type="number" min="0" value="10">
+                <label class="hack-label" for="ban-code">エラーコード</label>
+                <input id="ban-code" class="hack-input" maxlength="32" value="ADMIN-BAN">
+                <label class="hack-label" for="ban-message">BAN表示メッセージ</label>
+                <textarea id="ban-message" class="hack-input" rows="4">管理者によりオンライン機能、テンプレート、プロフィール、リプレイが制限されました。</textarea>
+                <button id="ban-player" class="hack-row danger" type="button">2回確認してBAN</button>
+                <button id="unban-player" class="hack-row action" type="button">BAN解除</button>
+                <button id="clear-local-ban" class="hack-row action" type="button">自分のBAN情報を解除</button>
+            </details>
+        </main>
+    </aside>
+
+    <script src="admin.js"></script>
+</body>
+
+</html>

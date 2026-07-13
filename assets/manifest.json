@@ -1,0 +1,6 @@
+{
+  "_comment": "AssetManagerが読み込むマニフェスト。実ファイルを追加したら、ここにキーとパスを追記してください。キー名の対応表は assets/audio/README.md を参照。",
+  "images": {},
+  "audio": {},
+  "fonts": {}
+}

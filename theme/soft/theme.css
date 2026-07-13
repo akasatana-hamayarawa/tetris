@@ -1,0 +1,13 @@
+/* =====================================================================
+ * Soft テーマ 装飾CSS
+ * ===================================================================== */
+html[data-theme="soft"] .btn,
+html[data-theme="soft"] .modal-content,
+html[data-theme="soft"] .hud-panel {
+    border-radius: 22px;
+    box-shadow: 0 4px 14px rgba(255, 158, 203, 0.25);
+}
+
+html[data-theme="soft"] .btn {
+    font-weight: 600;
+}

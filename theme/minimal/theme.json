@@ -1,0 +1,38 @@
+{
+  "id": "minimal",
+  "name": {
+    "ja": "ミニマル",
+    "en": "Minimal"
+  },
+  "version": "1.0.0",
+  "author": "Project Team",
+  "description": "装飾を排したモノトーンの最小限テーマ",
+  "preview": "assets/preview.png",
+  "icon": "assets/icon.png",
+  "colors": {
+    "accent": "#8a8a8a",
+    "bg": "#f5f5f5",
+    "panel": "rgba(255, 255, 255, 0.97)",
+    "text": "#222222",
+    "border": "#dddddd",
+    "star": "138, 138, 138",
+    "canvasBg": "#ffffff"
+  },
+  "fonts": {
+    "main": null
+  },
+  "sounds": {
+    "select": null,
+    "confirm": null
+  },
+  "cursor": null,
+  "particles": {
+    "enabled": false
+  },
+  "animations": {
+    "buttonHover": "none"
+  },
+  "css": "theme.css",
+  "js": null,
+  "assets": "assets/"
+}

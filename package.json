@@ -1,0 +1,7 @@
+{
+  "name": "tetris-complete",
+  "private": true,
+  "scripts": {
+    "check": "node tools/run-checks.js"
+  }
+}

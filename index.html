@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tetris Ultimate</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- 追加テーマ(フォルダ分割)。data-theme属性でCSS側が自動切替するため常時読込でOKです -->
+    <link rel="stylesheet" href="theme/default/theme.css">
+    <link rel="stylesheet" href="theme/retro/theme.css">
+    <link rel="stylesheet" href="theme/light/theme.css">
+    <link rel="stylesheet" href="theme/dark/theme.css">
+    <link rel="stylesheet" href="theme/cyberpunk/theme.css">
+    <link rel="stylesheet" href="theme/soft/theme.css">
+    <link rel="stylesheet" href="theme/anpontan/theme.css">
+    <link rel="stylesheet" href="theme/minimal/theme.css">
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+</head>
+
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div id="fullscreen-trigger" class="top-action-btn" onclick="toggleFullscreen()" title="Fullscreen" data-tr-title="fullscreen-title"><span class="fullscreen-icon" aria-hidden="true"></span></div>
+    <div id="settings-trigger" class="top-action-btn" onclick="toggleSettings()" title="Settings" data-tr-title="settings" aria-label="Settings"></div>
+    <div id="toast-container"></div>
+        <div id="connection-quality-panel" class="hud-panel" style="display:none;">
+            <div class="hud-title" data-tr="connection-quality-title">CONNECTION QUALITY</div>
+        <div class="hud-metrics">
+            <div class="hud-metric"><span class="label">PING</span><span id="quality-ping" class="value">--</span></div>
+            <div class="hud-metric"><span class="label">SYNC</span><span id="quality-sync" class="value">--</span></div>
+            <div class="hud-metric"><span class="label">LOSS</span><span id="quality-loss" class="value">0%</span></div>
+        </div>
+    </div>
+    <div id="solo-status-panel" class="hud-panel solo-status-panel">
+        <div class="hud-title solo-status-header" onclick="toggleSoloStatusPanel()">
+            <span id="solo-status-title">SOLO MODE</span>
+            <span id="solo-status-collapse-icon" class="solo-status-collapse-icon">▾</span>
+        </div>
+        <div id="solo-status-body" class="solo-status-body">
+            <div id="solo-status-primary" class="solo-status-primary">0 / 40</div>
+            <div id="solo-status-secondary" class="solo-status-secondary">Goal status</div>
+            <div id="solo-ranking-list" class="solo-ranking-list"></div>
+        </div>
+    </div>
+
+    <div id="pause-overlay">
+        <h1 data-tr="pause-title" style="margin-bottom: 30px;">PAUSED</h1>
+        <div style="display:flex; flex-direction:column; gap:15px; align-items:center; width:100%;">
+            <button class="btn" style="--accent: #00f0f0; width: 300px; margin: 0; padding: 15px;"
+                onclick="document.getElementById('pause-overlay').style.display='none'; openSaveModal();"
+                data-tr="save-and-menu">SAVE & EXIT TO MENU</button>
+            <button class="btn" style="--accent: #55ff55; width: 300px; margin: 0; padding: 15px;"
+                onclick="handlePauseToggle()" data-tr="pause-resume">RESUME</button>
+            <button class="btn" style="--accent: #ffaa00; width: 300px; margin: 0; padding: 15px;"
+                onclick="document.getElementById('pause-overlay').style.display='none'; returnToMenu();"
+                data-tr="pause-return-menu">RETURN TO MENU</button>
+            <button class="btn" style="--accent: #ff5555; width: 300px; margin: 0; padding: 15px;"
+                onclick="handleRetry()" data-tr="pause-retry">RETRY</button>
+        </div>
+    </div>
+
+    <div id="match-summary-overlay" class="modal-overlay">
+        <div class="modal-card" style="width:min(900px, 94vw);">
+            <div class="modal-header">
+                <span id="match-summary-title" data-tr="match-summary-title">MATCH SUMMARY</span>
+                <span style="cursor:pointer; color:#888;" onclick="closeMatchSummary()">✕</span>
+            </div>
+            <div class="modal-body" style="display:block;">
+                <div id="match-summary-result" class="rainbow-text" style="font-size:30px; margin-bottom:10px;"></div>
+                <div id="match-summary-subtitle" style="text-align:center; color:#9fb2c0; font-size:13px;"></div>
+                <div class="summary-kpi-grid">
+                    <div class="summary-kpi"><span class="label">PPS</span><span id="summary-pps" class="value">0.00</span></div>
+                    <div class="summary-kpi"><span class="label">APM</span><span id="summary-apm" class="value">0.00</span></div>
+                    <div class="summary-kpi"><span class="label">LPM</span><span id="summary-lpm" class="value">0.00</span></div>
+                </div>
+                <div class="summary-split">
+                    <div class="summary-panel">
+                        <h3 data-tr="summary-graph">GRAPH</h3>
+                        <canvas id="match-summary-chart" class="summary-chart" width="420" height="180"></canvas>
+                        <div class="summary-note" data-tr="summary-graph-note">Shows PPS / APM / LPM progression over time.</div>
+                    </div>
+                    <div class="summary-panel">
+                        <h3 data-tr="summary-detail">DETAIL</h3>
+                        <div id="match-summary-rows"></div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:18px; flex-wrap:wrap;">
+                    <button class="btn" id="match-summary-rematch-btn" style="--accent:#ffaa33; width:220px; margin:0; display:none;" onclick="requestMatchRematch()">REMATCH</button>
+                    <button class="btn" id="match-summary-replay-btn" style="--accent:#55ff55; width:220px; margin:0;" onclick="startReplayPlayback()" data-tr="match-summary-replay">WATCH REPLAY</button>
+                    <button class="btn" style="--accent:#00f0f0; width:220px; margin:0;" onclick="closeMatchSummary()" data-tr="match-summary-close">CLOSE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="match-countdown-overlay" class="modal-overlay" style="display:none; z-index:9998; background:transparent;">
+        <div class="match-countdown-shell">
+            <div id="match-countdown-number" class="match-countdown-number">3</div>
+            <div id="match-countdown-caption" class="match-countdown-caption" data-tr="countdown-ready">GET READY</div>
+        </div>
+    </div>
+
+    <div id="remote-profile-overlay" class="modal-overlay" style="display:none; z-index:9997;">
+        <div class="modal-card profile-viewer-shell">
+            <div class="modal-header">
+                <span data-tr="profile-viewer-title">PLAYER PROFILE</span>
+                <span style="cursor:pointer; color:#888;" onclick="closeRemoteProfileOverlay()">✕</span>
+            </div>
+            <div id="remote-profile-body" class="modal-body"></div>
+        </div>
+    </div>
+
+    <div id="screen-scale-overlay">
+        <div id="scale-arrows-box" class="scale-arrows">
+            <div class="corner-arrow ca-tl">↖</div>
+            <div class="corner-arrow ca-tr">↗</div>
+            <div class="corner-arrow ca-bl">↙</div>
+            <div class="corner-arrow ca-br">↘</div>
+        </div>
+        <div class="scale-controls">
+            <label style="color:#ccc; font-size:12px;" data-tr="scale-label">Screen Size</label>
+            <input type="range" id="scale-slider" min="0.5" max="1.5" step="0.01" value="1.0"
+                oninput="previewScreenScale(this.value)" style="width: 250px;">
+            <button class="btn" onclick="applyScreenScale()" data-tr="tmpl-back"
+                style="width: 250px; margin: 0; padding: 10px;">BACK</button>
+        </div>
+    </div>
+
+    <div id="name-prompt-overlay" class="modal-overlay"
+        style="display:none; z-index: 10000; align-items: center; justify-content: center;">
+        <div class="modal-card" style="text-align: center; max-width: 350px;">
+            <h2 style="margin-bottom: 20px;" data-tr="welcome-msg">Welcome!</h2>
+            <p style="margin-bottom: 15px; color: #ddd; font-size: 14px;" data-tr="enter-name-msg">
+                Please enter your name before starting the tutorial.</p>
+            <input type="text" id="first-time-name" class="modal-input"
+                style="width: 200px; font-size: 18px; margin-bottom: 20px;" maxlength="15" placeholder="Name"
+                onchange="setPlayerTempName(this.value)" oninput="setPlayerTempName(this.value)">
+            <button class="btn" onclick="checkNameUniqueAndSave(firstTimeNameTemp, true)"
+                style="width: 100%;" data-tr="tutorial-start">START TUTORIAL</button>
+        </div>
+    </div>
+
+    <div id="settings-overlay" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span data-tr="settings">SETTINGS</span>
+                <span style="cursor:pointer; color:#888;" onclick="toggleSettings()">✕</span>
+            </div>
+            <div class="settings-tabs">
+                <button class="tab-btn active" onclick="openTab(event, 'tab-general')"
+                    data-tr="tab-general">GENERAL</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-ui')" data-tr="tab-ui">UI SETTINGS</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-play')" data-tr="tab-play">PLAY SETTINGS</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-handling')"
+                    data-tr="tab-handling">HANDLING</button>
+                <button class="tab-btn" onclick="openTab(event, 'tab-keys')" data-tr="tab-keys">KEYS</button>
+            </div>
+
+            <div id="tab-general" class="modal-body tab-content">
+                <div class="setting-row">
+                    <label data-tr="label-name">PLAYER NAME</label>
+                    <input type="text" id="player-name-input" class="modal-input" style="width:150px;" maxlength="15"
+                        onchange="checkNameUniqueAndSave(this.value, false)">
+                </div>
+                <div class="setting-row">
+                    <label data-tr="label-lang">LANGUAGE</label>
+                    <div class="lang-select-wrap">
+                        <span class="lang-icon-chip" aria-hidden="true">🌐</span>
+                        <select id="lang-select" class="modal-input lang-dropdown" onchange="setLang(this.value)">
+                            <option value="ja">日本語</option>
+                            <option value="en">English</option>
+                            <option value="ko">한국어</option>
+                            <option value="zh">简体中文</option>
+                            <option value="es">Español</option>
+                            <option value="fr">Français</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="setting-row"><label data-tr="label-level">CPU LEVEL</label>
+                    <div class="slider-group"><input type="number" id="lv-val" class="editable-val" min="1" max="50"><input type="range" id="lv-range" min="1" max="50"></div>
+                </div>
+                <div class="setting-row setting-row-config">
+                    <label data-tr="label-config">CONFIG DATA</label>
+                    <div class="config-actions">
+                        <button onclick="exportConfig()" class="btn" data-tr="config-export">EXPORT JSON</button>
+                        <input type="file" id="import-config-file" style="display: none;" accept=".json"
+                            onchange="importConfig(event)">
+                        <button onclick="document.getElementById('import-config-file').click()" class="btn"
+                            data-tr="config-import">IMPORT JSON</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-ui" class="modal-body tab-content" style="display:none;">
+                <div class="setting-row">
+                    <button class="btn" style="width:100%; margin:0;" onclick="openScreenScaleConfig()"
+                        data-tr="btn-screen-scale">Change Screen Size</button>
+                </div>
+                <div class="setting-row">
+                    <label data-tr="label-theme">THEME COLOR</label>
+                    <select id="theme-select" class="modal-input cool-select"
+                        style="width:150px; cursor:pointer; background:#222; color:#fff;"
+                        onchange="cfg.theme = this.value; updateUIFromCfg(); saveCfg();">
+                        <option value="default" data-tr="theme-default">Default</option>
+                        <option value="retro" data-tr="theme-retro">Retro</option>
+                        <option value="light" data-tr="theme-light">Light</option>
+                        <option value="dark" data-tr="theme-dark">Dark</option>
+                        <option value="cyberpunk" data-tr="theme-cyberpunk">Cyberpunk</option>
+                        <option value="soft" data-tr="theme-soft">Soft</option>
+                        <option value="anpontan" data-tr="theme-anpontan">あんぽんたん</option>
+                        <option value="minimal" data-tr="theme-minimal">Minimal</option>
+                    </select>
+                </div>
+                <div class="setting-row"><label data-tr="label-ghost">GHOST OPACITY</label>
+                    <div class="slider-group"><input type="number" id="ghost-val" class="editable-val" min="0" max="1" step="0.05"><input type="range" id="ghost-range" min="0" max="100" step="5"></div>
+                </div>
+                <div class="setting-row">
+                    <label>スマホ操作配置</label>
+                    <select id="touch-layout-select" class="modal-input cool-select"
+                        style="width:150px; cursor:pointer; background:#222; color:#fff;"
+                        onchange="cfg.touchLayout = this.value; applyTouchControlSettings(); saveCfg();">
+                        <option value="balanced">標準</option>
+                        <option value="wide">広め</option>
+                        <option value="compact">コンパクト</option>
+                    </select>
+                </div>
+                <div class="setting-row"><label>スマホボタンサイズ</label>
+                    <div class="slider-group"><input type="number" id="touch-size-val" class="editable-val" min="0.8" max="1.35" step="0.05"><input type="range" id="touch-size-range" min="80" max="135" step="5"></div>
+                </div>
+                <div class="setting-row"><label>スマホボタン濃さ</label>
+                    <div class="slider-group"><input type="number" id="touch-opacity-val" class="editable-val" min="0.35" max="1" step="0.05"><input type="range" id="touch-opacity-range" min="35" max="100" step="5"></div>
+                </div>
+                <div class="setting-row">
+                    <label>追加スマホボタン</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="touch-extra-toggle" onchange="cfg.touchExtraButtons = this.checked; applyTouchControlSettings(); saveCfg();">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div id="tab-play" class="modal-body tab-content" style="display:none;">
+                <div class="setting-row">
+                    <label data-tr="solo-levelup">SOLO LEVEL UP</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="level-toggle" onchange="cfg.enableLevelUp = this.checked; saveCfg();">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <label data-tr="ospin-label">O-SPIN ENABLED</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="ospin-toggle" onchange="cfg.ospin = this.checked; saveCfg();">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-row">
+                    <label data-tr="ospin-transform">O-SPIN TRANSFORM</label>
+                    <select id="ospin-transform-select" class="modal-input cool-select"
+                        style="width:150px; cursor:pointer; background:#222; color:#fff;"
+                        onchange="cfg.ospinTransform = this.value; saveCfg();">
+                        <option value="fixed" data-tr="ospin-transform-fixed">I-mino (Fixed)</option>
+                        <option value="random" data-tr="ospin-transform-random">Random (No O)</option>
+                    </select>
+                </div>
+                <div class="setting-row">
+                    <label data-tr="allspin-label">ALL-SPIN DISPLAY</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="allspin-toggle" onchange="cfg.allSpinDisplay = this.checked; saveCfg();">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="tab-handling" class="modal-body tab-content" style="display:none;">
+                <div class="setting-row"><label data-tr="label-das">DAS (Delayed Auto Shift)</label>
+                    <div class="slider-group"><input type="number" id="das-val" class="editable-val" min="50" max="300" step="10"><span style="margin-right:5px;">ms</span><input type="range" id="das-range" min="50" max="300" step="10"></div>
+                </div>
+                <div class="setting-row"><label data-tr="label-arr">ARR (Auto Repeat Rate)</label>
+                    <div class="slider-group"><input type="number" id="arr-val" class="editable-val" min="0" max="100" step="5"><span style="margin-right:5px;">ms</span><input type="range" id="arr-range" min="0" max="100" step="5"></div>
+                </div>
+                <div class="setting-row"><label data-tr="label-sdf">SDF (Soft Drop Factor)</label>
+                    <div class="slider-group"><span style="margin-right:5px;">x</span><input type="number" id="sdf-val" class="editable-val" min="5" max="50" step="1"><input type="range" id="sdf-range" min="5" max="50" step="1"></div>
+                </div>
+                <div class="setting-row"><label data-tr="label-deadzone">GAMEPAD DEADZONE</label>
+                    <div class="slider-group"><input type="number" id="pad-deadzone-val" class="editable-val" min="0.15" max="0.85" step="0.01"><input type="range" id="pad-deadzone-range" min="15" max="85" step="1"></div>
+                </div>
+            </div>
+
+            <div id="tab-keys" class="modal-body tab-content" style="display:none;">
+                <div class="setting-row">
+                    <label data-tr="key-preset">KEY PRESET</label>
+                    <div class="preset-row">
+                        <button class="preset-btn" onclick="applyKeyPreset('guideline')">GUIDELINE</button>
+                        <button class="preset-btn" onclick="applyKeyPreset('wasd')">WASD</button>
+                        <button class="preset-btn" onclick="applyKeyPreset('classic')">CLASSIC</button>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <label data-tr="pad-preset">PAD PRESET</label>
+                    <div class="preset-row">
+                        <button class="preset-btn" onclick="applyPadPreset('standard')">STANDARD</button>
+                        <button class="preset-btn" onclick="applyPadPreset('arcade')">ARCADE</button>
+                        <button class="preset-btn" onclick="applyPadPreset('southpaw')">SOUTHPAW</button>
+                    </div>
+                </div>
+                <div class="setting-row"><label data-tr="key-left">MOVE LEFT</label>
+                    <div class="key-box" id="key-left" onclick="captureKey('left')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-right">MOVE RIGHT</label>
+                    <div class="key-box" id="key-right" onclick="captureKey('right')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-soft">SOFT DROP</label>
+                    <div class="key-box" id="key-soft" onclick="captureKey('soft')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-hard">HARD DROP</label>
+                    <div class="key-box" id="key-hard" onclick="captureKey('hard')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-rotR">ROTATE RIGHT</label>
+                    <div class="key-box" id="key-rotR" onclick="captureKey('rotR')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-rotL">ROTATE LEFT</label>
+                    <div class="key-box" id="key-rotL" onclick="captureKey('rotL')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-hold">HOLD (PRIMARY)</label>
+                    <div class="key-box" id="key-hold" onclick="captureKey('hold')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-hold2">HOLD (SECONDARY)</label>
+                    <div class="key-box" id="key-hold2" onclick="captureKey('hold2')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-pause">PAUSE / CANCEL</label>
+                    <div class="key-box" id="key-pause" onclick="captureKey('pause')"></div>
+                </div>
+                <div class="setting-row"><label data-tr="key-retry">RETRY / RESTART</label>
+                    <div class="key-box" id="key-retry" onclick="captureKey('retry')"></div>
+                </div>
+            </div>
+            <div style="padding:15px; text-align:center; border-top:1px solid #222;">
+                <button class="btn" style="width:100%; font-size:14px; padding:10px; margin:0;"
+                    onclick="toggleSettings()" data-tr="save-close">SAVE & CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="save-overlay" class="modal-overlay">
+        <div class="modal-card" style="width: 450px;">
+            <div class="modal-header">
+                <span data-tr="save-game">SAVE GAME</span>
+                <span style="cursor:pointer; color:#888;" onclick="closeSaveModal()">✕</span>
+            </div>
+            <div class="modal-body" id="save-slot-container"
+                style="max-height: 400px; padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto;">
+            </div>
+            <div style="padding: 15px; border-top: 1px solid #222; text-align: center;">
+                <label style="color: #ccc; font-size: 12px; margin-bottom: 5px; display: block; text-align: left;"
+                    data-tr="save-name">Save Name</label>
+                <input type="text" id="save-name" class="modal-input" placeholder="Enter save name..."
+                    style="margin-bottom: 15px;">
+                <button class="btn" id="do-save-btn" style="width:100%; margin: 0;" onclick="executeSave()" disabled
+                    data-tr="save-and-menu">SAVE & EXIT TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- テンプレート名入力モーダル(セーブ画面と同じ見た目・操作感。スロット選択はありません) -->
+    <div id="template-name-overlay" class="modal-overlay">
+        <div class="modal-card" style="width: 420px;">
+            <div class="modal-header">
+                <span id="template-name-modal-title" data-tr="tmpl-name-title">TEMPLATE NAME</span>
+                <span style="cursor:pointer; color:#888;" onclick="closeTemplateNameModal()">✕</span>
+            </div>
+            <div style="padding: 15px; text-align: center;">
+                <label style="color: #ccc; font-size: 12px; margin-bottom: 5px; display: block; text-align: left;"
+                    data-tr="tmpl-name-label">Template Name</label>
+                <input type="text" id="template-name-input" class="modal-input" maxlength="32"
+                    placeholder="Enter template name..." style="margin-bottom: 15px;"
+                    onkeydown="if(event.key==='Enter') confirmTemplateNameModal();">
+                <button class="btn" id="template-name-confirm-btn" style="width:100%; margin: 0;"
+                    onclick="confirmTemplateNameModal()" data-tr="save-and-menu">SAVE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- カスタムテンプレートのJSON編集モーダル(盤面・ホールド・ネクストキューをテキストで編集) -->
+    <div id="template-edit-overlay" class="modal-overlay">
+        <div class="modal-card" style="width: 520px;">
+            <div class="modal-header">
+                <span data-tr="tmpl-edit-title">EDIT TEMPLATE</span>
+                <span style="cursor:pointer; color:#888;" onclick="closeTemplateEditModal()">✕</span>
+            </div>
+            <div style="padding: 15px;">
+                <label style="color: #ccc; font-size: 12px; margin-bottom: 5px; display: block;"
+                    data-tr="tmpl-edit-label">Board / Hold / Queue (JSON)</label>
+                <textarea id="template-edit-textarea" class="modal-input"
+                    style="width:100%; height: 260px; font-family: monospace; font-size: 12px; resize: vertical;"></textarea>
+                <div id="template-edit-error" style="color:#ff5572; font-size:12px; margin-top:6px; min-height:16px;"></div>
+                <div style="display:flex; gap:10px; margin-top: 12px;">
+                    <button class="btn" style="flex:1; margin:0; --accent:#ff4444;" onclick="deleteCustomTemplateFromEditor()"
+                        data-tr="tmpl-delete">DELETE</button>
+                    <button class="btn" style="flex:1; margin:0;" onclick="saveTemplateEditModal()"
+                        data-tr="tmpl-save-changes">SAVE CHANGES</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="load-overlay" class="modal-overlay">
+        <div class="modal-card" style="width: 450px; position: relative;">
+            <div id="delete-confirm-panel">
+                <span id="delete-confirm-msg" style="color:#ff4444; font-weight:bold;"></span>
+                <input type="text" id="delete-confirm-input" placeholder="delete" autocomplete="off"
+                    onkeydown="if(event.key==='Enter') confirmDelete()">
+                <div style="display:flex; gap:10px; width: 80%;">
+                    <button class="btn" style="flex:1; margin:0; --accent:#ff4444;"
+                        onclick="confirmDelete()">OK</button>
+                    <button class="btn" style="flex:1; margin:0; border-color:#888; color:#888;"
+                        onclick="cancelDelete()">CANCEL</button>
+                </div>
+            </div>
+
+            <div class="modal-header">
+                <span data-tr="load-game">LOAD GAME</span>
+                <span style="cursor:pointer; color:#888;" onclick="closeLoadModal()">✕</span>
+            </div>
+            <div class="modal-body" id="load-slot-container" style="max-height: 400px; padding: 15px;">
+            </div>
+            <div style="padding: 15px; border-top: 1px solid #222; text-align: center;">
+                <button class="btn" id="do-load-btn" style="width:100%; margin:0;" onclick="executeLoad()" disabled
+                    data-tr="load-btn">LOAD</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="menu">
+        <h1 style="color:var(--accent); text-shadow:0 0 20px rgba(0,240,240,0.5); font-size:45px; margin-bottom:40px;">
+            TETRIS<br><span style="font-size:20px; letter-spacing:8px; color:#fff;">ULTIMATE</span></h1>
+
+        <div id="main-menu-btns">
+            <button class="btn" style="--accent: #00f0f0;" onclick="showSoloMenu()" data-tr="menu-solo">Solo
+                Play</button><br>
+
+            <button class="btn" id="btn-load" onclick="openLoadModal()" style="--accent: #55ff55;"
+                data-tr="menu-continue">CONTINUE</button><br>
+
+            <button class="btn" style="--accent: #ffaa00;" onclick="showOnlineMenu()" data-tr="menu-online">ONLINE
+                PLAY</button><br>
+
+            <button class="btn" style="--accent: #ff5555;" onclick="startGame(true, null)" data-tr="menu-cpu">VS
+                CPU</button><br>
+
+            <button class="btn" style="--accent: #aa55ff;" onclick="showTemplateMenu()" data-tr="menu-template">TEMPLATE
+                MODE</button><br>
+            <button class="btn" style="--accent: #55aaff;" onclick="showReplayMenu()" data-tr="menu-replay">VIEW REPLAYS</button><br>
+            <button class="btn" style="--accent: #ffd166;" onclick="showProfileMenu()" data-tr="menu-profile">VIEW MY PROFILE</button>
+        </div>
+
+        <div id="tutorial-menu" style="display:none;">
+            <button class="btn" style="--accent:#55ff55;" onclick="openTutorialEntry()"data-tr="menu-tutorial">TUTORIAL</button>
+            <div class="tutorial-lang-panel">
+                <span class="lang-icon-chip" aria-hidden="true">🌐</span>
+                <select id="tutorial-lang-select" class="modal-input lang-dropdown" onchange="setLang(this.value)">
+                    <option value="ja">日本語</option>
+                    <option value="en">English</option>
+                    <option value="ko">한국어</option>
+                    <option value="zh">简体中文</option>
+                    <option value="es">Español</option>
+                    <option value="fr">Français</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="solo-menu" style="display:none;">
+            <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 10px;" data-tr="solo-menu-title">SOLO MODE</h2>
+            <div class="solo-menu-grid">
+                <div class="solo-mode-card" onclick="startSoloMode('endless')">
+                    <span class="mode">ENDLESS</span>
+                    <span class="desc">ライン数の制限なしで、ゲームオーバーまで続くモードです。</span>
+                    <span class="meta" id="solo-meta-endless">BEST --</span>
+                </div>
+                <div class="solo-mode-card" onclick="startSoloMode('height40')">
+                    <span class="mode">40 HEIGHT</span>
+                    <span class="desc">高さ40ラインの盤面で、ゲームオーバーまで続くモードです。</span>
+                    <span class="meta" id="solo-meta-height40">BEST --</span>
+                </div>
+                <div class="solo-mode-card" onclick="startSoloMode('sprint40')">
+                    <span class="mode">40 LINES</span>
+                    <span class="desc">40ラインを最速で消すスプリントモードです。</span>
+                    <span class="meta" id="solo-meta-sprint40">BEST --</span>
+                </div>
+                <div class="solo-mode-card" onclick="startSoloMode('sprint150')">
+                    <span class="mode">150 LINES</span>
+                    <span class="desc">150ラインを走り切るロングスプリントです。</span>
+                    <span class="meta" id="solo-meta-sprint150">BEST --</span>
+                </div>
+                <div class="solo-mode-card" onclick="startSoloMode('sprint999')">
+                    <span class="mode">999 LINES</span>
+                    <span class="desc">999ラインを目指す耐久モードです。</span>
+                    <span class="meta" id="solo-meta-sprint999">BEST --</span>
+                </div>
+                <div class="solo-mode-card" onclick="startSoloMode('ranking')">
+                    <span class="mode">RANKING MODE</span>
+                    <span class="desc">スコアで競うモードです。ランキングはプレイ中にリアルタイムで更新されます。</span>
+                    <span class="meta" id="solo-meta-ranking">BEST --</span>
+                </div>
+            </div>
+            <button class="btn" style="border-color:#888; color:#888; margin-top:20px;" onclick="hideSoloMenu()" data-tr="common-back">BACK</button>
+        </div>
+
+        <div id="profile-menu" style="display:none;">
+            <div class="profile-shell">
+                <div class="profile-header">
+                    <h2 data-tr="profile-menu-title">MY PROFILE</h2>
+                    <div class="profile-subtitle" data-tr="profile-menu-subtitle">Edit your public card and check your local rate summary here.</div>
+                </div>
+                <div class="profile-layout">
+                    <div class="profile-panel">
+                        <h3 data-tr="profile-preview-section">PROFILE OVERVIEW</h3>
+                        <div class="profile-name-card">
+                            <div>
+                                <span class="hint" data-tr="profile-name-label">PLAYER NAME</span>
+                                <span id="profile-name-display" class="value">PLAYER</span>
+                                <div class="profile-note" data-tr="profile-name-note">This name is linked to the setting you already use in the game.</div>
+                            </div>
+                            <button class="btn profile-inline-btn" onclick="toggleSettings()" data-tr="profile-open-settings">OPEN SETTINGS</button>
+                        </div>
+                        <div id="profile-public-preview" class="profile-preview-card"></div>
+                        <div id="profile-public-links"></div>
+                        <div class="profile-stat-grid">
+                            <div id="profile-stat-rating" class="profile-stat-card"></div>
+                            <div id="profile-stat-peak" class="profile-stat-card"></div>
+                            <div id="profile-stat-season" class="profile-stat-card"></div>
+                            <div id="profile-stat-total" class="profile-stat-card"></div>
+                        </div>
+                    </div>
+                    <div class="profile-panel">
+                        <h3 data-tr="profile-edit-section">EDIT PROFILE</h3>
+                        <div class="profile-editor-grid">
+                            <div class="profile-field">
+                                <label for="profile-title-input" data-tr="profile-title-label">PROFILE TITLE</label>
+                                <input type="text" id="profile-title-input" class="modal-input" maxlength="32" data-tr-placeholder="profile-title-placeholder" placeholder="Stack Lover">
+                            </div>
+                            <div class="profile-field">
+                                <label for="profile-favorite-mode" data-tr="profile-favorite-mode-label">FAVORITE MODE</label>
+                                <select id="profile-favorite-mode" class="modal-input cool-select" style="width:100%;">
+                                    <option value="solo" data-tr="profile-mode-solo">SOLO PLAY</option>
+                                    <option value="cpu" data-tr="profile-mode-cpu">VS CPU</option>
+                                    <option value="online" data-tr="profile-mode-online">ONLINE PLAY</option>
+                                    <option value="template" data-tr="profile-mode-template">TEMPLATE MODE</option>
+                                    <option value="replay" data-tr="profile-mode-replay">REPLAYS</option>
+                                    <option value="ranking" data-tr="profile-mode-ranking">RANKING MODE</option>
+                                </select>
+                            </div>
+                            <div class="profile-field">
+                                <label for="profile-bio-input" data-tr="profile-bio-label">PROFILE DESCRIPTION</label>
+                                <textarea id="profile-bio-input" class="modal-input" maxlength="280" data-tr-placeholder="profile-bio-placeholder" placeholder="Write a short profile..."></textarea>
+                            </div>
+                            <div class="profile-field">
+                                <label for="profile-youtube-input" data-tr="profile-youtube-label">YOUTUBE LINK</label>
+                                <input type="text" id="profile-youtube-input" class="modal-input" data-tr-placeholder="profile-youtube-placeholder" placeholder="https://youtube.com/@yourchannel">
+                            </div>
+                            <div class="profile-field">
+                                <label data-tr="profile-custom-links-label">CUSTOM LINKS</label>
+                                <div class="profile-link-grid">
+                                    <div class="profile-link-row">
+                                        <input type="text" id="profile-link-label-0" class="modal-input" maxlength="28" data-tr-placeholder="profile-link-name-placeholder" placeholder="Link name">
+                                        <input type="text" id="profile-link-url-0" class="modal-input" data-tr-placeholder="profile-link-url-placeholder" placeholder="https://example.com">
+                                    </div>
+                                    <div class="profile-link-row">
+                                        <input type="text" id="profile-link-label-1" class="modal-input" maxlength="28" data-tr-placeholder="profile-link-name-placeholder" placeholder="Link name">
+                                        <input type="text" id="profile-link-url-1" class="modal-input" data-tr-placeholder="profile-link-url-placeholder" placeholder="https://example.com">
+                                    </div>
+                                    <div class="profile-link-row">
+                                        <input type="text" id="profile-link-label-2" class="modal-input" maxlength="28" data-tr-placeholder="profile-link-name-placeholder" placeholder="Link name">
+                                        <input type="text" id="profile-link-url-2" class="modal-input" data-tr-placeholder="profile-link-url-placeholder" placeholder="https://example.com">
+                                    </div>
+                                    <div class="profile-link-row">
+                                        <input type="text" id="profile-link-label-3" class="modal-input" maxlength="28" data-tr-placeholder="profile-link-name-placeholder" placeholder="Link name">
+                                        <input type="text" id="profile-link-url-3" class="modal-input" data-tr-placeholder="profile-link-url-placeholder" placeholder="https://example.com">
+                                    </div>
+                                    <div class="profile-link-row">
+                                        <input type="text" id="profile-link-label-4" class="modal-input" maxlength="28" data-tr-placeholder="profile-link-name-placeholder" placeholder="Link name">
+                                        <input type="text" id="profile-link-url-4" class="modal-input" data-tr-placeholder="profile-link-url-placeholder" placeholder="https://example.com">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="btn" style="--accent:#55ff55;" onclick="saveProfileEditor()" data-tr="profile-save">SAVE PROFILE</button>
+                            <button class="btn" style="--accent:#00f0f0;" onclick="previewProfileDraft()" data-tr="profile-refresh-preview">REFRESH PREVIEW</button>
+                            <button class="btn" style="border-color:#888; color:#888;" onclick="hideProfileMenu()" data-tr="common-back">BACK</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="profile-panel profile-friends-panel">
+                    <div class="profile-friends-head">
+                        <h3 data-tr="profile-friends-section">FRIENDS</h3>
+                        <button class="btn" style="--accent:#00f0f0;" onclick="refreshFriendPresence(true)" data-tr="common-refresh">REFRESH</button>
+                    </div>
+                    <div class="profile-field">
+                        <label for="profile-friend-name-input" data-tr="profile-friend-request-label">ADD FRIEND BY NAME</label>
+                        <div class="chat-input-row">
+                            <input type="text" id="profile-friend-name-input" class="modal-input" maxlength="15" data-tr-placeholder="profile-friend-request-placeholder" placeholder="Player name"
+                                onkeydown="if(event.key === 'Enter') sendFriendRequestFromProfileInput()">
+                            <button class="btn" style="margin:0; min-width:170px;" onclick="sendFriendRequestFromProfileInput()" data-tr="profile-friend-send">SEND REQUEST</button>
+                        </div>
+                    </div>
+                    <div class="profile-friend-columns">
+                        <div>
+                            <div class="friend-section-label" data-tr="profile-friends-incoming">PENDING APPROVAL</div>
+                            <div id="profile-friend-incoming-list" class="friend-list"></div>
+                        </div>
+                        <div>
+                            <div class="friend-section-label" data-tr="profile-friends-outgoing">SENT REQUESTS</div>
+                            <div id="profile-friend-outgoing-list" class="friend-list"></div>
+                        </div>
+                    </div>
+                    <div class="profile-friend-section">
+                        <div class="friend-section-label" data-tr="profile-friends-list">FRIEND LIST</div>
+                        <div id="profile-friend-list" class="friend-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="online-menu" style="display:none;">
+            <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 20px;"
+                data-tr="menu-online">ONLINE PLAY</h2>
+            <div style="margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 20px;">
+                <button class="btn" id="btn-quick-match" style="--accent: #00f0f0; width: 100%;"
+                    onclick="startQuickMatch()" data-tr="online-quickmatch">QUICK MATCH</button>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <button class="btn" id="btn-create-room" style="--accent: #ffaa00; width: 100%;"
+                    onclick="showRoomSettings()" data-tr="online-create">CREATE ROOM</button>
+            </div>
+            <div style="margin-bottom: 20px; border-top: 1px solid #333; padding-top: 20px;">
+                <label style="color: #ccc; font-size: 12px; margin-bottom: 5px; display: block;"
+                    data-tr="online-enter-code">Enter Room Code</label>
+                <input type="text" id="join-code-input" class="modal-input"
+                    style="width: calc(100% - 22px); text-align: center; font-size: 20px; letter-spacing: 2px; text-transform: uppercase;"
+                    onkeydown="if(event.key === 'Enter') joinRoom()">
+                <button class="btn" id="btn-join-room" style="--accent: #00f0f0; width: 100%; margin-top: 10px;"
+                    onclick="joinRoom()" data-tr="online-join">JOIN ROOM</button>
+            </div>
+            <button class="btn" style="border-color:#888; color:#888; margin-top:10px;" onclick="hideOnlineMenu()"
+                data-tr="tmpl-back">BACK</button>
+        </div>
+
+        <div id="room-settings-menu" class="menu-screen" style="display:none; text-align: center;">
+            <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 20px;"
+                data-tr="online-settings">ROOM SETTINGS</h2>
+            <div
+                style="background: rgba(0,0,0,0.5); padding: 20px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #333;">
+                <div style="margin-bottom: 20px;">
+                    <label style="color: #ccc; font-size: 14px; margin-bottom: 10px; display: block;"
+                        data-tr="online-target-wins">Target Wins</label>
+                    <input type="number" id="room-target-wins" class="modal-input" min="1" max="50" value="1"
+                        style="width: 100px; text-align: center; font-size: 18px;">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="color: #ccc; font-size: 14px; margin-bottom: 10px; display: block;"
+                        data-tr="online-party-mode">Party Mode</label>
+                    <label class="toggle-switch" style="margin-top: 5px; transform: scale(1.2);">
+                        <input type="checkbox" id="room-party-mode" onchange="syncPartyRuleSelectionUI()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div id="party-count-setting" style="margin-bottom: 20px;">
+                    <label style="color: #ccc; font-size: 14px; margin-bottom: 10px; display: block;"
+                        data-tr="online-party-count">Players (2-4)</label>
+                    <select id="room-party-count" class="modal-input"
+                        style="width: 100px; text-align: center; font-size: 18px;">
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4" selected>4</option>
+                    </select>
+                </div>
+                <div class="rule-grid">
+                    <div style="margin-bottom: 10px;">
+                        <label style="color:#ccc; font-size:14px; margin-bottom:10px; display:block;" data-tr="room-start-level">START LEVEL</label>
+                        <input type="number" id="room-start-level" class="modal-input" min="1" max="20" value="1"
+                            style="width:100px; text-align:center; font-size:18px;">
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="color:#ccc; font-size:14px; margin-bottom:10px; display:block;" data-tr="room-garbage-multiplier">GARBAGE x</label>
+                        <input type="number" id="room-garbage-multiplier" class="modal-input" min="0.5" max="3" step="0.1" value="1"
+                            style="width:100px; text-align:center; font-size:18px;">
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label style="color:#ccc; font-size:14px; margin-bottom:10px; display:block;" data-tr="room-allow-hold">HOLD</label>
+                        <label class="toggle-switch" style="margin-top: 5px; transform: scale(1.2);">
+                            <input type="checkbox" id="room-allow-hold" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div id="party-special-settings" class="party-special-section">
+                    <div class="party-special-caption" data-tr="party-rule-caption">PARTY RULE: Choose one</div>
+                    <div class="party-special-grid">
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-shared" value="shared" checked onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title" data-tr="party-rule-shared-title">SHARED BOARD</div>
+                                <div class="desc" data-tr="party-rule-shared-desc">Everyone controls the same board together.</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-giant" value="giant" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title" data-tr="party-rule-giant-title">GIANT BLOCKS</div>
+                                <div class="desc" data-tr="party-rule-giant-desc">Fight with 2x2 giant pieces on a normal board.</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-tall" value="tall" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title" data-tr="party-rule-tall-title">40-LINE BOARD</div>
+                                <div class="desc" data-tr="party-rule-tall-desc">Play on a tall 40-line board.</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-bomb" value="bomb" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title" data-tr="party-rule-bomb-title">BOMB MINO</div>
+                                <div class="desc" data-tr="party-rule-bomb-desc">Bomb pieces blast a 3x3 area.</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-skills" value="skills" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title" data-tr="party-rule-skills-title">SKILL PARTY</div>
+                                <div class="desc" data-tr="party-rule-skills-desc">Spend coins on speed, walls, and slowdown skills.</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-chaos" value="chaos" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title">CHAOS BAG</div>
+                                <div class="desc">Random pressure: bombs appear and gravity jumps during the match.</div>
+                            </div>
+                        </label>
+                        <label class="party-special-card">
+                            <input type="radio" name="room-party-variant" id="room-party-survival" value="survival" onchange="syncPartyRuleSelectionUI()">
+                            <div class="party-special-copy">
+                                <div class="title">SURVIVAL RUSH</div>
+                                <div class="desc">Garbage pressure rises over time until one side survives.</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="party-room-options">
+                        <label>
+                            <span>共有盤面で死んだ時</span>
+                            <select id="room-shared-death-mode" class="modal-input">
+                                <option value="solo">死んでも他の人は続行</option>
+                                <option value="collective">連帯責任で全員終了</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>観戦者を許可</span>
+                            <input type="checkbox" id="room-allow-spectators" checked>
+                        </label>
+                        <label>
+                            <span>満員で自動開始</span>
+                            <input type="checkbox" id="room-auto-start-full">
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button class="btn" style="--accent: #00ff00; width: 100%; margin-bottom: 10px;" onclick="hostRoom()"
+                data-tr="online-create-btn">CREATE</button>
+            <button class="btn" style="border-color:#888; color:#888; width: 100%;" onclick="hideRoomSettings()"
+                data-tr="tmpl-cancel">CANCEL</button>
+        </div>
+
+        <div id="online-lobby" style="display:none; text-align: center;">
+            <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 15px;"
+                data-tr="online-lobby-title">ROOM LOBBY</h2>
+            <div
+                style="background: #111; border: 1px solid var(--accent); padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <div style="font-size: 12px; color: #888;" data-tr="online-your-code">YOUR ROOM CODE</div>
+                <div id="lobby-room-code"
+                    style="font-size: 28px; font-weight: bold; letter-spacing: 3px; color: #fff; margin: 5px 0;">---
+                </div>
+                <div style="font-size: 10px; color: #ffaa00;" id="lobby-status" data-tr="online-waiting">Waiting for
+                    connection...</div>
+            </div>
+
+            <div id="lobby-players-container"
+                style="display: flex; justify-content: space-around; flex-wrap: wrap; margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 5px;">
+                <div class="lobby-player-slot" style="margin: 5px 15px;">
+                    <div style="font-size: 12px; color: #888;">PLAYER 1</div>
+                    <button id="lobby-p1-name" class="lobby-slot-name" onclick="openLobbyProfileByIndex(0)" style="font-size: 18px; color: #00f0f0; font-weight: bold;">---</button>
+                    <div class="lobby-role-controls"><select id="lobby-role-0" onchange="updatePartyLobbyRole(0)"><option value="player">PLAY</option><option value="spectator">WATCH</option></select><select id="lobby-team-0" onchange="updatePartyLobbyRole(0)"><option value="A">TEAM A</option><option value="B">TEAM B</option></select></div>
+                </div>
+                <div class="lobby-player-slot" style="margin: 5px 15px;">
+                    <div style="font-size: 12px; color: #888;">PLAYER 2</div>
+                    <button id="lobby-p2-name" class="lobby-slot-name" onclick="openLobbyProfileByIndex(1)" style="font-size: 18px; color: #ff5555; font-weight: bold;">---</button>
+                    <div class="lobby-role-controls"><select id="lobby-role-1" onchange="updatePartyLobbyRole(1)"><option value="player">PLAY</option><option value="spectator">WATCH</option></select><select id="lobby-team-1" onchange="updatePartyLobbyRole(1)"><option value="A">TEAM A</option><option value="B">TEAM B</option></select></div>
+                </div>
+                <!-- Party mode slots (initially hidden) -->
+                <div id="lobby-slot-3" class="lobby-player-slot" style="margin: 5px 15px; display: none;">
+                    <div style="font-size: 12px; color: #888;">PLAYER 3</div>
+                    <button id="lobby-p3-name" class="lobby-slot-name" onclick="openLobbyProfileByIndex(2)" style="font-size: 18px; color: #55ff55; font-weight: bold;">---</button>
+                    <div class="lobby-role-controls"><select id="lobby-role-2" onchange="updatePartyLobbyRole(2)"><option value="player">PLAY</option><option value="spectator">WATCH</option></select><select id="lobby-team-2" onchange="updatePartyLobbyRole(2)"><option value="A">TEAM A</option><option value="B">TEAM B</option></select></div>
+                </div>
+                <div id="lobby-slot-4" class="lobby-player-slot" style="margin: 5px 15px; display: none;">
+                    <div style="font-size: 12px; color: #888;">PLAYER 4</div>
+                    <button id="lobby-p4-name" class="lobby-slot-name" onclick="openLobbyProfileByIndex(3)" style="font-size: 18px; color: #ffff55; font-weight: bold;">---</button>
+                    <div class="lobby-role-controls"><select id="lobby-role-3" onchange="updatePartyLobbyRole(3)"><option value="player">PLAY</option><option value="spectator">WATCH</option></select><select id="lobby-team-3" onchange="updatePartyLobbyRole(3)"><option value="A">TEAM A</option><option value="B">TEAM B</option></select></div>
+                </div>
+            </div>
+
+            <div id="lobby-profile-grid" class="lobby-profile-grid"></div>
+
+            <div class="lobby-chat-panel">
+                <div style="font-size:12px; color:#8ea6b6; margin-bottom:8px;" data-tr="lobby-chat-title">ROOM CHAT</div>
+                <div id="lobby-chat-log" class="lobby-chat-log"></div>
+                <div class="chat-stamps">
+                    <button class="stamp-btn" onclick="sendLobbyStamp('GLHF!')">GLHF</button>
+                    <button class="stamp-btn" onclick="sendLobbyStamp('GG!')">GG</button>
+                    <button class="stamp-btn" onclick="sendLobbyStamp('READY!')">READY</button>
+                    <button class="stamp-btn" onclick="sendLobbyStamp('NICE!')">NICE</button>
+                </div>
+                <div class="chat-input-row">
+                    <input type="text" id="lobby-chat-input" class="modal-input" maxlength="120" data-tr-placeholder="lobby-chat-placeholder" placeholder="Message"
+                        onkeydown="if(event.key === 'Enter') sendLobbyChatFromInput()">
+                    <button class="btn" style="margin:0; min-width:96px;" onclick="sendLobbyChatFromInput()" data-tr="common-send">SEND</button>
+                </div>
+            </div>
+
+            <button class="btn" id="btn-start-online" style="--accent: #00ff00; width: 100%; display: none;"
+                onclick="startOnlineGame()" data-tr="online-start">START GAME</button>
+            <button class="btn" id="btn-online-exit" style="border-color:#888; color:#888; margin-top:10px; width: 100%;"
+                onclick="handleOnlineLobbyExit()">LEAVE ROOM</button>
+        </div>
+
+        <div id="quick-match-lobby" style="display:none; text-align: center; margin-top: 50px;">
+            <h2 style="color:var(--accent); text-shadow:0 0 20px var(--accent); margin-bottom: 40px; font-size: 32px; letter-spacing: 5px;"
+                data-tr="online-quickmatch">QUICK MATCH</h2>
+
+            <div class="radar-container"
+                style="position: relative; width: 120px; height: 120px; margin: 0 auto 40px auto;">
+                <div class="radar-ping"></div>
+                <div class="radar-ping" style="animation-delay: 1s;"></div>
+                <div
+                    style="font-size: 40px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--accent);">
+                    🔍</div>
+            </div>
+
+            <div id="qm-status"
+                style="font-size: 18px; color: #fff; letter-spacing: 2px; margin-bottom: 30px; animation: pulseText 1.5s infinite;"
+                data-tr="online-searching">Searching for opponent...</div>
+
+            <div id="qm-profile-grid" class="quickmatch-profile-grid"></div>
+
+            <div class="quickmatch-lobby-stack">
+                <div class="quickmatch-ready-strip">
+                    <div class="quickmatch-ready-copy">
+                        <div class="eyebrow" data-tr="qm-ready-label">READY CHECK</div>
+                        <div id="qm-ready-status" class="value" data-tr="online-searching">Searching for opponent...</div>
+                    </div>
+                    <button class="btn" id="qm-ready-btn" style="--accent:#55ff55;" onclick="confirmQuickMatchReady()" disabled>OK</button>
+                </div>
+                <div id="qm-chat-panel" class="lobby-chat-panel" style="display:none;">
+                    <div style="font-size:12px; color:#8ea6b6; margin-bottom:8px;" data-tr="lobby-chat-title">ROOM CHAT</div>
+                    <div id="qm-chat-log" class="lobby-chat-log"></div>
+                    <div class="chat-stamps">
+                        <button class="stamp-btn" onclick="sendLobbyStamp('HELLO!')">HELLO</button>
+                        <button class="stamp-btn" onclick="sendLobbyStamp('GLHF!')">GLHF</button>
+                        <button class="stamp-btn" onclick="sendLobbyStamp('OK!')">OK</button>
+                        <button class="stamp-btn" onclick="sendLobbyStamp('GG!')">GG</button>
+                    </div>
+                    <div class="chat-input-row">
+                        <input type="text" id="qm-chat-input" class="modal-input" maxlength="120" data-tr-placeholder="lobby-chat-placeholder" placeholder="Message"
+                            onkeydown="if(event.key === 'Enter') sendLobbyChatFromInput()">
+                        <button class="btn" style="margin:0; min-width:96px;" onclick="sendLobbyChatFromInput()" data-tr="common-send">SEND</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" style="border-color:#888; color:#888; width: 220px;" onclick="cancelQuickMatch()"
+                data-tr="online-leave">LEAVE ROOM</button>
+        </div>
+        <div id="replay-menu" class="replay-browser">
+            <div class="replay-browser-head">
+                <h2 data-tr="replay-library-title">REPLAY LIBRARY</h2>
+                <div id="replay-filter-summary" style="font-size:11px; color:#8ea6b6;">0 RESULTS</div>
+            </div>
+            <div class="replay-browser-layout">
+                <div class="replay-browser-side">
+                    <div class="replay-side-section">
+                        <h3 data-tr="replay-open-code-title">OPEN BY CODE</h3>
+                        <div class="replay-form-grid">
+                            <div>
+                                <label data-tr="replay-code-label">REPLAY CODE</label>
+                                <input type="text" id="replay-code-input" class="modal-input" maxlength="40"
+                                    style="width: calc(100% - 22px); text-align:center;" placeholder="HappyTetris6378" data-tr-placeholder="replay-code-placeholder"
+                                    onkeydown="if(event.key === 'Enter') openReplayByCode()">
+                            </div>
+                            <button class="btn" style="margin:0; width:100%;" onclick="openReplayByCode()" data-tr="replay-open-btn">VIEW REPLAY</button>
+                            <div style="font-size:11px; color:#8ea6b6;" data-tr="replay-archive-note">PAST 30 DAYS</div>
+                        </div>
+                    </div>
+                    <div class="replay-side-section">
+                        <h3 data-tr="replay-filters-title">FILTERS</h3>
+                        <div class="replay-filter-grid">
+                            <div>
+                                <label data-tr="replay-filter-mode-label">MODE</label>
+                                <select id="replay-filter-mode" class="modal-input" style="width:100%;" onchange="applyReplayArchiveFilters()">
+                                    <option value="" data-tr="replay-filter-mode-all">ALL</option>
+                                    <option value="solo" data-tr="profile-mode-solo">SOLO PLAY</option>
+                                    <option value="cpu" data-tr="profile-mode-cpu">VS CPU</option>
+                                    <option value="online" data-tr="profile-mode-online">ONLINE PLAY</option>
+                                    <option value="party" data-tr="replay-mode-party">PARTY MATCH</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label data-tr="replay-filter-date-label">DATE</label>
+                                <input type="date" id="replay-filter-date" class="modal-input" style="width:calc(100% - 22px);" onchange="applyReplayArchiveFilters()">
+                            </div>
+                            <div>
+                                <label data-tr="replay-filter-opponent-label">OPPONENT</label>
+                                <input type="text" id="replay-filter-opponent" class="modal-input" style="width:calc(100% - 22px);" placeholder="Name" data-tr-placeholder="replay-filter-opponent-placeholder" oninput="applyReplayArchiveFilters()">
+                            </div>
+                            <button class="btn" style="margin:0; width:100%;" onclick="resetReplayArchiveFilters()" data-tr="replay-filter-reset">RESET</button>
+                            <button class="btn" style="margin:0; width:100%; border-color:#888; color:#888;" onclick="hideReplayMenu()" data-tr="common-back">BACK</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="replay-browser-stage">
+                    <h3 data-tr="replay-archive-title">ARCHIVE</h3>
+                    <div id="replay-archive-list" class="replay-library-grid"></div>
+                </div>
+            </div>
+        </div>
+        <div id="template-menu" style="display:none;">
+            <div id="tmpl-main-list">
+                <button class="btn" style="--accent:#55ff55;" onclick="openTemplateBuilder()">テンプレートを作る</button><br>
+                <button class="btn" style="--accent:#55aaff;" onclick="openTemplateJsonPicker()">JSONを読み込む</button><br>
+                <input type="file" id="template-json-file" accept=".json,application/json" hidden>
+                <div id="custom-template-list" class="custom-template-list"></div>
+
+                <button class="btn" style="border-color: #00ff00; color: #00ff00;" onclick="toggleRenMenu(true)"
+                    data-tr="tmpl-RS">REN series</button><br>
+                <button class="btn" style="border-color: #ff00ff; color: #ff00ff;" onclick="toggleElevatorMenu(true)"
+                    data-tr="tmpl-ES">Elevator series</button><br>
+                <button class="btn" style="border-color: #ffff00; color: #ffff00;" onclick="toggleTdMenu(true)"
+                    data-tr="tmpl-TS">TD series</button><br>
+                <button class="btn" style="border-color: #ff6600; color: #ff6600;" onclick="togglePCMenu(true)"
+                    data-tr="tmpl-PCS">PC series</button><br>
+                <button class="btn" style="border-color: #345ce0; color: #345ce0;" onclick="toggleTspinMenu(true)"
+                    data-tr="tmpl-TSPIN">T-spin series</button><br>
+
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;" onclick="hideTemplateMenu()"
+                    data-tr="tmpl-back">BACK</button>
+            </div>
+
+            <div id="tmpl-tspin-list" style="display:none;">
+                <button class="btn" onclick="selectTemplate('dt')" data-tr="tmpl-dt">DT Cannon</button><br>
+                <button class="btn" onclick="selectTemplate('tst')" data-tr="tmpl-tst">TST Tower</button><br>
+                <button class="btn" onclick="selectTemplate('trsn')" data-tr="tmpl-trsn">super spiral</button><br>
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
+                    onclick="toggleTspinMenu(false)">◀ 戻る</button>
+            </div>
+
+            <div id="tmpl-ren-list" style="display:none;">
+                <button class="btn" onclick="selectTemplate('nren')" data-tr="tmpl-nren">Center REN</button><br>
+                <button class="btn" onclick="selectTemplate('hren')" data-tr="tmpl-hren">Edge Opening</button><br>
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
+                    onclick="toggleRenMenu(false)">◀ 戻る</button>
+            </div>
+
+
+            <div id="tmpl-elevator-list" style="display:none;">
+                <button class="btn" onclick="selectTemplate('iev')" data-tr="tmpl-iev">I mino elevator</button><br>
+                <button class="btn" onclick="selectTemplate('jev')" data-tr="tmpl-jev">J mino elevator</button><br>
+                <button class="btn" onclick="selectTemplate('lev')" data-tr="tmpl-lev">L mino elevator</button><br>
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
+                    onclick="toggleElevatorMenu(false)">◀ 戻る</button>
+            </div>
+
+            <div id="tmpl-td-list" style="display:none;">
+                <button class="btn" onclick="selectTemplate('hachi')" data-tr="tmpl-hachi">HachimitsuCannon</button><br>
+                <button class="btn" onclick="selectTemplate('meisou')" data-tr="tmpl-meisou">straysCannon</button><br>
+                <button class="btn" onclick="selectTemplate('sgk2')"
+                    data-tr="tmpl-sgk2">MountainStackingNo.2</button><br>
+                <button class="btn" onclick="selectTemplate('gmsr')" data-tr="tmpl-gmsr">gamushiro Cannon</button><br>
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
+                    onclick="toggleTdMenu(false)">◀ 戻る</button>
+            </div>
+
+            <div id="tmpl-pc-list" style="display:none;">
+                <button class="btn" onclick="selectTemplate('pc')" data-tr="tmpl-pc">Perfect Clear Setup</button><br>
+                <button class="btn" onclick="selectTemplate('hpc')" data-tr="tmpl-hpc">Perfect Clear? Setup</button><br>
+                <button class="btn" onclick="selectTemplate('gspc')" data-tr="tmpl-gspc">Perfect Clear</button><br>
+                <button class="btn" style="border-color:#888; color:#888; margin-top:20px;"
+                    onclick="togglePCMenu(false)">◀ 戻る</button>
+            </div>
+        </div>
+
+        <div id="template-builder-overlay" class="modal-overlay" style="display:none; z-index:9996;">
+            <div class="modal-card template-builder-card">
+                <div class="modal-header">
+                    <span>テンプレートを作る</span>
+                    <span style="cursor:pointer; color:#888;" onclick="closeTemplateBuilder()">✕</span>
+                </div>
+                <iframe id="template-builder-frame" class="template-builder-frame" src="template/template.html" title="テトリステンプレート編集ツール"></iframe>
+            </div>
+        </div>
+
+        <div id="mode-select-menu" style="display:none;">
+            <h2 style="color:var(--accent); text-shadow:0 0 10px var(--accent); margin-bottom: 30px;">MODE SELECT</h2>
+            <button class="btn" style="--accent: #00f0f0;" onclick="startSelectedTemplate(false)"
+                data-tr="menu-solo">SOLO PLAY</button><br>
+            <button class="btn" style="--accent: #ff5555;" onclick="startSelectedTemplate(true)" data-tr="menu-cpu">VS
+                CPU</button><br>
+            <button class="btn" style="border-color:#888; color:#888; margin-top:20px;" onclick="cancelTemplateSelect()"
+                data-tr="tmpl-back">BACK</button>
+        </div>
+    </div>
+
+    <!-- Touch Controls Overlay -->
+    <div id="touch-controls">
+        <div class="touch-dpad">
+            <div class="t-btn empty"></div>
+            <div class="t-btn t-up" data-action="hard" aria-label="Hard Drop"><span class="hard-drop-icon"></span></div>
+            <div class="t-btn empty"></div>
+            <div class="t-btn t-left" data-action="left" aria-label="Move Left"><span>◀</span></div>
+            <div class="t-btn empty"></div>
+            <div class="t-btn t-right" data-action="right" aria-label="Move Right"><span>▶</span></div>
+            <div class="t-btn empty"></div>
+            <div class="t-btn t-down" data-action="soft" aria-label="Soft Drop"><span>▼</span></div>
+            <div class="t-btn empty"></div>
+        </div>
+        <div class="touch-actions">
+            <div class="t-btn t-hold" data-action="hold">HOLD</div>
+            <div class="t-btn t-rotl" data-action="rotL">↺</div>
+            <div class="t-btn t-rotr" data-action="rotR">↻</div>
+            <div class="t-btn t-touch-hard" data-action="hard" data-touch-extra="true" aria-label="Hard Drop"><span class="hard-drop-icon"></span></div>
+            <div class="t-btn t-pause" data-action="pause" data-touch-extra="true">Ⅱ</div>
+            <div class="t-btn t-retry" data-action="retry" data-touch-extra="true">R</div>
+        </div>
+    </div>
+
+    <div id="mobile-piece-btn" class="top-action-btn is-hidden" onclick="handleMobilePieceButton()">
+        <span>PIECE</span>
+        <span class="mobile-piece-sub">HOLD</span>
+    </div>
+
+    <div id="replay-controls" class="replay-shell" style="display:none;">
+        <div class="replay-titlebar">
+            <div class="replay-screen-label">
+                <span class="replay-led"></span>
+                <span id="replay-status-label" data-tr="profile-mode-replay">REPLAYS</span>
+            </div>
+            <button class="replay-icon-btn" onclick="stopReplayPlayback()" data-tr="replay-exit">EXIT</button>
+        </div>
+        <div class="replay-timebar">
+            <span id="replay-time-current" class="replay-timecode">0:00</span>
+            <input type="range" id="replay-progress" class="replay-progress" min="0" max="1000" value="0" step="1">
+            <span id="replay-time-total" class="replay-timecode">0:00</span>
+        </div>
+        <div class="replay-controls-row">
+            <div class="replay-cluster">
+                <button class="replay-icon-btn" onclick="skipReplayPlayback(-10000)" data-tr="replay-back10">-10S</button>
+                <button class="replay-icon-btn" onclick="stepReplayFrame(-1)" data-tr="replay-prev-frame">-1F</button>
+                <button class="replay-icon-btn primary" id="replay-pause-btn" onclick="toggleReplayPause()">PAUSE</button>
+                <button class="replay-icon-btn" onclick="stepReplayFrame(1)" data-tr="replay-next-frame">+1F</button>
+                <button class="replay-icon-btn" onclick="skipReplayPlayback(10000)" data-tr="replay-forward10">+10S</button>
+            </div>
+            <div class="replay-speed-panel">
+                <span class="replay-speed-label" data-tr="replay-speed">SPEED</span>
+                <select id="replay-speed-select" class="replay-speed-select" onchange="setReplaySpeed(this.value)">
+                    <option value="0.5">0.5x</option>
+                    <option value="1">1.0x</option>
+                    <option value="2">2.0x</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-view">
+        <div class="field-wrap">
+            <div id="online-self-indicator" class="rainbow-text" style="display:none; margin-top: -30px;">自分⇩</div>
+            <div id="p1-name-display"
+                style="font-size:12px; color:var(--accent); font-weight:bold; letter-spacing:2px;"></div>
+            <div class="board-area">
+                <div id="p-meter-container" class="meter-container">
+                    <div id="p-meter" class="meter-fill" style="height:0%;"></div>
+                </div>
+
+                <div class="side-column">
+                    <div class="hold-next-box">
+                        <div class="stat-label" data-tr="label-hold">HOLD</div>
+                        <canvas id="p-hold" class="mini-canvas" width="60" height="60"></canvas>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label" data-tr="label-score">SCORE</div>
+                        <div id="p-score" class="stat-val">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">REN</div>
+                        <div id="p-ren" class="stat-val">0</div>
+                    </div>
+                </div>
+                <div style="position:relative;">
+                    <div id="p-action-layer" class="action-layer"></div>
+                    <div id="p-hint-badge" class="cpu-hint-badge">CPU: HOLD</div>
+                    <canvas id="p-canvas" class="main-canvas" width="240" height="480"></canvas>
+                    <canvas id="p-hint-canvas" class="hint-overlay-canvas" width="240" height="480"></canvas>
+                </div>
+                <div class="side-column">
+                    <div class="hold-next-box" style="padding-bottom: 5px;">
+                        <div class="stat-label" data-tr="label-next">NEXT</div>
+                        <canvas id="p-next-0" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="p-next-1" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="p-next-2" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="p-next-3" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="p-next-4" class="mini-canvas" width="60" height="60"></canvas>
+                    </div>
+                    <div id="p-rise-next-box" class="hold-next-box rise-next-box">
+                        <div class="stat-label">BOTTOM NEXT</div>
+                        <canvas id="p-rise-next-0" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="p-rise-next-1" class="mini-canvas" width="60" height="60"></canvas>
+                    </div>
+                    <div class="stats-table">
+                        <div class="stat-row"><span class="lbl" data-tr="stats-time">TIME</span><span class="val" id="p-stat-time">0:00</span></div>
+                        <div class="stat-row"><span class="lbl" data-tr="stats-lines">LINES</span><span class="val" id="p-stat-lines">0</span></div>
+                        <div class="stat-row"><span class="lbl" data-tr="stats-level">LEVEL</span><span class="val" id="p-stat-level">1</span></div>
+                        <div class="stat-row"><span class="lbl">PPS</span><span class="val" id="p-stat-pps">0.00</span></div>
+                        <div class="stat-row"><span class="lbl">APM</span><span class="val" id="p-stat-apm">0.00</span></div>
+                        <div class="stat-row"><span class="lbl">LPM</span><span class="val" id="p-stat-lpm">0.00</span></div>
+                    </div>
+                </div>
+            </div>
+            <div id="party-skill-panel" class="skill-panel">
+                <div class="skill-panel-header">
+                    <div class="skill-panel-title">PARTY SKILLS</div>
+                    <div class="skill-coin-pill">COIN <span id="party-skill-coins">0</span></div>
+                </div>
+                <div class="skill-buttons">
+                    <button class="skill-btn" id="skill-btn-speed" onclick="usePartySkill('speed')">
+                        <div class="name">OVERCLOCK JAM</div>
+                        <div class="meta">Cost 4: target speed x2 for 8s</div>
+                    </button>
+                    <button class="skill-btn" id="skill-btn-wall" onclick="usePartySkill('wall')">
+                        <div class="name">WALL DROP</div>
+                        <div class="meta">Cost 5: generate a wall on a random opponent board</div>
+                    </button>
+                    <button class="skill-btn" id="skill-btn-slow" onclick="usePartySkill('slow')">
+                        <div class="name">FOCUS SLOW</div>
+                        <div class="meta">Cost 3: only your board slows down for 6s</div>
+                    </button>
+                </div>
+            </div>
+            <button id="btn-save-menu" class="btn"
+                style="width: 100%; margin: 15px 0 0 0; font-size: 14px; padding: 10px;" onclick="openSaveModal()"
+                data-tr="save-and-menu">SAVE & MENU</button>
+        </div>
+
+        <div id="cpu-field" class="field-wrap" style="display:none;">
+            <div style="font-size:12px; color:#f44; font-weight:bold; letter-spacing:2px;">CPU LV.<span
+                    id="current-lv">5</span></div>
+            <div class="board-area">
+                <div id="c-meter-container" class="meter-container">
+                    <div id="c-meter" class="meter-fill" style="height:0%;"></div>
+                </div>
+
+                <div class="side-column">
+                    <div class="hold-next-box">
+                        <div class="stat-label" data-tr="label-hold">HOLD</div><canvas id="c-hold" class="mini-canvas"
+                            width="60" height="60"></canvas>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label" data-tr="label-score">SCORE</div>
+                        <div id="c-score" class="stat-val">0</div>
+                    </div>
+                </div>
+                <div style="position:relative;">
+                    <div id="c-action-layer" class="action-layer"></div>
+                    <canvas id="c-canvas" class="main-canvas" width="240" height="480"></canvas>
+                </div>
+                <div class="side-column">
+                    <div class="hold-next-box" style="padding-bottom: 5px;">
+                        <div class="stat-label" data-tr="label-next">NEXT</div>
+                        <canvas id="c-next-0" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="c-next-1" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="c-next-2" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="c-next-3" class="mini-canvas" width="60" height="60"></canvas>
+                        <canvas id="c-next-4" class="mini-canvas" width="60" height="60"></canvas>
+                    </div>
+                    <div class="stats-table">
+                        <div class="stat-row"><span class="lbl" data-tr="stats-time">TIME</span><span class="val" id="c-stat-time">0:00</span></div>
+                        <div class="stat-row"><span class="lbl" data-tr="stats-lines">LINES</span><span class="val" id="c-stat-lines">0</span></div>
+                        <div class="stat-row"><span class="lbl" data-tr="stats-level">LEVEL</span><span class="val" id="c-stat-level">1</span></div>
+                        <div class="stat-row"><span class="lbl">PPS</span><span class="val" id="c-stat-pps">0.00</span></div>
+                        <div class="stat-row"><span class="lbl">APM</span><span class="val" id="c-stat-apm">0.00</span></div>
+                        <div class="stat-row"><span class="lbl">LPM</span><span class="val" id="c-stat-lpm">0.00</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="theme/anpontan/theme.js"></script>
+</body>
+</html>
+

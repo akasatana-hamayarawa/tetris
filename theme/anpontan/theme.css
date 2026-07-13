@@ -1,0 +1,159 @@
+/* =====================================================================
+ * あんぽんたん テーマ 装飾CSS
+ * 送っていただいた画像の雰囲気(白い本体・黒い手足・紫のオーラ・丸いUI)を
+ * 反映して、ボタンやパネルを丸く・柔らかく・少し弾むようにしています。
+ * ===================================================================== */
+html[data-theme="anpontan"] .btn,
+html[data-theme="anpontan"] .modal-content,
+html[data-theme="anpontan"] .hud-panel {
+    border-radius: 26px;
+    box-shadow: 0 0 16px rgba(139, 92, 246, 0.45), 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="anpontan"] .btn {
+    transition: transform 140ms cubic-bezier(.34, 1.56, .64, 1), box-shadow 140ms ease;
+}
+
+html[data-theme="anpontan"] .btn:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 0 22px rgba(167, 139, 250, 0.6);
+}
+
+html[data-theme="anpontan"] .btn:active {
+    transform: translateY(0) scale(0.97);
+}
+
+/* --- あんぽんたんテーマ バリエーションピッカー(設定画面) --- */
+.anpontan-variant-picker {
+    display: none;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin: 8px 0;
+    padding: 8px;
+    border-radius: 18px;
+    background: rgba(139, 92, 246, 0.08);
+}
+
+.anpontan-variant-btn {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    min-width: 44px;
+    min-height: 44px;
+    border: 2px solid rgba(139, 92, 246, 0.35);
+    border-radius: 18px;
+    background-color: rgba(255, 255, 255, 0.06);
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    transition: transform 140ms cubic-bezier(.34, 1.56, .64, 1), border-color 140ms ease;
+}
+
+.anpontan-variant-btn:hover,
+.anpontan-variant-btn:focus-visible {
+    transform: scale(1.08) rotate(-2deg);
+    border-color: #a78bfa;
+}
+
+.anpontan-variant-btn.selected {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.35);
+}
+
+/* 設定パネルの背景に選択中のバリエーションを薄く重ねる */
+html[data-theme="anpontan"] #settings-overlay .modal-content {
+    background-image: linear-gradient(rgba(22, 10, 41, 0.92), rgba(22, 10, 41, 0.92)), var(--anpontan-bg-image, none);
+    background-size: cover;
+    background-position: center;
+}
+
+/* --- 画面右下の あんぽんたん マスコット(テーマ選択中のみ表示。ふわふわ浮遊アニメーション) --- */
+@keyframes anpontanFloat {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-3deg);
+    }
+
+    50% {
+        transform: translateY(-10px) rotate(3deg);
+    }
+}
+
+.anpontan-mascot {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    width: 84px;
+    height: 84px;
+    background-image: var(--anpontan-bg-image, none);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0.92;
+    filter: drop-shadow(0 4px 10px rgba(139, 92, 246, 0.45));
+    animation: anpontanFloat 3.6s ease-in-out infinite;
+}
+
+/* --- 画面全体にふわふわ漂う あんぽんたん 7種(かわいい雰囲気づくり用。操作の邪魔をしないよう最背面・低不透明度・クリック不可) --- */
+@keyframes anpontanDrift {
+
+    0%,
+    100% {
+        transform: translateY(0) scale(var(--float-scale, 0.6)) rotate(-4deg);
+    }
+
+    50% {
+        transform: translateY(-18px) scale(var(--float-scale, 0.6)) rotate(4deg);
+    }
+}
+
+.anpontan-floater-field {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.anpontan-floater {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.16;
+    filter: drop-shadow(0 6px 14px rgba(139, 92, 246, 0.3)) blur(0.2px);
+    animation-name: anpontanDrift;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
+
+@media (max-width: 760px) {
+    .anpontan-floater {
+        width: 78px;
+        height: 78px;
+        opacity: 0.12;
+    }
+}
+
+@media (max-width: 760px) {
+    .anpontan-variant-picker {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .anpontan-variant-btn {
+        min-width: 48px;
+        min-height: 48px;
+    }
+
+    .anpontan-mascot {
+        width: 56px;
+        height: 56px;
+        right: 8px;
+        bottom: 8px;
+    }
+}

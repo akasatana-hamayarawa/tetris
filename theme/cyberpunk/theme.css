@@ -1,0 +1,15 @@
+/* =====================================================================
+ * Cyberpunk テーマ 装飾CSS
+ * 色そのものは script.js の THEMES オブジェクト(CSS変数)で切り替わります。
+ * ここでは質感(グロー・角の鋭さ)のみを追加しています。
+ * ===================================================================== */
+html[data-theme="cyberpunk"] .btn,
+html[data-theme="cyberpunk"] .modal-content,
+html[data-theme="cyberpunk"] .hud-panel {
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.45), 0 0 24px rgba(255, 43, 214, 0.25);
+    border-radius: 4px;
+}
+
+html[data-theme="cyberpunk"] .btn:hover {
+    box-shadow: 0 0 18px rgba(0, 229, 255, 0.7), 0 0 32px rgba(255, 43, 214, 0.4);
+}

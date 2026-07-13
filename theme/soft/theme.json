@@ -1,0 +1,38 @@
+{
+  "id": "soft",
+  "name": {
+    "ja": "ソフト",
+    "en": "Soft"
+  },
+  "version": "1.0.0",
+  "author": "Project Team",
+  "description": "パステルピンク、丸みのあるふわふわテーマ",
+  "preview": "assets/preview.png",
+  "icon": "assets/icon.png",
+  "colors": {
+    "accent": "#ff9ecb",
+    "bg": "#fff3f8",
+    "panel": "rgba(255, 255, 255, 0.9)",
+    "text": "#5b4a55",
+    "border": "#ffd3e6",
+    "star": "255, 158, 203",
+    "canvasBg": "#fff8fb"
+  },
+  "fonts": {
+    "main": null
+  },
+  "sounds": {
+    "select": null,
+    "confirm": null
+  },
+  "cursor": null,
+  "particles": {
+    "enabled": false
+  },
+  "animations": {
+    "buttonHover": "bounce"
+  },
+  "css": "theme.css",
+  "js": null,
+  "assets": "assets/"
+}

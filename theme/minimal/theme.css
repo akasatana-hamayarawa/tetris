@@ -1,0 +1,9 @@
+/* =====================================================================
+ * Minimal テーマ 装飾CSS
+ * ===================================================================== */
+html[data-theme="minimal"] .btn,
+html[data-theme="minimal"] .modal-content,
+html[data-theme="minimal"] .hud-panel {
+    border-radius: 2px;
+    box-shadow: none;
+}

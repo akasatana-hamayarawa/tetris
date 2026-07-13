@@ -1,0 +1,48 @@
+{
+  "id": "anpontan",
+  "name": {
+    "ja": "あんぽんたん",
+    "en": "Anpontan"
+  },
+  "version": "1.0.0",
+  "author": "Project Team",
+  "description": "白い本体・黒い手足・紫のオーラが特徴の、丸くてかわいいテーマ",
+  "preview": "assets/preview.png",
+  "icon": "assets/icon.png",
+  "colors": {
+    "accent": "#8b5cf6",
+    "bg": "#160a29",
+    "panel": "rgba(45, 24, 74, 0.92)",
+    "text": "#f5f1ff",
+    "border": "#a78bfa",
+    "star": "139, 92, 246",
+    "canvasBg": "#1c0f33"
+  },
+  "fonts": {
+    "main": null
+  },
+  "sounds": {
+    "select": null,
+    "confirm": null
+  },
+  "cursor": null,
+  "particles": {
+    "enabled": true,
+    "type": "float",
+    "assets": [
+      "anpontan-fluffy-purple.png",
+      "anpontan-circle.png",
+      "anpontan-square.png",
+      "anpontan-star.png",
+      "anpontan-fluffy-yellow.png",
+      "anpontan-rainbow.png",
+      "anpontan-blue.png"
+    ]
+  },
+  "animations": {
+    "buttonHover": "bounce"
+  },
+  "css": "theme.css",
+  "js": "theme.js",
+  "assets": "assets/"
+}

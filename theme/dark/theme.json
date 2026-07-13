@@ -1,0 +1,38 @@
+{
+  "id": "dark",
+  "name": {
+    "ja": "ダーク",
+    "en": "Dark"
+  },
+  "version": "1.0.0",
+  "author": "Project Team",
+  "description": "黒基調の高コントラストテーマ",
+  "preview": "assets/preview.png",
+  "icon": "assets/icon.png",
+  "colors": {
+    "accent": "#ff4444",
+    "bg": "#000000",
+    "panel": "rgba(5, 5, 5, 0.95)",
+    "text": "#dddddd",
+    "border": "#444444",
+    "star": "255, 68, 68",
+    "canvasBg": "#0a0a0a"
+  },
+  "fonts": {
+    "main": null
+  },
+  "sounds": {
+    "select": null,
+    "confirm": null
+  },
+  "cursor": null,
+  "particles": {
+    "enabled": false
+  },
+  "animations": {
+    "buttonHover": "none"
+  },
+  "css": "theme.css",
+  "js": null,
+  "assets": "assets/"
+}

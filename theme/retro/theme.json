@@ -1,0 +1,38 @@
+{
+  "id": "retro",
+  "name": {
+    "ja": "レトロ",
+    "en": "Retro"
+  },
+  "version": "1.0.0",
+  "author": "Project Team",
+  "description": "マゼンタ基調のレトロアーケード風テーマ",
+  "preview": "assets/preview.png",
+  "icon": "assets/icon.png",
+  "colors": {
+    "accent": "#ff00ff",
+    "bg": "#1a001a",
+    "panel": "rgba(51, 0, 51, 0.95)",
+    "text": "#ffffff",
+    "border": "#ff00ff",
+    "star": "255, 0, 255",
+    "canvasBg": "#2a002a"
+  },
+  "fonts": {
+    "main": null
+  },
+  "sounds": {
+    "select": null,
+    "confirm": null
+  },
+  "cursor": null,
+  "particles": {
+    "enabled": false
+  },
+  "animations": {
+    "buttonHover": "none"
+  },
+  "css": "theme.css",
+  "js": null,
+  "assets": "assets/"
+}
